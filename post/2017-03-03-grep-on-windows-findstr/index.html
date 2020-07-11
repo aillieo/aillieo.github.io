@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="grep命令可以高效查询处理大量的文本文件，Windows下也有与之类似的findstr。最近在Windows上处理LoadRunner的大量log，使用findstr提高了效率，解决了很多问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows下的grep —— findstr">
+<meta property="og:url" content="http://aillieo.cn/post/2017-03-03-grep-on-windows-findstr/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="grep命令可以高效查询处理大量的文本文件，Windows下也有与之类似的findstr。最近在Windows上处理LoadRunner的大量log，使用findstr提高了效率，解决了很多问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-03-03T05:31:22.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.044Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="findstr">
+<meta property="article:tag" content="cmd">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-03-03-grep-on-windows-findstr/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Windows下的grep —— findstr | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-03-03-grep-on-windows-findstr/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Windows下的grep —— findstr
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-03 13:31:22" itemprop="dateCreated datePublished" datetime="2017-03-03T13:31:22+08:00">2017-03-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Miscellaneous/" itemprop="url" rel="index"><span itemprop="name">Miscellaneous</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>grep</code>命令可以高效查询处理大量的文本文件，Windows下也有与之类似的<code>findstr</code>。最近在Windows上处理LoadRunner的大量log，使用<code>findstr</code>提高了效率，解决了很多问题。</p>
+<a id="more"></a>
+
+<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr [&#x2F;b] [&#x2F;e] [&#x2F;l] [&#x2F;r] [&#x2F;s] [&#x2F;i] [&#x2F;x] [&#x2F;v] [&#x2F;n] [&#x2F;m] [&#x2F;o] [&#x2F;p] [&#x2F;offline] [&#x2F;g:file] [&#x2F;f:file] [&#x2F;c:string] [&#x2F;d:dirlist] [&#x2F;a:ColorAttribute] [strings] [[Drive:][Path] FileName [...]]</span><br></pre></td></tr></table></figure>
+
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><p><code>/b</code> ：匹配行的起始<br><code>/e</code> ：匹配行的末尾<br><code>/l</code> ：使用字符串的文本内容来查询<br><code>/r</code> ：使用正则表达式来查询。除非使用<code>/l</code>，都会将匹配字符串中的元字符认为是正则表达式<br><code>/s</code> ：查询当前目录及子目录下的所有文件<br><code>/i</code> ：指定查询时不区分字母的大小写<br><code>/x</code> ：输出完全匹配的行<br><code>/v</code> ：输出不包含匹配的行<br><code>/n</code> ：在输出显示时带上行号<br><code>/m</code> ：只输出包含匹配内容的文件名<br><code>/o</code> ：在每个匹配的行前输出字符偏移量<br><code>/p</code> ：跳过包含不可打印字符的文件<br><code>/offline</code> ：使用脱机属性设置处理文件<br><code>/f: file</code> ：从指定的文件中读取待查询的目标文件<br><code>/c: string</code> ：使用指定的文本作为文字搜索字符串<br><code>/g: file</code> ：从指定的文件中读取查询字符串<br><code>/d: dirlist</code> ：查找以逗号为分隔符的目录列表<br><code>/a: ColorAttribute</code> ：使用两个十六进制数指定颜色属性<br><code>strings</code> ：指定查询内容字符串<br><code>[ Drive : ][ Path ] FileName […]</code> ：指定查询的目标文件<br><code>/?</code> ：查询帮助</p>
+<h2 id="使用正则表达式"><a href="#使用正则表达式" class="headerlink" title="使用正则表达式"></a>使用正则表达式</h2><p><code>findstr</code>中支持的正则表达式见下表：</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>.</td>
+<td>通配符：任何字符</td>
+</tr>
+<tr>
+<td>*</td>
+<td>重复：零次或多次出现的字符或类</td>
+</tr>
+<tr>
+<td>^</td>
+<td>位于行首</td>
+</tr>
+<tr>
+<td>$</td>
+<td>位于行尾</td>
+</tr>
+<tr>
+<td>[class]</td>
+<td>字符类，其中的任何一个字符</td>
+</tr>
+<tr>
+<td>[^class]</td>
+<td>反字符类，不包含其中的任何字符</td>
+</tr>
+<tr>
+<td>[x-y]</td>
+<td>范围：指定范围内的任何字符</td>
+</tr>
+<tr>
+<td>\x</td>
+<td>转义符号：将元字符x用作文本字符</td>
+</tr>
+<tr>
+<td>\&lt;xyz</td>
+<td>位于单词开头</td>
+</tr>
+<tr>
+<td>xyz\&gt;</td>
+<td>位于单词末尾</td>
+</tr>
+</tbody></table>
+<h2 id="用例"><a href="#用例" class="headerlink" title="用例"></a>用例</h2><p>在不使用<code>/c</code>时，可使用空格来分隔多个查询字符串，如要在文件x.y中查找字符串<code>&quot;hello&quot;</code>或<code>&quot;there&quot;</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr &quot;hello there&quot; x.y</span><br></pre></td></tr></table></figure>
+<p>在文件x.y中查找字符串<code>&quot;hello there&quot;</code>需要加<code>/c</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr &#x2F;c:&quot;hello there&quot; x.y</span><br></pre></td></tr></table></figure>
+<p>查找文件Proposal.txt中所有出现的<code>&quot;Windows&quot;</code>，匹配大小写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr Windows proposal.txt</span><br></pre></td></tr></table></figure>
+<p>查找当前目录及所有子目录下所有文件中出现的<code>&quot;Windows&quot;</code>，不区分大小写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr &#x2F;s &#x2F;i Windows *.*</span><br></pre></td></tr></table></figure>
+<p>查找所有包含有字符串<code>&quot;FOR&quot;</code>，且<code>&quot;FOR&quot;</code>之前以任意数量的空格作为起始的行，并且在显示时打印出行号：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr &#x2F;b &#x2F;n &#x2F;c:&quot; *FOR&quot; *.bas</span><br></pre></td></tr></table></figure>
+<p>如果需要对同一组文件进行几种不同的查询，可以创建一个文件且每行保存一个查询标准。当然也可以将待查询的文件放入一个文本文件。如果需要使用<code>Finddata.txt</code>中的查询标准，将<code>Filelist.txt</code>中的文件作为查询对象，并且将查询结果存储到<code>Results.out</code>，命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr &#x2F;g:finddata.txt &#x2F;f:filelist.txt &gt; results.out</span><br></pre></td></tr></table></figure>
+<p>如果需要在当前目录及子目录下的所有文件中查找<code>&quot;computer&quot;</code>，不区分大小写，且输出内容为所有包含有<code>&quot;computer&quot;</code>的文件名，命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr &#x2F;s &#x2F;i &#x2F;m &quot;\&lt;computer\&gt;&quot; *.*</span><br></pre></td></tr></table></figure>
+<p>如果需要查找的单词不止<code>&quot;computer&quot;</code>，还包含其它以<code>comp</code>开头的单词如<code>&quot;compliment&quot;</code>和<code>&quot;compete&quot;</code>等，则命令为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">findstr &#x2F;s &#x2F;i &#x2F;m &quot;\&lt;comp.*&quot; *.*</span><br></pre></td></tr></table></figure>
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://technet.microsoft.com/en-us/library/bb490907.aspx" target="_blank" rel="noopener">https://technet.microsoft.com/en-us/library/bb490907.aspx</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/findstr/" rel="tag"># findstr</a>
+              <a href="/tags/cmd/" rel="tag"># cmd</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-03-02-cpp-std-string-cheatsheet/" rel="prev" title="std::string Cheatsheet">
+      <i class="fa fa-chevron-left"></i> std::string Cheatsheet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-03-06-cpp-stl-containers/" rel="next" title="C++标准模板库：容器">
+      C++标准模板库：容器 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#语法"><span class="nav-number">1.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数说明"><span class="nav-number">2.</span> <span class="nav-text">参数说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用正则表达式"><span class="nav-number">3.</span> <span class="nav-text">使用正则表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用例"><span class="nav-number">4.</span> <span class="nav-text">用例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'a1930ecbf1d8fb24f4481983240d5c9c',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

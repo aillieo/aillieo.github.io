@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文记录着色器shader和着色程序shader program的概览及使用，具体的API用法参考官网:https:&#x2F;&#x2F;www.khronos.org&#x2F;opengles&#x2F;sdk&#x2F;docs&#x2F;man&#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenGL ES 2.0 着色器和着色程序API">
+<meta property="og:url" content="http://aillieo.cn/post/2016-11-14-opengl-es-shaders-programs-api/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="本文记录着色器shader和着色程序shader program的概览及使用，具体的API用法参考官网:https:&#x2F;&#x2F;www.khronos.org&#x2F;opengles&#x2F;sdk&#x2F;docs&#x2F;man&#x2F;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-11-14T02:18:22.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.038Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="shader">
+<meta property="article:tag" content="OpenGL">
+<meta property="article:tag" content="OpenGL ES">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2016-11-14-opengl-es-shaders-programs-api/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>OpenGL ES 2.0 着色器和着色程序API | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2016-11-14-opengl-es-shaders-programs-api/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OpenGL ES 2.0 着色器和着色程序API
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-11-14 10:18:22" itemprop="dateCreated datePublished" datetime="2016-11-14T10:18:22+08:00">2016-11-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ComputerGraphics/" itemprop="url" rel="index"><span itemprop="name">ComputerGraphics</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ComputerGraphics/OpenGL-ES/" itemprop="url" rel="index"><span itemprop="name">OpenGL ES</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文记录着色器shader和着色程序shader program的概览及使用，具体的API用法参考官网:<br><a href="https://www.khronos.org/opengles/sdk/docs/man/" target="_blank" rel="noopener">https://www.khronos.org/opengles/sdk/docs/man/</a></p>
+<a id="more"></a>
+
+<h2 id="着色器和着色程序"><a href="#着色器和着色程序" class="headerlink" title="着色器和着色程序"></a>着色器和着色程序</h2><p>当使用着色器来渲染时，需要创建两种基础对象：着色器对象shader objects和着色程序对象program objects。可以参考C语言中：编译器对源代码进行编译得到目标代码，然后由链接器来链接目标代码，形成最终的程序。 OpenGL ES 2.0中采用与此类似的机制：着色器对象是包含有一个着色器的对象，需要为其添加着色器源代码，然后编译成目标格式。编译之后，着色器对象就可以添加给着色程序对象，在OpenGL ES中每个程序对象会包含两个着色器对象，一个顶点着色器和一个片段着色器。着色程序对象被链接成为一个最终的“可执行文件”，这个最终的程序才可以用来渲染。<br>整个工作流程如下：首先创建一个顶点着色器对象和一个片段着色器对象，然后分别对其添加源代码，并且编译；然后创建一个着色程序对象，将编译后的着色器对象添加给它，并完成链接。如果一切正常的话，就可以通过OpenGL来调用该着色程序了。</p>
+<h3 id="着色器相关API"><a href="#着色器相关API" class="headerlink" title="着色器相关API"></a>着色器相关API</h3><p>创建一个shader对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">GLuint <span class="title">glCreateShader</span><span class="params">(GLenum type)</span></span></span><br></pre></td></tr></table></figure>
+<p>删除shader对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glDeleteShader</span><span class="params">(GLuint shader)</span></span></span><br></pre></td></tr></table></figure>
+<p>向已创建的shader对象提供Shader源码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glShaderSource</span><span class="params">(GLuint shader, GLsizei count, <span class="keyword">const</span> <span class="keyword">char</span>** <span class="built_in">string</span>, <span class="keyword">const</span> GLint* length)</span></span></span><br></pre></td></tr></table></figure>
+<p>编译shader内部源码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glCompileShader</span><span class="params">(GLuint shader)</span></span></span><br></pre></td></tr></table></figure>
+<p>获得shader对象的状态信息，如是否编译成功等</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glGetShaderiv</span><span class="params">(GLuint shader, GLenum pname, GLint *params)</span></span></span><br></pre></td></tr></table></figure>
+<p>获得shader对象的log记录</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glGetShaderInfoLog</span><span class="params">(GLuint shader, GLsizei maxLength, GLsizei *length, GLchar *infoLog)</span></span></span><br></pre></td></tr></table></figure>
+<p>接下来是一段示例代码，加载一个着色器：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">GLuint <span class="title">LoadShader</span><span class="params">(GLenum type, <span class="keyword">const</span> <span class="keyword">char</span> *shaderSrc)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	GLuint shader; GLint compiled;</span><br><span class="line">	<span class="comment">// Create the shader object shader = glCreateShader(type);</span></span><br><span class="line">	<span class="keyword">if</span>(shader == <span class="number">0</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	<span class="comment">// Load the shader source glShaderSource(shader, 1, &amp;shaderSrc, NULL); </span></span><br><span class="line">	<span class="comment">// Compile the shader glCompileShader(shader);</span></span><br><span class="line">	<span class="comment">// Check the compile status</span></span><br><span class="line">	glGetShaderiv(shader, GL_COMPILE_STATUS, &amp;compiled);</span><br><span class="line">	<span class="keyword">if</span>(!compiled) </span><br><span class="line">    &#123;</span><br><span class="line">		GLint infoLen = <span class="number">0</span>;</span><br><span class="line">		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &amp;infoLen);</span><br><span class="line">		<span class="keyword">if</span>(infoLen &gt; <span class="number">1</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">char</span>* infoLog = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * infoLen);</span><br><span class="line">			glGetShaderInfoLog(shader, infoLen, <span class="literal">NULL</span>, infoLog); </span><br><span class="line">			esLogMessage(<span class="string">"Error compiling shader:\n%s\n"</span>, infoLog);</span><br><span class="line">			<span class="built_in">free</span>(infoLog); </span><br><span class="line">        &#125;</span><br><span class="line">		glDeleteShader(shader);</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line">    &#125;</span><br><span class="line">	<span class="keyword">return</span> shader; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="着色程序相关API"><a href="#着色程序相关API" class="headerlink" title="着色程序相关API"></a>着色程序相关API</h3><p>创建着色程序对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">GLuint <span class="title">glCreateProgram</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></figure>
+<p>删除着色程序对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glDeleteProgram</span><span class="params">(GLuint program)</span></span></span><br></pre></td></tr></table></figure>
+<p>给着色程序添加着色器对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glAttachShader</span><span class="params">(GLuint program, GLuint shader)</span></span></span><br></pre></td></tr></table></figure>
+<p>删除着色程序中的着色器对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glDetachShader</span><span class="params">(GLuint program, GLuint shader)</span></span></span><br></pre></td></tr></table></figure>
+<p>链接着色程序</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glLinkProgram</span><span class="params">(GLuint program)</span></span></span><br></pre></td></tr></table></figure>
+<p>获得着色程序对象的状态信息，如是否链接成功等</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glGetProgramiv</span><span class="params">(GLuint program, GLenum pname, GLint *params)</span></span></span><br></pre></td></tr></table></figure>
+<p>获得着色程序对象的log记录</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glGetProgramInfoLog</span><span class="params">(GLuint program, GLsizei maxLength, GLsizei *length, GLchar *infoLog)</span></span></span><br></pre></td></tr></table></figure>
+<p>验证着色程序对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glValidateProgram</span><span class="params">(GLuint program)</span></span></span><br></pre></td></tr></table></figure>
+<p>激活着色程序对象</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUseProgram</span><span class="params">(GLuint program)</span></span></span><br></pre></td></tr></table></figure>
+<p>下边是一段示例代码，创建着色程序，为着色程序添加着色器，并链接着色程序：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Create the program object</span></span><br><span class="line">programObject = glCreateProgram();</span><br><span class="line"><span class="keyword">if</span>(programObject == <span class="number">0</span>) </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">glAttachShader(programObject, vertexShader); </span><br><span class="line">glAttachShader(programObject, fragmentShader);</span><br><span class="line"><span class="comment">// Link the program </span></span><br><span class="line">glLinkProgram(programObject);</span><br><span class="line"><span class="comment">// Check the link status</span></span><br><span class="line">glGetProgramiv(programObject, GL_LINK_STATUS, &amp;linked);</span><br><span class="line"><span class="keyword">if</span>(!linked)</span><br><span class="line">&#123;</span><br><span class="line">	GLint infoLen = <span class="number">0</span>; </span><br><span class="line">	glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &amp;infoLen);</span><br><span class="line">	<span class="keyword">if</span>(infoLen &gt; <span class="number">1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">char</span>* infoLog = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * infoLen);</span><br><span class="line">		glGetProgramInfoLog(programObject, infoLen, <span class="literal">NULL</span>, infoLog); </span><br><span class="line">    	esLogMessage(<span class="string">"Error linking program:\n%s\n"</span>, infoLog);</span><br><span class="line">		<span class="built_in">free</span>(infoLog); </span><br><span class="line">	&#125;</span><br><span class="line">	glDeleteProgram(programObject);</span><br><span class="line">	<span class="keyword">return</span> FALSE;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="comment">// Use the program object </span></span><br><span class="line">glUseProgram(userData-&gt;programObject);</span><br></pre></td></tr></table></figure>
+<h2 id="Uniform和Attribute"><a href="#Uniform和Attribute" class="headerlink" title="Uniform和Attribute"></a>Uniform和Attribute</h2><p>完成着色程序的链接之后，即可以获取着色程序中的uniform数据，uniform存储的是由应用程序通过OpenGL API传入shader的只读常量。同一个着色程序共享同一组uniform，如果某个着色程序的顶点着色器和片段着色器如果同时声明了相同的uniform，此uniform在两个shader中必须保持同样的类型和值。</p>
+<h3 id="Uniform相关API"><a href="#Uniform相关API" class="headerlink" title="Uniform相关API"></a>Uniform相关API</h3><p>为获取着色程序中激活的uniform（当一个uniform被着色程序使用时，认为该uniform处于激活状态。如果在shader中声明了一个uniform，但并没有使用，则链接时会把它优化掉，所以获取激活uniform参数列表时不会包含它），首先需要调用<code>glGetProgramiv</code>并使用<code>GL_ACTIVE_UNIFORMS</code>作为参数，将会返回着色程序中激活状态的uniform的数量。同时还可以调用 <code>glGetProgramiv</code> 使用<code>GL_ACTIVE_UNIFORM_MAX_LENGTH</code>为参数获取名称最长的uniform变量名中包含的字符个数（含字符串终止符）。然后，使用<code>glGetActiveUniform</code>来获取各uniform的详细信息，具体如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glGetActiveUniform</span><span class="params">(GLuint program, GLuint index, GLsizei bufSize, GLsizei* length, GLint* <span class="built_in">size</span>, GLenum* type, <span class="keyword">char</span>* name)</span></span></span><br></pre></td></tr></table></figure>
+<p>使用<code>glGetActiveUniform</code>可以获取uniform的几乎全部参数，包括变量名、变量类型等，还可以查询某变量是否是数组，及数组中元素个数等。当知道了uniform的名称之后，即可获取它的位置值（location，一个整数），给uniform设置数值时必须使用它的位置值。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">GLint <span class="title">glGetUniformLocation</span><span class="params">(GLuint program, <span class="keyword">const</span> <span class="keyword">char</span>* name)</span></span></span><br></pre></td></tr></table></figure>
+<p>这个函数即是通过uniform的名称来获取位置值，如果在着色程序中没有对应于该名称的激活的uniform值，则会返回-1。通过位置值给uniform加载变量值的函数如下，依据uniform的变量类型不同而不同：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform1f</span><span class="params">(GLint location, GLfloat x)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform1fv</span><span class="params">(GLint location, GLsizei count,</span></span></span><br><span class="line"><span class="function"><span class="params"><span class="keyword">const</span> GLfloat* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform1i</span><span class="params">(GLint location, GLint x)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform1iv</span><span class="params">(GLint location, GLsizei count, <span class="keyword">const</span> GLint* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform2f</span><span class="params">(GLint location, GLfloat x, GLfloat y)</span> <span class="keyword">void</span> <span class="title">glUniform2fv</span><span class="params">(GLint location, GLsizei count, <span class="keyword">const</span> GLfloat* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform2i</span><span class="params">(GLint location, GLint x, GLint y)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform2iv</span><span class="params">(GLint location, GLsizei count, <span class="keyword">const</span> GLint* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform3f</span><span class="params">(GLint location, GLfloat x, GLfloat y, GLfloat z)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform3fv</span><span class="params">(GLint location, GLsizei count, <span class="keyword">const</span> GLfloat* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform3i</span><span class="params">(GLint location, GLint x, GLint y, GLint z)</span> </span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform3iv</span><span class="params">(GLint location, GLsizei count, <span class="keyword">const</span> GLint* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform4f</span><span class="params">(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform4fv</span><span class="params">(GLint location, GLsizei count, <span class="keyword">const</span> GLfloat* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform4i</span><span class="params">(GLint location, GLint x, GLint y, GLint z, GLint w)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniform4iv</span><span class="params">(GLint location, GLsizei count, <span class="keyword">const</span> GLint* v)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniformMatrix2fv</span><span class="params">(GLint location, GLsizei count, GLboolean transpose, <span class="keyword">const</span> GLfloat* value)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniformMatrix3fv</span><span class="params">(GLint location, GLsizei count, GLboolean transpose, <span class="keyword">const</span> GLfloat* value)</span></span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glUniformMatrix4fv</span><span class="params">(GLint location, GLsizei count, GLboolean transpose, <span class="keyword">const</span> GLfloat* value)</span></span></span><br></pre></td></tr></table></figure>
+<p>在使用这些函数时，直接根据需要的变量类型选择即可。使用<code>glGetActiveUniform</code>可以查询uniform的类型。注意，<code>glUniform\*</code>系列函数，并不需要着色程序对象的句柄值作为参数，因为<code>glUniform\*</code>函数总是作用于当前使用的程序对象（即调用<code>glUseProgram</code>使用的着色程序对象）。uniform会被着色程序对象保留，相当于对应着色程序的局部变量，一旦在一个着色程序中设置了uniform，当激活另一个着色程序时，之前的uniform值会依然保留。<br>示例代码， 如何使用函数来获取着色程序中的uniform信息：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">GLint maxUniformLen; </span><br><span class="line">GLint numUniforms; </span><br><span class="line"><span class="keyword">char</span> *uniformName; </span><br><span class="line">GLint index;</span><br><span class="line"></span><br><span class="line">glGetProgramiv(progObj, GL_ACTIVE_UNIFORMS, &amp;numUniforms); </span><br><span class="line">glGetProgramiv(progObj, GL_ACTIVE_UNIFORM_MAX_LENGTH, &amp;maxUniformLen);</span><br><span class="line">uniformName = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(<span class="keyword">char</span>) * maxUniformLen);</span><br><span class="line"><span class="keyword">for</span>(index = <span class="number">0</span>; index &lt; numUniforms; index++) </span><br><span class="line">&#123;</span><br><span class="line">	GLint <span class="built_in">size</span>; GLenum type; GLint location;</span><br><span class="line">	<span class="comment">// Get the Uniform Info</span></span><br><span class="line">	glGetActiveUniform(progObj, index, maxUniformLen, <span class="literal">NULL</span>, &amp;<span class="built_in">size</span>, &amp;type, uniformName);</span><br><span class="line">	<span class="comment">// Get the uniform location</span></span><br><span class="line">	location = glGetUniformLocation(progObj, uniformName);</span><br><span class="line">	<span class="keyword">switch</span>(type)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">case</span> GL_FLOAT:</span><br><span class="line">		<span class="comment">// ... break;</span></span><br><span class="line">		<span class="keyword">case</span> GL_FLOAT_VEC2: <span class="comment">// ...</span></span><br><span class="line">		<span class="keyword">break</span>; </span><br><span class="line">		<span class="keyword">case</span> GL_FLOAT_VEC3: <span class="comment">// ...</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> GL_FLOAT_VEC4: <span class="comment">// ...</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> GL_INT:</span><br><span class="line">		<span class="comment">// ...</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">		<span class="comment">// ... Check for all the types ...</span></span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">		<span class="comment">// Unknown type</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	&#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Attribute相关API"><a href="#Attribute相关API" class="headerlink" title="Attribute相关API"></a>Attribute相关API</h3><p>除了从着色程序中获取uniform之外，还需要对着色器程序中的vertex attributes进行设置。获取attributes的方法与获取uniform的方法类似。首先通过<code>GL_ACTIVE_ATTRIBUTES</code>可以得到已激活attributes的列表，然后通过<code>glGetActiveAttrib</code>获取某一个attribute的参数，最后通过一系列的设置函数来给attribute加载需要的值。</p>
+<h2 id="着色器编译器和着色器二进制文件"><a href="#着色器编译器和着色器二进制文件" class="headerlink" title="着色器编译器和着色器二进制文件"></a>着色器编译器和着色器二进制文件</h2><p>着色器编译器产生的代码会占用存储空间，并且着色器的编译过程也会消耗很多的CPU时间和内存，这对于便携式或手持设备的性能影响还是相当明显的。考虑到这些因素，OpenGL ES 2.0还有一种实现形式可以支持二进制形式着色器，即预先离线完成着色器源码的编译工作（offline），生成二进制形式的着色器。这种预编译工具通常是由各厂商制作，因此并没有统一标准，虽然丧失了一些通用性与便携性，但是的确可以减轻运行时OpenGL ES的负担。可以通过接口<code>glGetBooleanv</code>检查<code>GL_SHADER_COMPILER</code>来确定所使用的实现形式是否支持在线编译（online）。<br>对于支持在线编译（online）的情况，用<code>glShaderSource</code>定义着色器，当完成着色器的编译之后，可以使用<code>glReleaseShaderCompiler</code>来告知系统编译完毕，占用的资源已经允许释放。但是如果后续还会使用<code>glCompileShader</code>来编译多个着色器，则需要重新为其分配资源，如同<code>glReleaseShaderCompiler</code>没有被调用过一样。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glReleaseShaderCompiler</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br></pre></td></tr></table></figure>
+<p>对于只支持二进制形式着色器的OpenGL ES实现，则厂商需要来定义其自身支持的二进制格式，下边的代码用来判断是否支持着色器编译器、是否支持二进制着色器以及支持哪一种二进制类型：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">GLboolean shaderCompiler; </span><br><span class="line">GLint numBinaryFormats; </span><br><span class="line">GLint *formats;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Determine if a shader compiler available </span></span><br><span class="line">glGetBooleanv(GL_SHADER_COMPILER, &amp;shaderCompiler);</span><br><span class="line"><span class="comment">// Determine binary formats available </span></span><br><span class="line">glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &amp;numBinaryFormats); </span><br><span class="line">formats = <span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(GLint) * numBinaryFormats);</span><br><span class="line"></span><br><span class="line">glGetIntegerv(GL_SHADER_BINARY_FORMATS, formats);</span><br><span class="line"></span><br><span class="line"><span class="comment">// "formats" now holds the list of supported binary formats</span></span><br></pre></td></tr></table></figure>
+<p>如果使用二进制形式的着色器，并且有一份供应商提供的二进制着色器的token，则可以使用<code>glShaderBinary</code>来加载该着色器。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glShaderBinary</span><span class="params">(GLint n, <span class="keyword">const</span> GLuint* shaders, GLenum binaryFormat, <span class="keyword">const</span> <span class="keyword">void</span>* binary, GLint length)</span></span></span><br></pre></td></tr></table></figure>
+<p>与在线编译相似，在线链接功能（online linking）也需要消耗很多的CPU时间及存储空间。有的厂商要求在二进制着色器里同时包含顶点着色器和片断着色器，有的厂商则提供单独的顶点二进制着色器和片段二进制着色器，然后在线将其链接起来。</p>
+<p>直接提供的二进制着色器，与着色器源码编译后得到的目标文件具有相同的功能，唯一的不同在于使用着色器源码的目标文件的话，可以通过一定的方法读回着色器的源代码，但直接提供的二进制文件不能。在应用开发过程中，可以根据实现方式的支持程度来选择使用源代码着色器还是二进制的着色器，</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://www.khronos.org/opengles/sdk/docs/man/xhtml/" target="_blank" rel="noopener">https://www.khronos.org/opengles/sdk/docs/man/xhtml/</a><br><a href="https://book.douban.com/subject/3175883/" target="_blank" rel="noopener">OpenGL ES 2.0 ProgrammingGuide</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/shader/" rel="tag"># shader</a>
+              <a href="/tags/OpenGL/" rel="tag"># OpenGL</a>
+              <a href="/tags/OpenGL-ES/" rel="tag"># OpenGL ES</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2016-11-05-cocos2d-x-rendering-system-01/" rel="prev" title="cocos2d-x 渲染系统 （一）">
+      <i class="fa fa-chevron-left"></i> cocos2d-x 渲染系统 （一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2016-11-21-c-char-string-cheatsheet/" rel="next" title="C语言字符串Cheatsheet">
+      C语言字符串Cheatsheet <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#着色器和着色程序"><span class="nav-number">1.</span> <span class="nav-text">着色器和着色程序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#着色器相关API"><span class="nav-number">1.1.</span> <span class="nav-text">着色器相关API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#着色程序相关API"><span class="nav-number">1.2.</span> <span class="nav-text">着色程序相关API</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Uniform和Attribute"><span class="nav-number">2.</span> <span class="nav-text">Uniform和Attribute</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Uniform相关API"><span class="nav-number">2.1.</span> <span class="nav-text">Uniform相关API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Attribute相关API"><span class="nav-number">2.2.</span> <span class="nav-text">Attribute相关API</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#着色器编译器和着色器二进制文件"><span class="nav-number">3.</span> <span class="nav-text">着色器编译器和着色器二进制文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'db34039c45c1c66f6d9fe5ee95b2e8aa',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

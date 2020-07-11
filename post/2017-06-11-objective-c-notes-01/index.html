@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="记录一些最近使用OC时涉及到的内容，算是巩固和总结。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Objective-C笔记">
+<meta property="og:url" content="http://aillieo.cn/post/2017-06-11-objective-c-notes-01/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="记录一些最近使用OC时涉及到的内容，算是巩固和总结。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-06-11T08:31:21.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.048Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Objective-C">
+<meta property="article:tag" content="ARC">
+<meta property="article:tag" content="内存管理">
+<meta property="article:tag" content="引用计数">
+<meta property="article:tag" content="代理">
+<meta property="article:tag" content="单例">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-06-11-objective-c-notes-01/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Objective-C笔记 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-06-11-objective-c-notes-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Objective-C笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-06-11 16:31:21" itemprop="dateCreated datePublished" datetime="2017-06-11T16:31:21+08:00">2017-06-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Objective-C/" itemprop="url" rel="index"><span itemprop="name">Objective-C</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一些最近使用OC时涉及到的内容，算是巩固和总结。</p>
+<a id="more"></a>
+
+<h2 id="ARC内存管理"><a href="#ARC内存管理" class="headerlink" title="ARC内存管理"></a>ARC内存管理</h2><p>Cocoa使用引用计数(RC)方法来管理对象的生命周期，以达到内存管理的目的。</p>
+<h3 id="引用计数（RC）"><a href="#引用计数（RC）" class="headerlink" title="引用计数（RC）"></a>引用计数（RC）</h3><p>对于内存中每个对象，都有一个整数与其相对应，这个数字就是它的引用计数（RC）。</p>
+<p>当某段代码需要访问一个对象时，代码就将该对象的引用计数器值加1，表示“我要访问该对象”；当这段代码结束对该对象访问时，将对象的引用计数器减1，表示它不再访问该对象。当引用计数的值为0时，表示不再有代码访问该对象，此时该对象将被销毁，其占用的内存会被系统回收以便重用。</p>
+<p>当使用alloc、new方法或者通过copy消息创建一个对象时，对象的引用计数值被设置为1，要增加对象的引用计数的值，可以给对象发送一条retain消息。要减少的话，可以给对象发送一条release消息。</p>
+<p>当一个对象因其引用计数值归0而即将被销毁时，Objective-C会自动向对象发送一条dealloc消息。你可以在自己的对象中重写dealloc方法，这样就能释放掉已经分配的全部相关资源。一定不要直接调用dealloc方法，Objective-C会在需要销毁对象时自动调用它。</p>
+<p>要获得一个对象的引用计数的值，可以发送retainCount消息。</p>
+<h3 id="autorelease-pool"><a href="#autorelease-pool" class="headerlink" title="autorelease pool"></a>autorelease pool</h3><p>我们可以很容易地知道何时创建了一个对象，但常常很难确定在何时何处不再使用该对象而将其释放。<br>Cocoa中的自动释放池很好地解决了这一问题。NSObject类提供有以下方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (id) autorelease;</span><br></pre></td></tr></table></figure>
+
+<p>该方法预先设定了一条会在未来某个时间发送的release消息，其返回值是接收这条消息的对象。这一特性与retain消息采用了相同的技术，使嵌套调用更加容易。当给一个对象发送<br>autorelease消息时，实际上是将该对象添加到了自动释放池中。当自动释放池被销毁时，会向该池中的所有对象发送relase消息。</p>
+<p>其实有两种方法可以创建一个自动释放池：</p>
+<ul>
+<li>使用 @autoreleasepool 关键字</li>
+<li>通过NSAutoreleasePool 对象</li>
+</ul>
+<p>在Foundation库中可以使用<code>@autoreleasepool</code>，大括号作用范围内所有的代码都会放进这个自动释放池内：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">@autoreleasepool</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F;...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果使用<code>NSAutoreleasePool</code>对象，需要手动创建和释放对象。当创建了一个自动释放池之后，该对象会自动成为当前激活的（active）自动释放池。当该自动释放池对象被销毁时，会释放池中的所有对象：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">NSAutoreleasePool *pool;</span><br><span class="line">pool &#x3D; [NSAutoreleasePool new];</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;...</span><br><span class="line"></span><br><span class="line">[pool release];</span><br></pre></td></tr></table></figure>
+
+<h3 id="Cocoa内存管理规则"><a href="#Cocoa内存管理规则" class="headerlink" title="Cocoa内存管理规则"></a>Cocoa内存管理规则</h3><p>Cocoa内存管理的规则如下：</p>
+<ul>
+<li><p>当你使用new、alloc或copy方法创建一个对象时，该对象的保留计数器的值为1。当不再使用该对象时，你应该向该对象发送一条release或autorelease消息。这样，该对象将在其使用寿命结束时被销毁。</p>
+</li>
+<li><p>当你通过其他方法获得一个对象时，假设该对象的保留计数器的值为1，而且已经被设置为自动释放，那么你不需要执行任何操作来确保该对象得到清理。如果你打算在一段时间内拥有该对象，则需要保留它并确保在操作完成时释放它。如果你保留了某个对象，就需要（最终）释放或自动释放该对象。必须保持retain方法和release方法的使用次数相等。</p>
+</li>
+</ul>
+<p>当拥有一个对象时，只需要判断该对象的获得途径（怎样获得的），以及将要拥有这个对象多长时间：</p>
+<table>
+<thead>
+<tr>
+<th>获得途径</th>
+<th>临时对象</th>
+<th>拥有对象</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>alloc/new/copy</td>
+<td>不再使用时释放对象(Release)</td>
+<td>在dealloc中释放对象(Release)</td>
+</tr>
+<tr>
+<td>其他方法</td>
+<td>不需要执行任何操作</td>
+<td>获得对象时保留(Retain) 在dealloc中释放对象</td>
+</tr>
+</tbody></table>
+<p><code>[NSMutableArray arrayWithCapacity]</code> 和 <code>[NSColor blueColor]</code>等都属于上表中的“其他方法”。</p>
+<h3 id="自动引用计数"><a href="#自动引用计数" class="headerlink" title="自动引用计数"></a>自动引用计数</h3><p>自动引用计数（ARC）是苹果公司的内存管理解决方案。</p>
+<p>ARC是在编译时进行工作的，它在代码中插入了合适的<code>retain</code>和<code>release</code>语句，就好像是你自己手动写好了所有的内存管理代码。不过，是编译器替你完成了内存管理的工作，程序在运行的时候。<code>retain</code>和<code>release</code>会像往常一样发挥作用。系统不会知道也不会关心这些命令是你写的还是编译器写的。<br>ARC是一个可选的功能，你必须明确地启用或禁用它。</p>
+<p>ARC只对可保留对象指针（retainable object pointers，ROPs）有效。可保留对象指针主要有以下三种：</p>
+<ol>
+<li>代码块指针</li>
+<li>Objective-C对象指针</li>
+<li>通过<code>_attribute__((NSObject))</code>类型定义的指针</li>
+</ol>
+<p>在代码中使用ARC，需要满足以下三个条件：</p>
+<ol>
+<li>能够确定哪些对象需要进行内存管理</li>
+<li>能够表明如何去管理对象</li>
+<li>有可行的办法传递对象的所有权</li>
+</ol>
+<h2 id="代理传值"><a href="#代理传值" class="headerlink" title="代理传值"></a>代理传值</h2><p>现有两个UIViewController，分别名为UIViewControllerFirst和UIViewControllerSecond，在First中点击某按钮后会创建Second并跳转。此时很容易实现由First向Second的传值（以及函数调用）。如果需要从Second向First传值（或函数调用），有很多种方法，如可以使用代理的方式，主要步骤为：</p>
+<ol>
+<li>在Second中声明协议，协议中包含一个传递值的方法</li>
+<li>Second中声明代理</li>
+<li>First需要实现Second中的协议</li>
+<li>将First设置为Second中的代理</li>
+<li>在Second中调用代理实现的方法</li>
+</ol>
+<p>UIViewControllerFirst.h：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#import &lt;UIKit&#x2F;UIKit.h&gt;</span><br><span class="line"></span><br><span class="line">@interface UIViewControllerFirst : UIViewController</span><br><span class="line"></span><br><span class="line">@property (nonatomic, copy) NSArray *assets;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+<p>UIViewControllerFirst.m：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;UIViewControllerFirst.h&quot;</span><br><span class="line"></span><br><span class="line">@interface UIViewControllerFirst ()</span><br><span class="line">&lt;UIViewControllerSecondDelegate&gt;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation UIViewControllerFirst</span><br><span class="line"></span><br><span class="line">- (void)viewDidLoad &#123;</span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">    &#x2F;&#x2F; Do any additional setup after loading the view, typically from a nib.</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)didReceiveMemoryWarning &#123;</span><br><span class="line">    [super didReceiveMemoryWarning];</span><br><span class="line">    &#x2F;&#x2F; Dispose of any resources that can be recreated.</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (IBAction)btnSelectPressed:(id)sender</span><br><span class="line">&#123;</span><br><span class="line">    UIViewControllerSecond *view &#x3D; [UIViewControllerSecond new];</span><br><span class="line">    </span><br><span class="line">    [view setDelegate:self];</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    [self.navigationController pushViewController:view animated:YES];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- (void)passAssets:(NSArray *)assets</span><br><span class="line">&#123;</span><br><span class="line">    self.assets &#x3D; assets;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p>UIViewControllerSecond.h：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">#import &lt;UIKit&#x2F;UIKit.h&gt;</span><br><span class="line"></span><br><span class="line">@protocol UIViewControllerSecondDelegate &lt;NSObject&gt;</span><br><span class="line">- (void)passAssets:(NSArray *)assets;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@interface UIViewControllerSecond : UIViewController</span><br><span class="line"></span><br><span class="line">@property (nonatomic, copy) NSArray *assets;</span><br><span class="line"></span><br><span class="line">@property (weak, nonatomic) id &lt;UIViewControllerSecondDelegate&gt; delegate;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+<p>UIViewControllerSecond.m：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">#import &quot;UIViewControllerSecond.h&quot;</span><br><span class="line"></span><br><span class="line">@implementation UIViewControllerSecond</span><br><span class="line"></span><br><span class="line">- (void)viewDidLoad</span><br><span class="line">&#123;</span><br><span class="line">    [super viewDidLoad];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">- (void)viewWillDisappear:(BOOL)animated</span><br><span class="line">&#123;</span><br><span class="line">    [super viewWillDisappear:animated];</span><br><span class="line">    [self.navigationController setToolbarHidden:YES animated:YES];</span><br><span class="line">    </span><br><span class="line">    if ([_delegate respondsToSelector:@selector(passAssets:)]) &#123;</span><br><span class="line">        [_delegate passAssets:self.assets];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@interface UploadManager : NSObject</span><br><span class="line"></span><br><span class="line">+(UploadManager*)defaultManager;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">#import &quot;UploadManager.h&quot;</span><br><span class="line"></span><br><span class="line">@implementation UploadManager</span><br><span class="line"></span><br><span class="line">static UploadManager *defaultManager &#x3D; nil;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">+ (UploadManager*)defaultManager</span><br><span class="line">&#123;</span><br><span class="line">    static dispatch_once_t token;</span><br><span class="line">    dispatch_once(&amp;token, ^&#123;</span><br><span class="line">        if(defaultManager &#x3D;&#x3D; nil)</span><br><span class="line">        &#123;</span><br><span class="line">            defaultManager &#x3D; [[self alloc] init];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    return defaultManager;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">+ (id)allocWithZone:(struct _NSZone *)zone</span><br><span class="line">&#123;</span><br><span class="line">    static dispatch_once_t token;</span><br><span class="line">    dispatch_once(&amp;token, ^&#123;</span><br><span class="line">        if(defaultManager &#x3D;&#x3D; nil)</span><br><span class="line">        &#123;</span><br><span class="line">            defaultManager &#x3D; [super allocWithZone:zone];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">    return defaultManager;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- (id)copy</span><br><span class="line">&#123;</span><br><span class="line">    return self;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- (id)mutableCopy</span><br><span class="line">&#123;</span><br><span class="line">    return self;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- (instancetype)init</span><br><span class="line">&#123;</span><br><span class="line">    self &#x3D; [super init];</span><br><span class="line">    if(self)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; init your singleton here</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    return self;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@end</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="http://www.cnblogs.com/andyque/archive/2011/08/03/2125728.html" target="_blank" rel="noopener">http://www.cnblogs.com/andyque/archive/2011/08/03/2125728.html</a></p>
+<p><a href="https://book.douban.com/subject/24284008/" target="_blank" rel="noopener">Objective-C基础教程</a></p>
+<p><a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/MemoryMgmt/Articles/mmPractical.html" target="_blank" rel="noopener">https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/MemoryMgmt/Articles/mmPractical.html</a></p>
+<p><a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/EncapsulatingData/EncapsulatingData.html" target="_blank" rel="noopener">https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/EncapsulatingData/EncapsulatingData.html</a></p>
+<p><a href="http://www.jianshu.com/p/4a1d1921284b" target="_blank" rel="noopener">http://www.jianshu.com/p/4a1d1921284b</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Objective-C/" rel="tag"># Objective-C</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-06-05-git-push-both-remote-repos/" rel="prev" title="Git同时Push多个远端仓库">
+      <i class="fa fa-chevron-left"></i> Git同时Push多个远端仓库
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-06-16-cpp-function-return-tuple/" rel="next" title="C++使用tuple实现函数返回多个值">
+      C++使用tuple实现函数返回多个值 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ARC内存管理"><span class="nav-number">1.</span> <span class="nav-text">ARC内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引用计数（RC）"><span class="nav-number">1.1.</span> <span class="nav-text">引用计数（RC）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#autorelease-pool"><span class="nav-number">1.2.</span> <span class="nav-text">autorelease pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cocoa内存管理规则"><span class="nav-number">1.3.</span> <span class="nav-text">Cocoa内存管理规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自动引用计数"><span class="nav-number">1.4.</span> <span class="nav-text">自动引用计数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代理传值"><span class="nav-number">2.</span> <span class="nav-text">代理传值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#单例模式"><span class="nav-number">3.</span> <span class="nav-text">单例模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '5874986301e7d2451487b933193c6422',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="继续《C++ Primer》，很多知识点真的是用到时才会有体会，多记多写吧。这一篇笔记包括前置与后置递增递减运算符对比，局部静态对象，函数以数组作为形参，以及函数返回数组指针。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++笔记（三）">
+<meta property="og:url" content="http://aillieo.cn/post/2017-10-18-cpp-notes-03/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="继续《C++ Primer》，很多知识点真的是用到时才会有体会，多记多写吧。这一篇笔记包括前置与后置递增递减运算符对比，局部静态对象，函数以数组作为形参，以及函数返回数组指针。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-10-18T14:31:15.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.051Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C&amp;#43;&amp;#43;">
+<meta property="article:tag" content="前置">
+<meta property="article:tag" content="后置">
+<meta property="article:tag" content="递增">
+<meta property="article:tag" content="i&amp;#43;&amp;#43;">
+<meta property="article:tag" content="&amp;#43;&amp;#43;i">
+<meta property="article:tag" content="数组">
+<meta property="article:tag" content="多维数组">
+<meta property="article:tag" content="形参">
+<meta property="article:tag" content="局部静态">
+<meta property="article:tag" content="尾置返回">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-10-18-cpp-notes-03/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>C++笔记（三） | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-10-18-cpp-notes-03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++笔记（三）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-10-18 22:31:15" itemprop="dateCreated datePublished" datetime="2017-10-18T22:31:15+08:00">2017-10-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-43-43/" itemprop="url" rel="index"><span itemprop="name">C&#43;&#43;</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>继续《C++ Primer》，很多知识点真的是用到时才会有体会，多记多写吧。这一篇笔记包括前置与后置递增递减运算符对比，局部静态对象，函数以数组作为形参，以及函数返回数组指针。</p>
+<a id="more"></a>
+
+<h2 id="前置递增递减vs后置递增递减"><a href="#前置递增递减vs后置递增递减" class="headerlink" title="前置递增递减vs后置递增递减"></a>前置递增递减vs后置递增递减</h2><p>关于<code>i++</code>与<code>++i</code>：除非必须，否则不用递增递减运算符的后置版本。</p>
+<p>前置版本的递增运算符避免了不必要的工作，它把值加1后直接返回改变了的运算对象。与之相比，后置版本需要将原始值存储下来以便于返回这个未修改的内容。如果我们不需要修改前的值，那么后置版本的操作就是一种浪费。</p>
+<p>对于整数和指针类型来说，编译器可能对这种额外的工作进行一定的优化；但是对于相对复杂的迭代器类型，这种额外的工作就消耗巨大了。建议养成使用前置版本的习惯，这样不仅不需要担心性能的问题，而且更重要的是写出的代码会更符合编程的初衷。</p>
+<h2 id="局部静态对象"><a href="#局部静态对象" class="headerlink" title="局部静态对象"></a>局部静态对象</h2><p>某些时候，有必要令局部变量的生命周期贯穿函数调用及之后的时间。可以将局部变量定义成<code>static</code>类型从而获得这样的对象。局部静态对象（local static object）在程序的执行路径第一次经过对象定义语句时初始化，并且直到程序终止才被销毁，在此期间即使对象所在的函数结束执行也不会对它有影响。</p>
+<p>举个例下，下面的函数统计它自己被调用了多少次：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">size_t</span> <span class="title">count_calls</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">size_t</span> ctr = <span class="number">0</span>; <span class="comment">// value will persist across calls</span></span><br><span class="line">	<span class="keyword">return</span> ++ctr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i != <span class="number">10</span>; ++i)</span><br><span class="line">	<span class="built_in">cout</span> &lt;&lt; count_calls() &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段程序将输出从1到10（包括10在内）的数字。</p>
+<p>在控制流第一次经过<code>ctr</code>的定义之前，<code>ctr</code>被创建并初始化为0。每次调用将<code>ctr</code>加1并返回新值。每次执行<code>count_calls</code>函数时，变量<code>ctr</code>的值都已经存在并且等于函数上一次退出时<code>ctr</code>的值，因此，第二次调用时<code>ctr</code>的值是1，第三次调用时<code>ctr</code>的值是2，以此类推。</p>
+<p>如果局部静态变量没有显式的初始值，它将执行值初始化，内置类型的局部静态变量初始化为0。</p>
+<h2 id="函数数组形参"><a href="#函数数组形参" class="headerlink" title="函数数组形参"></a>函数数组形参</h2><p>当数组作为函数的形参时，数组会被转换成指针。当为一个函数传递一个数组时，实际上传递的是指向数组首个元素的指针。</p>
+<p>以下三个函数是等价的：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// despite appearances, these three declarations of print are equivalent</span></span><br><span class="line"><span class="comment">// each function has a single parameter of type const int*</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span>*)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span>[])</span></span>; <span class="comment">// shows the intent that the function takes an array</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span>[<span class="number">10</span>])</span></span>; <span class="comment">// dimension for documentation purposes (at best)</span></span><br></pre></td></tr></table></figure>
+
+<p>每个函数的唯一形参都是<code>const int*</code>类型，当编译器处理对<code>print</code>的调用时，只检查传入的参数是否是<code>const int*</code>类型：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> i = <span class="number">0</span>, j[<span class="number">2</span>] = &#123;<span class="number">0</span>, <span class="number">1</span>&#125;;</span><br><span class="line"><span class="built_in">print</span>(&amp;i); <span class="comment">// ok: &amp;i is int*</span></span><br><span class="line"><span class="built_in">print</span>(j); <span class="comment">// ok: j is converted to an int* that points to j[0]</span></span><br></pre></td></tr></table></figure>
+
+<p>如果我们传给<code>print</code>函数的是一个数组，则实参自动地转换成指向数组首元素的指针，数组的大小对函数调用没有影响。</p>
+<p>因为数组是以指针的形式传递给函数的，所以一开始函数并不知道数组的确切尺寸，调用者应该为此提供一些额外的信息。管理指针形参有三种常用技术：</p>
+<h4 id="使用标记指定数组长度"><a href="#使用标记指定数组长度" class="headerlink" title="使用标记指定数组长度"></a>使用标记指定数组长度</h4><p>这种方法要求数组有一个结束标记，典型示例是C风格字符串：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *cp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (cp) <span class="comment">// if cp is not a null pointer </span></span><br><span class="line">		<span class="keyword">while</span> (*cp) <span class="comment">// so long as the character it points to is not a null character</span></span><br><span class="line">			<span class="built_in">cout</span> &lt;&lt; *cp++; <span class="comment">// print the character and advance the pointer</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用标准库规范"><a href="#使用标准库规范" class="headerlink" title="使用标准库规范"></a>使用标准库规范</h4><p>管理数组实参的第二种技术是传递指向数组首元素和尾后元素的指针。可以按照如下方式输出元素的内容：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> *beg, <span class="keyword">const</span> <span class="keyword">int</span> *<span class="built_in">end</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">// print every element starting at beg up to but not including end</span></span><br><span class="line">	<span class="keyword">while</span> (beg != <span class="built_in">end</span>)</span><br><span class="line">		<span class="built_in">cout</span> &lt;&lt; *beg++ &lt;&lt; <span class="built_in">endl</span>; <span class="comment">// print the current element // and advance the pointer</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为调用此函数，我们需要传入两个指针，一个只想要输出的首元素，另一个指向尾元素的下一位置：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> j[<span class="number">2</span>] = &#123;<span class="number">0</span>, <span class="number">1</span>&#125;;</span><br><span class="line"><span class="comment">// j is converted to a pointer to the first element in j</span></span><br><span class="line"><span class="comment">// the second argument is a pointer to one past the end of j</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">begin</span>(j), <span class="built_in">end</span>(j));  <span class="comment">// begin and end functions</span></span><br></pre></td></tr></table></figure>
+
+<p>注意<code>std::end(..)</code>得到的是尾后元素的指针，类似于STL库中容器的超尾迭代器，不能解引用。</p>
+<h4 id="显式传递一个表示数组大小的形参"><a href="#显式传递一个表示数组大小的形参" class="headerlink" title="显式传递一个表示数组大小的形参"></a>显式传递一个表示数组大小的形参</h4><p>第三种管理数组实参的方法是专门定义一个表示数组大小的形参，在C程序和过去的C++程序中常常使用这种方法。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// const int ia[] is equivalent to const int* ia</span></span><br><span class="line"><span class="comment">// size is passed explicitly and used to control access to elements of ia</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">const</span> <span class="keyword">int</span> ia[], <span class="keyword">size_t</span> <span class="built_in">size</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i != <span class="built_in">size</span>; ++i) </span><br><span class="line">    &#123;</span><br><span class="line">		<span class="built_in">cout</span> &lt;&lt; ia[i] &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个版本的程序通过形参<code>size</code>的值确定要输出多少个元素，调用<code>print</code>函数时必须传入这个表示数组大小的值：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">intj[]=&#123;<span class="number">0</span>,<span class="number">1</span>&#125;; <span class="comment">// int array of size2 </span></span><br><span class="line"><span class="built_in">print</span>(j, <span class="built_in">end</span>(j) - <span class="built_in">begin</span>(j));</span><br></pre></td></tr></table></figure>
+
+<h3 id="数组引用形参"><a href="#数组引用形参" class="headerlink" title="数组引用形参"></a>数组引用形参</h3><p>形参可以是数组的引用。此时，引用形参绑定到对应的实参上，即绑定到数组上：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ok: parameter is a reference to an array; the dimension is part of the type </span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">int</span> (&amp;arr)[<span class="number">10</span>])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">auto</span> elem : arr)</span><br><span class="line">		<span class="built_in">cout</span> &lt;&lt; elem &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意不能将<code>&amp;arr</code>两端的括号去掉，<code>f(int &amp;arr[10])</code>中将<code>arr</code>声明成了引用的数组。</p>
+<p>注意：因为数组的大小是构成数组类型的一部分，所以只要不超过维度，在函数体内就可以放心地使用数组。但是，这一用法也无形中限制了<code>print</code>函数的可用性，我们只能将函数作用于大小为10的数组：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> i = <span class="number">0</span>, j[<span class="number">2</span>] = &#123;<span class="number">0</span>, <span class="number">1</span>&#125;;</span><br><span class="line"><span class="keyword">int</span> k[<span class="number">10</span>] = &#123;<span class="number">0</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>&#125;;</span><br><span class="line"><span class="built_in">print</span>(&amp;i); <span class="comment">// error: argument is not an array of ten ints </span></span><br><span class="line"><span class="built_in">print</span>(j); <span class="comment">// error: argument is not an array of ten ints</span></span><br><span class="line"><span class="built_in">print</span>(k); <span class="comment">// ok: argument is an array of ten ints</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="传递多维数组"><a href="#传递多维数组" class="headerlink" title="传递多维数组"></a>传递多维数组</h3><p>C++中的多维数组其实就是数组的数组。</p>
+<p>和所有数组一样，当将多维数组传递给函数时，真正传递的是指向数组首元素的指针。因为我们处理的是数组的数组，所以首元素本身就是一个数组，指针就是一个指向数组的指针。数组第二维（及后边所有维度）的大小都是数组类型的一部分，不能省略：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// matrix points to the first element in an array whose elements are arrays of ten ints </span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">int</span> (*matrix)[<span class="number">10</span>], <span class="keyword">int</span> rowSize)</span> </span>&#123; <span class="comment">/* . . . */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述语句将<code>matrix</code>声明成含有10个整数的数组的指针。注意<code>*matrix</code>两端的括号必不可少，<code>int *matrix[10]</code>指的是由10个指针构成的数组。</p>
+<p>我们也可以使用数组的语法定义函数，此时编译器会一如既往地忽略掉第一个维度，所以最好不要把它包括在形参列表内：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// equivalent definition</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">print</span><span class="params">(<span class="keyword">int</span> matrix[][<span class="number">10</span>], <span class="keyword">int</span> rowSize)</span> </span>&#123; <span class="comment">/* . . . */</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>matrix</code>的声明看起来像是一个二维数组，实际上形参是指向含有10个整数的数组的指针。</p>
+<h2 id="函数返回数组指针"><a href="#函数返回数组指针" class="headerlink" title="函数返回数组指针"></a>函数返回数组指针</h2><p>因为数组不能被拷贝，所以函数不能返回数组。不过，函数可以返回数组的指针或引用。虽然从语法上来说，要想定义一个返回数组的指针或引用的函数比较烦琐，但是有一些方法可以简化这一任务，其中最直接的方法是使用类型别名。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">int</span> arrT[<span class="number">10</span>]; <span class="comment">// arrT is a synonym for the type array of ten ints</span></span><br><span class="line"><span class="keyword">using</span> arrtT = <span class="keyword">int</span>[<span class="number">10</span>]; <span class="comment">// equivalent declaration of arrT</span></span><br><span class="line"><span class="function">arrT* <span class="title">func</span><span class="params">(<span class="keyword">int</span> i)</span></span>; <span class="comment">// func returns a pointer to an array of five ints</span></span><br></pre></td></tr></table></figure>
+<p>其中<code>arrT</code>是含有10个整数的数组的别名。因为我们无法返回数组，所以将返回类型定义成数组的指针。因此，<code>func</code>函数接受一个<code>int</code>实参，返同一个指向包含10个整数的数组的指针。</p>
+<h3 id="声明一个返回数组指针的函数"><a href="#声明一个返回数组指针的函数" class="headerlink" title="声明一个返回数组指针的函数"></a>声明一个返回数组指针的函数</h3><p>要想在声明<code>func</code>时不使用类型别名，我们必须牢记被定义的名字后面数组的维度：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> arr[<span class="number">10</span>]; <span class="comment">// arr is an array of ten ints</span></span><br><span class="line"><span class="keyword">int</span> *p1[<span class="number">10</span>]; <span class="comment">// p1 is an array of ten pointers</span></span><br><span class="line"><span class="keyword">int</span> (*p2)[<span class="number">10</span>] = &amp;arr; <span class="comment">// p2 points to an array of ten ints</span></span><br></pre></td></tr></table></figure>
+
+<p>和这些声明一样，如果我们想定义一个返回数组指针的函数，则数组的维度必须跟在函数名字之后。然而，函数的形参列表也跟在函数名宇后面且形参列表应该先于数组的维度。因此，返回数组指针的函数形式如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Type (*function(parameter_list))[dimension]</span><br></pre></td></tr></table></figure>
+
+<p>类似于其他数组的声明，<code>Type</code>表示元素的类型，<code>dimension</code>表示数组的大小。<code>(*function(parameter_list))</code>两端的括号必须存在，就像我们定义<code>p2</code>时两端必须有括号一样。如果没有这对括写，函数的返回类型将是指针的数组。</p>
+<p>举个具体点的例子，下面这个<code>func</code>函数的声明没有使用类型别名：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> (*func(<span class="keyword">int</span> i))[<span class="number">10</span>];</span><br></pre></td></tr></table></figure>
+
+<p>可以按照以下的顺序来逐层理解该声明的含义：</p>
+<ul>
+<li><code>func(int)</code> 表示调用<code>func</code>函数时需要一个<code>int</code>类型的实参。</li>
+<li><code>(*func(int))</code> 意味着我们可以对函数调用的结果执行解引用操作。</li>
+<li><code>(*func(int))[10]</code>表示解引用<code>func</code>的调用将得到一个大小是10的数组。</li>
+<li><code>int (*func(int))[10]</code> 表示数组中的元素是int类型。</li>
+</ul>
+<h3 id="使用尾置返回类型"><a href="#使用尾置返回类型" class="headerlink" title="使用尾置返回类型"></a>使用尾置返回类型</h3><p>在C++11新标准中还有一种可以简化上述<code>func</code>声明的方法，就是使用尾置返回类型（trailing return type）。任何函数的定义都能使用尾置返回，但是这种形式对于返同类型比较复杂的函数最有效，比如返同类型是数组的指针或数组的引用。尾置返回类型在形参列表后面并以一个<code>-&gt;</code>符号开头。为了表示函数真正的返同类型跟在形参列表之后，我们在本应该出现返回类型的地方放置一个<code>auto</code>：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// func takes an int argument and returns a pointer to an array of ten ints</span></span><br><span class="line">auto func(int i) -&gt; int(*)[10];</span><br></pre></td></tr></table></figure>
+
+<p>因为我们把函数的返同类型放在了形参列表之后，所以可以清楚地看到<code>func</code>函数返回的是一个指针，并且该指针指向了含有10个整数的数组。</p>
+<h3 id="使用decltype"><a href="#使用decltype" class="headerlink" title="使用decltype"></a>使用decltype</h3><p>还有一种情况，如果我们知道函数返回的指针将指向哪个数组，就可以使用<code>decltype</code>关键字返回类型。例如，下面的函数返回一个指针，该指针根据参数i的不同指向两个已知数组中的某一个：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> odd[] = &#123;<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">7</span>,<span class="number">9</span>&#125;;</span><br><span class="line"><span class="keyword">int</span> even[] = &#123;<span class="number">0</span>,<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="number">8</span>&#125;;</span><br><span class="line"><span class="comment">// returns a pointer to an array of five int elements</span></span><br><span class="line"><span class="keyword">decltype</span>(odd) *arrPtr(<span class="keyword">int</span> i)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> (i % <span class="number">2</span>) ? &amp;odd : &amp;even; <span class="comment">// returns a pointer to the array</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>arrPtr</code>使用关键字<code>decltype</code>表示它的返同类型是个指针，并且该指针所指的对象与<code>odd</code>的类型一致，因为<code>odd</code>是数组，所以<code>arrPtr</code>返回一个指向含有5个整数的数组的指针。有一个地方需要注意：<code>decltype</code>并不负责把数组类型转换成对应的指针，所以<code>decltype</code>的结果是个数组，要想表示<code>arrPtr</code>返回指针还必须在函数声明时加一个<code>*</code>符号。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/25708312/" target="_blank" rel="noopener">《C++ Primer 第五版》</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-43-43/" rel="tag"># C&#43;&#43;</a>
+              <a href="/tags/function/" rel="tag"># function</a>
+              <a href="/tags/array/" rel="tag"># array</a>
+              <a href="/tags/static/" rel="tag"># static</a>
+              <a href="/tags/arguments/" rel="tag"># arguments</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-10-13-cpp-notes-02/" rel="prev" title="C++笔记（二）">
+      <i class="fa fa-chevron-left"></i> C++笔记（二）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-01-16-c-sharp-notes-01/" rel="next" title="c#笔记（一）">
+      c#笔记（一） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前置递增递减vs后置递增递减"><span class="nav-number">1.</span> <span class="nav-text">前置递增递减vs后置递增递减</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#局部静态对象"><span class="nav-number">2.</span> <span class="nav-text">局部静态对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数数组形参"><span class="nav-number">3.</span> <span class="nav-text">函数数组形参</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用标记指定数组长度"><span class="nav-number">3.0.1.</span> <span class="nav-text">使用标记指定数组长度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用标准库规范"><span class="nav-number">3.0.2.</span> <span class="nav-text">使用标准库规范</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#显式传递一个表示数组大小的形参"><span class="nav-number">3.0.3.</span> <span class="nav-text">显式传递一个表示数组大小的形参</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数组引用形参"><span class="nav-number">3.1.</span> <span class="nav-text">数组引用形参</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#传递多维数组"><span class="nav-number">3.2.</span> <span class="nav-text">传递多维数组</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数返回数组指针"><span class="nav-number">4.</span> <span class="nav-text">函数返回数组指针</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#声明一个返回数组指针的函数"><span class="nav-number">4.1.</span> <span class="nav-text">声明一个返回数组指针的函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用尾置返回类型"><span class="nav-number">4.2.</span> <span class="nav-text">使用尾置返回类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用decltype"><span class="nav-number">4.3.</span> <span class="nav-text">使用decltype</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'f8cdc85dea81a0b5b93b11f4a68ce252',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

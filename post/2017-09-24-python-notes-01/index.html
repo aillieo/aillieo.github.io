@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近使用python时的一些知识点记录，本文基于python3.5。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python笔记（一）">
+<meta property="og:url" content="http://aillieo.cn/post/2017-09-24-python-notes-01/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="最近使用python时的一些知识点记录，本文基于python3.5。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-09-24T14:14:10.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.050Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="os">
+<meta property="article:tag" content="sys">
+<meta property="article:tag" content="__init__">
+<meta property="article:tag" content="import">
+<meta property="article:tag" content="sort">
+<meta property="article:tag" content="sorted">
+<meta property="article:tag" content="filter">
+<meta property="article:tag" content="map">
+<meta property="article:tag" content="reduce">
+<meta property="article:tag" content="序列化">
+<meta property="article:tag" content="serialization">
+<meta property="article:tag" content="struct">
+<meta property="article:tag" content="pickle">
+<meta property="article:tag" content="json">
+<meta property="article:tag" content="re.sub">
+<meta property="article:tag" content="正则">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-09-24-python-notes-01/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>python笔记（一） | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-09-24-python-notes-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          python笔记（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-24 22:14:10" itemprop="dateCreated datePublished" datetime="2017-09-24T22:14:10+08:00">2017-09-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近使用python时的一些知识点记录，本文基于python3.5。</p>
+<a id="more"></a>
+
+<h2 id="获取当前路径"><a href="#获取当前路径" class="headerlink" title="获取当前路径"></a>获取当前路径</h2><p>获取执行脚本时的工作目录，以及脚本所在的目录：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取执行脚本时的起始目录</span></span><br><span class="line"><span class="keyword">print</span> (os.getcwd())</span><br><span class="line"><span class="keyword">print</span> (os.path.abspath(<span class="string">'.'</span>))</span><br><span class="line"><span class="keyword">print</span> (os.path.realpath(<span class="string">'.'</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取执行的脚本的完整路径</span></span><br><span class="line"><span class="keyword">print</span> (__file__)</span><br><span class="line"><span class="keyword">print</span> (os.path.abspath(__file__))</span><br><span class="line"><span class="keyword">print</span> (os.path.realpath(__file__))</span><br><span class="line"><span class="keyword">print</span> (sys.argv[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取执行的脚本所在的目录</span></span><br><span class="line"><span class="keyword">print</span> (os.path.dirname(__file__))</span><br><span class="line"><span class="keyword">print</span> (os.path.split(os.path.realpath(__file__))[<span class="number">0</span>])</span><br><span class="line"><span class="keyword">print</span> (sys.path[<span class="number">0</span>])</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="文件引用"><a href="#文件引用" class="headerlink" title="文件引用"></a>文件引用</h2><p>在脚本中包含自定义的类或函数，使用<code>__init__.py</code>来标记包，并通过控制<code>__init__.py</code>的内容来控制导出内容。</p>
+<p>用一个例子来说明，假定有目录结构如下图所示。模块内是一个函数，模块内的类与此相似。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├────__init__.py</span><br><span class="line">├────app.py</span><br><span class="line">├────mod_1.py</span><br><span class="line">├─┬──pac_2</span><br><span class="line">│ ├────__init__.py</span><br><span class="line">│ └────mod_2.py</span><br><span class="line">└─┬──pac_3</span><br><span class="line">  ├────__init__.py</span><br><span class="line">  ├────mod_3.py</span><br><span class="line">  ├─┬──pac_4</span><br><span class="line">  │ ├────__init__.py</span><br><span class="line">  │ └────mod_4.py</span><br><span class="line">  └─┬──pac_5</span><br><span class="line">    ├────__init__.py</span><br><span class="line">    ├────mod_5_1.py</span><br><span class="line">    └────mod_5_2.py</span><br></pre></td></tr></table></figure>
+
+<p><code>app.py</code>表示脚本入口，<code>pac_*</code>是文件夹，表示包，<code>mod_*.py</code>是模块。</p>
+<p>所有的<code>mod_</code>文件内容均相同，内容如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">func</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="string">'This is '</span> + __name__)</span><br></pre></td></tr></table></figure>
+
+<p>除了<code>pac_5</code>内的<code>__init__.py</code>之外，其余的<code>__init__.py</code>文件均为空文件，<code>pac_5</code>内的<code>__init__.py</code>文件内容为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__all__ = [<span class="string">'mod_5_1'</span>, <span class="string">'mod_5_2'</span>]</span><br></pre></td></tr></table></figure>
+
+<p><code>app.py</code>内容如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> mod_1</span><br><span class="line"><span class="keyword">from</span> pac_2.mod_2 <span class="keyword">import</span> func <span class="keyword">as</span> func2</span><br><span class="line"><span class="keyword">from</span> pac_3.mod_3 <span class="keyword">import</span> func <span class="keyword">as</span> func3</span><br><span class="line"><span class="keyword">from</span> pac_3.pac_4.mod_4 <span class="keyword">import</span> func <span class="keyword">as</span> func4</span><br><span class="line"><span class="keyword">from</span> pac_3.pac_5 <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    mod_1.func()</span><br><span class="line">    func2()</span><br><span class="line">    func3()</span><br><span class="line">    func4()</span><br><span class="line">    mod_5_1.func()</span><br><span class="line">    mod_5_2.func()</span><br></pre></td></tr></table></figure>
+
+<p>执行结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">This is mod_1</span><br><span class="line">This is pac_2.mod_2</span><br><span class="line">This is pac_3.mod_3</span><br><span class="line">This is pac_3.pac_4.mod_4</span><br><span class="line">This is pac_3.pac_5.mod_5_1</span><br><span class="line">This is pac_3.pac_5.mod_5_2</span><br></pre></td></tr></table></figure>
+
+<h2 id="sort和sorted"><a href="#sort和sorted" class="headerlink" title="sort和sorted"></a>sort和sorted</h2><p><code>sort</code>和<code>sorted</code>的作用相似，<code>sort</code>是可迭代对象的方法，会修改调用者的值。<code>sorted</code>是全局函数，不会修改被调用对象的值，并且会返回一个新的排序后的对象。</p>
+<p>一个简单例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">l = [<span class="number">1</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">2</span>,<span class="number">5</span>]</span><br><span class="line"><span class="keyword">print</span> (<span class="string">'l is %s'</span> % l)</span><br><span class="line">sl = sorted(l)</span><br><span class="line"><span class="keyword">print</span> (<span class="string">'sorted(l) is %s'</span> % sl)</span><br><span class="line"><span class="keyword">print</span> (<span class="string">'now l is %s'</span> % l)</span><br><span class="line">l.sort()</span><br><span class="line"><span class="keyword">print</span> (<span class="string">'after l.sorl() l is %s'</span> % l)</span><br></pre></td></tr></table></figure>
+
+<p>输出结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">l is [1, 3, 4, 2, 5]</span><br><span class="line">sorted(l) is [1, 2, 3, 4, 5]</span><br><span class="line">now l is [1, 3, 4, 2, 5]</span><br><span class="line">after l.sorl() l is [1, 2, 3, 4, 5]</span><br></pre></td></tr></table></figure>
+
+<p><code>sort</code>和<code>sorted</code>函数可通过参数<code>key</code>来指定排序规则，通过参数<code>reverse</code>来控制是否逆向排序，如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">222</span>, <span class="number">30</span>, <span class="number">9</span>, <span class="number">10000</span>, <span class="number">-6</span>]</span><br><span class="line">print(sorted(l)) <span class="comment"># 默认规则</span></span><br><span class="line">print(sorted(l, reverse=<span class="literal">True</span>)) <span class="comment"># 默认规则 逆向排序</span></span><br><span class="line">print(sorted(l, key = str)) <span class="comment"># 转化为str后按照str的规则排序</span></span><br><span class="line">print(sorted(l, key = abs)) <span class="comment"># 按照绝对值排序</span></span><br><span class="line">print(sorted(l, key = <span class="keyword">lambda</span> p : len(str(p)))) <span class="comment"># 按照lambda指定的规则 先转化为str再按str的长度排序</span></span><br></pre></td></tr></table></figure>
+
+<p>得到结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[-6, 1, 9, 30, 222, 10000]</span><br><span class="line">[10000, 222, 30, 9, 1, -6]</span><br><span class="line">[-6, 1, 10000, 222, 30, 9]</span><br><span class="line">[1, -6, 9, 30, 222, 10000]</span><br><span class="line">[1, 9, 30, -6, 222, 10000]</span><br></pre></td></tr></table></figure>
+
+<p><code>sort</code>和<code>sorted</code>都是稳定排序。</p>
+<h2 id="filter、map和reduce"><a href="#filter、map和reduce" class="headerlink" title="filter、map和reduce"></a>filter、map和reduce</h2><p>对于可迭代对象，使用<code>for</code>遍历对每个元素做相同的操作时，某些情况下可以考虑使用<code>filter</code>、<code>map</code>和<code>reduce</code>，可以使编码更高效，使代码更易读。</p>
+<h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><p>过滤器，将可迭代对象中，符合指定条件的对象提取出来，放入一个<code>filter</code>对象并返回。两个示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 过滤出数组中的偶数</span></span><br><span class="line">list_1 = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]</span><br><span class="line">filter_l = filter(<span class="keyword">lambda</span> x : x%<span class="number">2</span> == <span class="number">0</span>,list_1)</span><br><span class="line">list_2 = [i <span class="keyword">for</span> i <span class="keyword">in</span> filter_l]</span><br><span class="line">print(<span class="string">'list is %s'</span> % list_1)</span><br><span class="line">print(<span class="string">'after filter list is %s'</span> % list_2) <span class="comment"># [2, 4]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除字符串中的空格</span></span><br><span class="line">str_1 = <span class="string">'hello world !'</span></span><br><span class="line">filter_s= filter(<span class="keyword">lambda</span> c : c != <span class="string">' '</span>,str_1)</span><br><span class="line">str_2 = <span class="string">''</span>.join(filter_s)</span><br><span class="line">print(<span class="string">'str is %s'</span> % str_1)</span><br><span class="line">print(<span class="string">'after filter str is %s'</span> % str_2) <span class="comment"># helloworld!</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="map"><a href="#map" class="headerlink" title="map"></a>map</h3><p>映射关系，将可迭代对象中的每个元素做相同的操作（调用指定的函数），并返回由函数返回值构成的<code>map</code>对象。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 将所有的元素求平方</span></span><br><span class="line">list_1 = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]</span><br><span class="line">map_l = map(<span class="keyword">lambda</span> x : x ** <span class="number">2</span>,list_1)  </span><br><span class="line">list_2 = [i <span class="keyword">for</span> i <span class="keyword">in</span> map_l]</span><br><span class="line">print(<span class="string">'list is %s'</span> % list_1)</span><br><span class="line">print(<span class="string">'after map list is %s'</span> % list_2) <span class="comment"># [1, 4, 9, 16, 25]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 将所有的字符转为大写</span></span><br><span class="line">str_1 = <span class="string">'hello world !'</span></span><br><span class="line">map_s= map(<span class="keyword">lambda</span> c : c.upper(),str_1)</span><br><span class="line">str_2 = <span class="string">''</span>.join(map_s)</span><br><span class="line">print(<span class="string">'str is %s'</span> % str_1)</span><br><span class="line">print(<span class="string">'after map str is %s'</span> % str_2) <span class="comment"># HELLO WORLD !</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="reduce"><a href="#reduce" class="headerlink" title="reduce"></a>reduce</h3><p>函数<code>func</code>需要传入2个参数，得到一个单一的返回值。对于可迭代对象<code>seq</code>中的所有元素，从前两个元素开始，传入<code>func</code>，得到返回值与<code>seq</code>中的下一个元素再一起传入<code>func</code>，直到<code>seq</code>中没有更多的元素，从而得到一个单一的返回值。</p>
+<p>更形象地说明，对于可迭代对象<code>seq = [item1, item2, item3, item4, item5]</code>，和指定的函数<code>func</code>，则有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reduce(func, seq) &#x3D; func(func(func(func(item1, item2), item3), item4), item5)</span><br></pre></td></tr></table></figure>
+
+<p>以下是两个示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> reduce</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将所有的元素求和</span></span><br><span class="line">list_1 = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]</span><br><span class="line">reduce_1 = reduce(<span class="keyword">lambda</span> x,y : x+y,list_1)</span><br><span class="line">print(<span class="string">'list_1 is %s'</span> % list_1)</span><br><span class="line">print(<span class="string">'sum is %s'</span> % reduce_1) <span class="comment"># 15</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 字符串拼接为一个字符串并用下划线分隔</span></span><br><span class="line">list_2 = [<span class="string">'apple'</span>, <span class="string">'orange'</span>, <span class="string">'banana'</span>]</span><br><span class="line">reduce_2= reduce(<span class="keyword">lambda</span> str1, str2 : str1 + <span class="string">'_'</span> + str2, list_2)</span><br><span class="line">print(<span class="string">'list_2 is %s'</span> % list_2)</span><br><span class="line">print(<span class="string">'combined list_2 is %s'</span> % reduce_2) <span class="comment"># apple_orange_banana</span></span><br></pre></td></tr></table></figure>
+
+<p><code>reduce</code>还提供有一个可选参数<code>init</code>，当为<code>init</code>指定值时，<code>func</code>的首次调用会使用<code>init</code>的值和<code>seq</code>中的第一个元素。指定<code>init</code>参数也可以避免当<code>seq</code>为空时出现的异常：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> functools <span class="keyword">import</span> reduce</span><br><span class="line"></span><br><span class="line">list_1 = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">sum_1_no_init = reduce(<span class="keyword">lambda</span> x, y : x+y , list_1)</span><br><span class="line">print(<span class="string">'sum_1_no_init is %s'</span> % sum_1_no_init)</span><br><span class="line">sum_1_init_1000 = reduce(<span class="keyword">lambda</span> x, y : x+y , list_1, <span class="number">1000</span>)</span><br><span class="line">print(<span class="string">'sum_1_init_1000 is %s'</span> % sum_1_init_1000)</span><br><span class="line"></span><br><span class="line">list_2 = []</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">	sum_2_no_init = reduce(<span class="keyword">lambda</span> x, y : x+y , list_2)</span><br><span class="line">	print(<span class="string">'sum_2_no_init is %s'</span> % sum_2_no_init)</span><br><span class="line"><span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">	<span class="keyword">print</span> (e)</span><br><span class="line">sum_2_init_1000 = reduce(<span class="keyword">lambda</span> x, y : x+y , list_2, <span class="number">1000</span>)</span><br><span class="line">print(<span class="string">'sum_2_init_1000 is %s'</span> % sum_2_init_1000)</span><br></pre></td></tr></table></figure>
+
+<p>输出结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sum_1_no_init is 6</span><br><span class="line">sum_1_init_1000 is 1006</span><br><span class="line">reduce() of empty sequence with no initial value</span><br><span class="line">sum_2_init_1000 is 1000</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h2><p>在python中有三种实现序列化的方式，但具体的内容、适用对象均不同：</p>
+<h3 id="struct"><a href="#struct" class="headerlink" title="struct"></a>struct</h3><p>可定义一个C语言形式的结构体，按照结构体指定的格式化字符串，将结构体序列化为字节流。这种方式可用于将基础类型的数据打包成为字节流，封装协议头及将数据进行网络传输等，满足跨语言、跨平台需求。 </p>
+<p>使用<code>struck.pack</code>将数据打包，使用<code>struct.unpack</code>从字节流中解包出数据。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> struct <span class="keyword">import</span> *</span><br><span class="line">a, b, c = <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span></span><br><span class="line"><span class="keyword">print</span> (a, b, c)</span><br><span class="line">p = pack(<span class="string">'hhl'</span>, a, b, c) <span class="comment"># b'\x01\x00\x02\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00'</span></span><br><span class="line"><span class="keyword">print</span> (p)</span><br><span class="line">a, b, c = unpack(<span class="string">'hhl'</span>, p)</span><br><span class="line"><span class="keyword">print</span> (a, b, c) <span class="comment"># 1 2 3</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="pickle"><a href="#pickle" class="headerlink" title="pickle"></a>pickle</h3><p>将python对象序列化与反序列化，适用于配合文件读写实现对象持久化。</p>
+<p>使用<code>pickle.dump</code>将对象序列化， 使用 <code>pickle.load</code>反序列化出对象：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 自定义类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Addition</span>:</span></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self,x,y)</span>:</span></span><br><span class="line">		self.x = x</span><br><span class="line">		self.y = y</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">value</span><span class="params">(self)</span>:</span></span><br><span class="line">		<span class="keyword">return</span> self.x + self.y</span><br><span class="line"></span><br><span class="line"><span class="comment"># ================================================</span></span><br><span class="line"><span class="comment"># 使用dump序列化</span></span><br><span class="line"><span class="keyword">import</span> pickle</span><br><span class="line">data_1 = &#123;</span><br><span class="line">			<span class="string">'num'</span>: <span class="number">500</span>,</span><br><span class="line">			<span class="string">'list'</span> : [<span class="number">0</span>,<span class="string">'apple'</span>],</span><br><span class="line">			<span class="string">'dict'</span> : &#123;<span class="string">'one'</span>: <span class="number">1</span> , <span class="string">'two'</span>: <span class="number">2</span>, <span class="string">'three'</span>: <span class="number">3</span>&#125;,</span><br><span class="line">        	<span class="string">'tuple'</span>: (<span class="string">'string'</span>, <span class="string">u'Unicode string'</span>),</span><br><span class="line">        	<span class="string">'n'</span>: <span class="literal">None</span></span><br><span class="line">        &#125;</span><br><span class="line">data_2 = [<span class="number">10</span>, <span class="number">100</span>, <span class="number">1000</span>]</span><br><span class="line">data_3 = Addition(<span class="number">1</span>,<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">f = open(<span class="string">'data.pkl'</span>, <span class="string">'wb'</span>)</span><br><span class="line"></span><br><span class="line">pickle.dump(data_1, f, <span class="number">-1</span>)</span><br><span class="line">pickle.dump(data_2, f, <span class="number">-1</span>)</span><br><span class="line">pickle.dump(data_3, f,<span class="number">-1</span>)</span><br><span class="line"></span><br><span class="line">f.close()</span><br><span class="line"></span><br><span class="line"><span class="comment"># ================================================</span></span><br><span class="line"><span class="comment"># 使用load反序列化</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># import pickle</span></span><br><span class="line"></span><br><span class="line">f = open(<span class="string">'data.pkl'</span>, <span class="string">'rb'</span>)</span><br><span class="line"></span><br><span class="line">data_1 = pickle.load(f)</span><br><span class="line">data_2 = pickle.load(f)</span><br><span class="line">data_3 = pickle.load(f)</span><br><span class="line"></span><br><span class="line">f.close()</span><br><span class="line"></span><br><span class="line">print(data_1)</span><br><span class="line">print(data_2)</span><br><span class="line">print(data_3)</span><br><span class="line">print(data_3.x , data_3.y, data_3.value())</span><br></pre></td></tr></table></figure>
+
+<p><code>pickle.dump(obj, file, [,protocol])</code>的第三个参数用于指定序列化时使用的协议版本，默认值为<code>0</code>，表示使用ASCII协议，当<code>protocol</code>的值取<code>1</code>或<code>2</code>时表示使用二进制格式，其中值为<code>2</code>的协议更新更高效。当使用二进制格式协议时，打开文件时需要以二进制格式打开。<code>protocol</code>取<code>-1</code>表示使用所支持的最新协议版本来序列化对象。</p>
+<h3 id="json"><a href="#json" class="headerlink" title="json"></a>json</h3><p>比较通用的序列化方式，对象与json字符串互转。</p>
+<p>使用<code>json.dumps</code>将对象序列化， 使用 <code>json.loads</code>反序列化出对象：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line">data = &#123;<span class="string">'a'</span> : <span class="number">1</span>,</span><br><span class="line">		<span class="string">'b'</span> : <span class="number">2</span>,</span><br><span class="line">		<span class="string">'c'</span> : <span class="number">3</span>,</span><br><span class="line">		<span class="string">'d'</span> : [ <span class="number">4.1</span>, <span class="number">4.2</span>, <span class="number">4.3</span> ],</span><br><span class="line">		<span class="string">'e'</span> : &#123; <span class="string">'e1'</span>: <span class="number">5.1</span>, <span class="string">'e2'</span>: <span class="number">5.2</span>&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">jstr = json.dumps(data)</span><br><span class="line"><span class="keyword">print</span> (jstr)</span><br><span class="line"><span class="keyword">print</span> (len(jstr)) <span class="comment"># 75</span></span><br><span class="line"></span><br><span class="line">data = json.loads(jstr)</span><br><span class="line"><span class="keyword">print</span> (data)</span><br><span class="line"><span class="keyword">print</span> (len(data)) <span class="comment"># 5</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="re-sub正则替换"><a href="#re-sub正则替换" class="headerlink" title="re.sub正则替换"></a>re.sub正则替换</h2><p><code>re.sub(pattern, repl, string, count=0, flags=0)</code>用于将字符串按照正则匹配规则替换，返回替换后的字符串。</p>
+<p>一个最简单的例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将输入字符串中的所有数字替换为_</span></span><br><span class="line">inStr = <span class="string">"ab2ui8xyz99pq1"</span></span><br><span class="line">outStr = re.sub(<span class="string">"\d"</span>, <span class="string">"_"</span>, inStr)</span><br><span class="line">print(outStr) <span class="comment"># ab_ui_xyz__pq_</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 屏蔽hell 替换为****</span></span><br><span class="line">inStr = <span class="string">"open the shell oh what the hell i mean hello"</span></span><br><span class="line">outStr = re.sub(<span class="string">r"\bhell\b"</span>, <span class="string">"****"</span>, inStr) <span class="comment"># 注意使用raw字符串否则\b会失效</span></span><br><span class="line">print(outStr) <span class="comment"># open the shell oh what the **** i mean hello</span></span><br></pre></td></tr></table></figure>
+
+<p>使用捕获组（capture group），</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用捕获组 将A4替换为A-4 ... </span></span><br><span class="line">inStr = <span class="string">"A4 is ready but B8 and B9 are not"</span></span><br><span class="line">outStr = re.sub(<span class="string">"(\w)(\d+)"</span>, <span class="string">"\g&lt;1&gt;-\g&lt;2&gt;"</span>, inStr)</span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">outStr = re.sub(r"(?P&lt;letter&gt;\w)(?P&lt;figure&gt;\d)", "\g&lt;letter&gt;-\g&lt;figure&gt;", inStr)</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"></span><br><span class="line">print(outStr) <span class="comment"># A-4 is ready but B-8 and B-9 are not</span></span><br></pre></td></tr></table></figure>
+
+<p><code>re.sub(pattern, repl, string, count=0, flags=0)</code>不仅可以正则匹配替换，还可以执行更复杂的操作，参数<code>repl</code>可以是一个函数，如以下示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">repl</span><span class="params">(m)</span>:</span></span><br><span class="line">	inner_word = list(m.group(<span class="number">2</span>))</span><br><span class="line">	random.shuffle(inner_word)</span><br><span class="line">	<span class="keyword">return</span> m.group(<span class="number">1</span>) + <span class="string">""</span>.join(inner_word) + m.group(<span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">text = <span class="string">"Professor Abdolmalek, please report your absences promptly."</span></span><br><span class="line"><span class="keyword">print</span> (text)</span><br><span class="line">text = re.sub(<span class="string">r"(\w)(\w+)(\w)"</span>, repl, text)</span><br><span class="line"><span class="keyword">print</span> (text)</span><br><span class="line">text = re.sub(<span class="string">r"(\w)(\w+)(\w)"</span>, repl, text)</span><br><span class="line"><span class="keyword">print</span> (text)</span><br></pre></td></tr></table></figure>
+
+<p>输出结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Professor Abdolmalek, please report your absences promptly.</span><br><span class="line">Pssrfooer Albalomdek, pasele roerpt your acebenss pptmroly.</span><br><span class="line">Prososefr Aeadblmolk, psleae reorpt your abeencss pmloptry.</span><br></pre></td></tr></table></figure>
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.python.org/3/library/" target="_blank" rel="noopener">https://docs.python.org/3/library/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/map/" rel="tag"># map</a>
+              <a href="/tags/serialization/" rel="tag"># serialization</a>
+              <a href="/tags/sort/" rel="tag"># sort</a>
+              <a href="/tags/filter/" rel="tag"># filter</a>
+              <a href="/tags/reduce/" rel="tag"># reduce</a>
+              <a href="/tags/regex/" rel="tag"># regex</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-09-18-python-decorator/" rel="prev" title="python装饰器">
+      <i class="fa fa-chevron-left"></i> python装饰器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-09-30-cocos2d-x-cpp-android-native-communication/" rel="next" title="cocos2d-x与原生安卓交互">
+      cocos2d-x与原生安卓交互 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取当前路径"><span class="nav-number">1.</span> <span class="nav-text">获取当前路径</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件引用"><span class="nav-number">2.</span> <span class="nav-text">文件引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sort和sorted"><span class="nav-number">3.</span> <span class="nav-text">sort和sorted</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#filter、map和reduce"><span class="nav-number">4.</span> <span class="nav-text">filter、map和reduce</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#filter"><span class="nav-number">4.1.</span> <span class="nav-text">filter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#map"><span class="nav-number">4.2.</span> <span class="nav-text">map</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reduce"><span class="nav-number">4.3.</span> <span class="nav-text">reduce</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列化"><span class="nav-number">5.</span> <span class="nav-text">序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#struct"><span class="nav-number">5.1.</span> <span class="nav-text">struct</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pickle"><span class="nav-number">5.2.</span> <span class="nav-text">pickle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#json"><span class="nav-number">5.3.</span> <span class="nav-text">json</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#re-sub正则替换"><span class="nav-number">6.</span> <span class="nav-text">re.sub正则替换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">7.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'ed1641a572b1818f78831744cb12f1ae',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

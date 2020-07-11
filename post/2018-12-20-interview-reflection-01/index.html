@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近面试中遇到的一些题目，其中一些答的不满意的和不会答的，在此记录下来，包含Unity3D的、C#和Lua的，以及一些算法题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="面试回顾">
+<meta property="og:url" content="http://aillieo.cn/post/2018-12-20-interview-reflection-01/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="最近面试中遇到的一些题目，其中一些答的不满意的和不会答的，在此记录下来，包含Unity3D的、C#和Lua的，以及一些算法题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-20T14:09:08.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.079Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="面试">
+<meta property="article:tag" content="Unity3d">
+<meta property="article:tag" content="数据结构">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="绘制顺序">
+<meta property="article:tag" content="渲染顺序">
+<meta property="article:tag" content="shader">
+<meta property="article:tag" content="描边">
+<meta property="article:tag" content="outlining">
+<meta property="article:tag" content="SortingOrder">
+<meta property="article:tag" content="RenderQueue">
+<meta property="article:tag" content="SortingLayer">
+<meta property="article:tag" content="UGUI">
+<meta property="article:tag" content="anchors">
+<meta property="article:tag" content="pivot">
+<meta property="article:tag" content="lua">
+<meta property="article:tag" content="table">
+<meta property="article:tag" content="Dictionary">
+<meta property="article:tag" content="面向对象">
+<meta property="article:tag" content="配表优化">
+<meta property="article:tag" content="互相require">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-12-20-interview-reflection-01/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>面试回顾 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-12-20-interview-reflection-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          面试回顾
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-20 22:09:08" itemprop="dateCreated datePublished" datetime="2018-12-20T22:09:08+08:00">2018-12-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Interview/" itemprop="url" rel="index"><span itemprop="name">Interview</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近面试中遇到的一些题目，其中一些答的不满意的和不会答的，在此记录下来，包含Unity3D的、C#和Lua的，以及一些算法题。</p>
+<a id="more"></a>
+
+<h2 id="Unity3D"><a href="#Unity3D" class="headerlink" title="Unity3D"></a>Unity3D</h2><h3 id="如何控制物体的渲染顺序（哪些因素影响到渲染顺序，影响的权重如何）？"><a href="#如何控制物体的渲染顺序（哪些因素影响到渲染顺序，影响的权重如何）？" class="headerlink" title="如何控制物体的渲染顺序（哪些因素影响到渲染顺序，影响的权重如何）？"></a>如何控制物体的渲染顺序（哪些因素影响到渲染顺序，影响的权重如何）？</h3><p>影响因素如下：</p>
+<ul>
+<li>相机深度（Camera depth）</li>
+<li>SortingLayer</li>
+<li>OrderInLayer / SortingOrder</li>
+<li>RenderQueue</li>
+<li>到相机的距离</li>
+</ul>
+<p>如何影响：</p>
+<ol>
+<li>相机深度影响权重最大，depth值小的会更早绘制；</li>
+<li>RenderQueue小于等于<code>RenderQueue.GeometryLast</code>的会比大于<code>RenderQueue.GeometryLast</code>的先绘制（<code>RenderQueue.GeometryLast</code>的值是2500）；</li>
+<li>若两个对象的RenderQueue同时小于等于<code>GeometryLast</code>或同时大于<code>GeometryLast</code>，则依次依据SortingLayer、OrderInLayer/SortingOrder和RenderQueue权重从大到小排序，即：<ul>
+<li>如果SortingLayer不相等，SortingLayer小者更早绘制；</li>
+<li>如果SortingLayer相等，则OrderInLayer/SortingOrder小者更早绘制（OrderInLayer/SortingOrder取值范围-32768～32767）；</li>
+<li>如果SortingLayer和OrderInLayer/SortingOrder均相等，则RenderQueue小者更早绘制；</li>
+</ul>
+</li>
+<li>若两个对象的RenderQueue同时小于等于<code>GeometryLast</code>或同时大于<code>GeometryLast</code>，且SortingLayer、OrderInLayer/SortingOrder和RenderQueue全都相等：<ul>
+<li>若RenderQueue小于等于<code>GeometryLast</code>，则距离相机近者更早绘制；</li>
+<li>若RenderQueue大于<code>GeometryLast</code>，则距离相机远者更早绘制；</li>
+</ul>
+</li>
+</ol>
+<p>补充：<br>MeshRenderer使用的SortingOrder，对于UGUI中的Canvas而言叫做OrderInLayer；<br>对于Canvas而言，如果同一个Canvas中各个节点的z坐标不同，则会选择各元素的平均位置作为距离相机的位置来参与排序；</p>
+<h3 id="UGUI中，Anchors和Pivot的含义和区别？"><a href="#UGUI中，Anchors和Pivot的含义和区别？" class="headerlink" title="UGUI中，Anchors和Pivot的含义和区别？"></a>UGUI中，Anchors和Pivot的含义和区别？</h3><p>Anchors：表示RectTransform的左下角和右上角在父节点中的位置，分别对应anchorMin和anchorMax。</p>
+<p>Pivot：RectTransform自身旋转和缩放的中心。</p>
+<p>RectTransform.anchoredPosition是Pivot相对于Anchor的位置，如果Anchors没有重合，则会根据Pivot的位置对Anchors插值得到anchoredPosition。</p>
+<h2 id="C-35"><a href="#C-35" class="headerlink" title="C&#35;"></a>C&#35;</h2><h3 id="List是链表还是数组？"><a href="#List是链表还是数组？" class="headerlink" title="List是链表还是数组？"></a>List<T>是链表还是数组？</h3><p>本质是数组。</p>
+<h3 id="Dictionary-lt-T-U-gt-是无序还是有序？"><a href="#Dictionary-lt-T-U-gt-是无序还是有序？" class="headerlink" title="Dictionary&lt;T,U&gt;是无序还是有序？"></a>Dictionary&lt;T,U&gt;是无序还是有序？</h3><p>无序索引，其实现基于hash table，线程不安全。<br>如果有序索引可以使用SortedList，线程安全可以使用ConcurrentDictionary。</p>
+<h2 id="Lua"><a href="#Lua" class="headerlink" title="Lua"></a>Lua</h2><h3 id="Lua中使用table做配表时的一些优化策略？"><a href="#Lua中使用table做配表时的一些优化策略？" class="headerlink" title="Lua中使用table做配表时的一些优化策略？"></a>Lua中使用table做配表时的一些优化策略？</h3><p>假如现在有这样的配表：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> hero_config = &#123;</span><br><span class="line">	[<span class="number">1000</span>] = &#123;</span><br><span class="line">		name = <span class="number">1008</span>,</span><br><span class="line">		icon = <span class="string">"hero_365_01"</span>,</span><br><span class="line">		initStar = <span class="number">0</span>,</span><br><span class="line">		initQuality = <span class="number">2</span>,</span><br><span class="line">		initEquip = <span class="string">"1001"</span>,</span><br><span class="line">		initSkill = <span class="string">"1029"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1001</span>] = &#123;</span><br><span class="line">		name = <span class="number">1009</span>,</span><br><span class="line">		icon = <span class="string">"hero_368_01"</span>,</span><br><span class="line">		initStar = <span class="number">0</span>,</span><br><span class="line">		initQuality = <span class="number">3</span>,</span><br><span class="line">		initEquip = <span class="string">"1001"</span>,</span><br><span class="line">		initSkill = <span class="string">"1029:1044"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1002</span>] = &#123;</span><br><span class="line">		name = <span class="number">1010</span>,</span><br><span class="line">		icon = <span class="string">"hero_363_01"</span>,</span><br><span class="line">		initStar = <span class="number">0</span>,</span><br><span class="line">		initQuality = <span class="number">2</span>,</span><br><span class="line">		initEquip = <span class="string">"1002"</span>,</span><br><span class="line">		initSkill = <span class="string">"1029"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1003</span>] = &#123;</span><br><span class="line">		name = <span class="number">1018</span>,</span><br><span class="line">		icon = <span class="string">"hero_369_01"</span>,</span><br><span class="line">		initStar = <span class="number">0</span>,</span><br><span class="line">		initQuality = <span class="number">2</span>,</span><br><span class="line">		initEquip = <span class="string">"1001"</span>,</span><br><span class="line">		initSkill = <span class="string">"1029"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1004</span>] = &#123;</span><br><span class="line">		name = <span class="number">1020</span>,</span><br><span class="line">		icon = <span class="string">"hero_373_01"</span>,</span><br><span class="line">		initStar = <span class="number">0</span>,</span><br><span class="line">		initQuality = <span class="number">1</span>,</span><br><span class="line">		initEquip = <span class="string">"1002"</span>,</span><br><span class="line">		initSkill = <span class="string">"1029"</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用字典形式的表保存配置信息时，如果有大量的字段保存的是相同的值，可以增加“默认值”这样一行，配置每行的字段时，如果该值等于默认值，则空缺，通过元表的形式使其从默认行去取值。按照这一思路优化后：</li>
+</ul>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> hero_config = &#123;</span><br><span class="line">	[<span class="number">1000</span>] = &#123;</span><br><span class="line">		name = <span class="number">1008</span>,</span><br><span class="line">		icon = <span class="string">"hero_365_01"</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1001</span>] = &#123;</span><br><span class="line">		name = <span class="number">1009</span>,</span><br><span class="line">		icon = <span class="string">"hero_368_01"</span>,</span><br><span class="line">		initQuality = <span class="number">3</span>,</span><br><span class="line">		initSkill = <span class="string">"1029:1044"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1002</span>] = &#123;</span><br><span class="line">		name = <span class="number">1010</span>,</span><br><span class="line">		icon = <span class="string">"hero_363_01"</span>,</span><br><span class="line">		initEquip = <span class="string">"1002"</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1003</span>] = &#123;</span><br><span class="line">		name = <span class="number">1018</span>,</span><br><span class="line">		icon = <span class="string">"hero_369_01"</span>,</span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1004</span>] = &#123;</span><br><span class="line">		name = <span class="number">1020</span>,</span><br><span class="line">		icon = <span class="string">"hero_373_01"</span>,</span><br><span class="line">		initQuality = <span class="number">1</span>,</span><br><span class="line">		initEquip = <span class="string">"1002"</span>,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> mt_default = &#123;</span><br><span class="line">	<span class="built_in">__index</span> = &#123;</span><br><span class="line">		initStar = <span class="number">0</span>,</span><br><span class="line">		initQuality = <span class="number">2</span>,</span><br><span class="line">		initEquip = <span class="string">"1001"</span>,</span><br><span class="line">		initSkill = <span class="string">"1029"</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k,v <span class="keyword">in</span> <span class="built_in">pairs</span>(hero_config) <span class="keyword">do</span></span><br><span class="line">	<span class="built_in">setmetatable</span>(v,mt_default)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用整数做索引。各行的字段名称单独提出来，在保存字段值时直接使用数组形式的表。读表时根据字段获取到对应值在数组中的索引位置，然后再获取字段的值。按照这一思路优化后：</li>
+</ul>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> hero_config = &#123;</span><br><span class="line">	[<span class="number">1000</span>] = &#123;</span><br><span class="line">		<span class="number">1008</span>,</span><br><span class="line">		<span class="string">"hero_365_01"</span>,</span><br><span class="line">		<span class="number">0</span>,</span><br><span class="line">		<span class="number">2</span>,</span><br><span class="line">		<span class="string">"1001"</span>,</span><br><span class="line">		<span class="string">"1029"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1001</span>] = &#123;</span><br><span class="line">		<span class="number">1009</span>,</span><br><span class="line">		<span class="string">"hero_368_01"</span>,</span><br><span class="line">		<span class="number">0</span>,</span><br><span class="line">		<span class="number">3</span>,</span><br><span class="line">		<span class="string">"1001"</span>,</span><br><span class="line">		<span class="string">"1029:1044"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1002</span>] = &#123;</span><br><span class="line">		<span class="number">1010</span>,</span><br><span class="line">		<span class="string">"hero_363_01"</span>,</span><br><span class="line">		<span class="number">0</span>,</span><br><span class="line">		<span class="number">2</span>,</span><br><span class="line">		<span class="string">"1002"</span>,</span><br><span class="line">		<span class="string">"1029"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1003</span>] = &#123;</span><br><span class="line">		<span class="number">1018</span>,</span><br><span class="line">		<span class="string">"hero_369_01"</span>,</span><br><span class="line">		<span class="number">0</span>,</span><br><span class="line">		<span class="number">2</span>,</span><br><span class="line">		<span class="string">"1001"</span>,</span><br><span class="line">		<span class="string">"1029"</span></span><br><span class="line">	&#125;,</span><br><span class="line">	[<span class="number">1004</span>] = &#123;</span><br><span class="line">		<span class="number">1020</span>,</span><br><span class="line">		<span class="string">"hero_373_01"</span>,</span><br><span class="line">		<span class="number">0</span>,</span><br><span class="line">		<span class="number">1</span>,</span><br><span class="line">		<span class="string">"1002"</span>,</span><br><span class="line">		<span class="string">"1029"</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> key_index = &#123;</span><br><span class="line">	name = <span class="number">1</span>,</span><br><span class="line">	icon = <span class="number">2</span>,</span><br><span class="line">	initStar = <span class="number">3</span>,</span><br><span class="line">	initQuality = <span class="number">4</span>,</span><br><span class="line">	initEquip = <span class="number">5</span>,</span><br><span class="line">	initSkill = <span class="number">6</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> mt = &#123;</span><br><span class="line">	<span class="built_in">__index</span> = <span class="function"><span class="keyword">function</span><span class="params">(t,k)</span></span></span><br><span class="line">		<span class="keyword">return</span> t[key_index[k]]</span><br><span class="line">	<span class="keyword">end</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> k,v <span class="keyword">in</span> <span class="built_in">pairs</span>(hero_config) <span class="keyword">do</span></span><br><span class="line">	<span class="built_in">setmetatable</span>(v,mt)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Lua中table对象包含哪些内容（由什么组成）？"><a href="#Lua中table对象包含哪些内容（由什么组成）？" class="headerlink" title="Lua中table对象包含哪些内容（由什么组成）？"></a>Lua中table对象包含哪些内容（由什么组成）？</h3><p>lua的table中包含内容参见lua源码中Table的定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Table</span> &#123;</span></span><br><span class="line">  CommonHeader;</span><br><span class="line">  lu_byte flags;  <span class="comment">/* 1&lt;&lt;p means tagmethod(p) is not present */</span> </span><br><span class="line">  lu_byte lsizenode;  <span class="comment">/* log2 of size of `node' array */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">Table</span> *<span class="title">metatable</span>;</span></span><br><span class="line">  TValue *<span class="built_in">array</span>;  <span class="comment">/* array part */</span></span><br><span class="line">  Node *node;</span><br><span class="line">  Node *lastfree;  <span class="comment">/* any free position is before this position */</span></span><br><span class="line">  GCObject *gclist;</span><br><span class="line">  <span class="keyword">int</span> sizearray;  <span class="comment">/* size of `array' array */</span></span><br><span class="line">&#125; Table;</span><br></pre></td></tr></table></figure>
+
+<p>主要包括：</p>
+<ul>
+<li>GC相关的信息：CommonHeader、gclist</li>
+<li>数组部分的信息：array、sizearray</li>
+<li>hash部分的信息：node、lastfree、lsizenode</li>
+<li>元表和元方法的信息：metatable、flags</li>
+</ul>
+<h3 id="Lua中如何实现面向对象？"><a href="#Lua中如何实现面向对象？" class="headerlink" title="Lua中如何实现面向对象？"></a>Lua中如何实现面向对象？</h3><p>项目中lua面向对象的实现很类似<a href="https://blog.codingnow.com/2006/06/oo_lua.html" target="_blank" rel="noopener">云风的方法</a>，主要思路都是把基类设为子类的元表的<code>__index</code>，并且把类设置为类的实例的元表的<code>__index</code>。</p>
+<h3 id="如果有两个脚本互相require，会出现什么结果？"><a href="#如果有两个脚本互相require，会出现什么结果？" class="headerlink" title="如果有两个脚本互相require，会出现什么结果？"></a>如果有两个脚本互相require，会出现什么结果？</h3><p>如果直接两个脚本互相<code>require</code>，会出现下边的错误：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">lua: .&#x2F;a.lua:2: loop or previous error loading module &#39;b&#39;</span><br><span class="line">stack traceback:</span><br><span class="line">	[C]: in function &#39;require&#39;</span><br><span class="line">	.&#x2F;a.lua:2: in main chunk</span><br><span class="line">	[C]: in function &#39;require&#39;</span><br><span class="line">	.&#x2F;b.lua:2: in main chunk</span><br><span class="line">	[C]: in function &#39;require&#39;</span><br><span class="line">	main.lua:1: in main chunk</span><br><span class="line">	[C]: ?</span><br></pre></td></tr></table></figure>
+
+<p>使用module的方式可以有效避免这样的问题,如分别定义三个lua脚本，并执行main.lua：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- a.lua</span></span><br><span class="line">module(<span class="string">"a"</span> , <span class="built_in">package</span>.<span class="built_in">seeall</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"will require b"</span>)</span><br><span class="line"><span class="keyword">local</span> b = <span class="built_in">require</span>(<span class="string">"b"</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"did require b"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">func</span><span class="params">(arg)</span></span></span><br><span class="line">	<span class="built_in">print</span>(<span class="string">"a says &#123;"</span> .. <span class="built_in">tostring</span>(<span class="built_in">arg</span>) .. <span class="string">"&#125;"</span>)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> &#123;func = func&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- b.lua</span></span><br><span class="line">module(<span class="string">"b"</span> , <span class="built_in">package</span>.<span class="built_in">seeall</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"will require a"</span>)</span><br><span class="line"><span class="keyword">local</span> a = <span class="built_in">require</span> <span class="string">"a"</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"did require a"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">func</span><span class="params">(arg)</span></span></span><br><span class="line">	a.func(<span class="string">"b says &#123;"</span> .. <span class="built_in">tostring</span>(<span class="built_in">arg</span>) .. <span class="string">"&#125;"</span>)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> &#123;func = func&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- main.lua</span></span><br><span class="line"><span class="keyword">local</span> b = <span class="built_in">require</span> <span class="string">"b"</span></span><br><span class="line">b.func(<span class="string">"this is main"</span>)</span><br></pre></td></tr></table></figure>
+
+<p>将会输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">will require a</span><br><span class="line">will require b</span><br><span class="line">did require b</span><br><span class="line">did require a</span><br><span class="line">a says &#123;b says &#123;this is main&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="算法题"><a href="#算法题" class="headerlink" title="算法题"></a>算法题</h2><h3 id="拷贝一个链表结构"><a href="#拷贝一个链表结构" class="headerlink" title="拷贝一个链表结构"></a>拷贝一个链表结构</h3><p>题目：一个链表结构，链表中的各个Node中，所保存的数据data是对其它Node的引用，可以是引用上游、下游的Node也可能是引用的自己，现在要将整个链表结构拷贝一份，如何操作？</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Node</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    Node* next;</span><br><span class="line">    Node* data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当时的回答（其实后来也没有想出来更好的答案）：</p>
+<p>借助一个字典保存索引关系，需要对链状结构遍历两遍，时间复杂度O(n)。</p>
+<ul>
+<li>第一遍遍历时，一边创建新的链表一边向字典写入，key是被复制的原始的Node，value是复制之后新得到的Node；</li>
+<li>第二遍遍历时，在新的链表中填入data数据，读取对应的原来Node的data指向的Node，从字典中获取其对应的位于新链表中的Node，并在新的链表结构中将data指向该Node。</li>
+</ul>
+<h3 id="安卓解锁手势密码，列出所有的可能"><a href="#安卓解锁手势密码，列出所有的可能" class="headerlink" title="安卓解锁手势密码，列出所有的可能"></a>安卓解锁手势密码，列出所有的可能</h3><p>题目：解锁手势密码，数字1-9一共9个按键，密码长度为4到9位，每个数字最多出现一次。其中数字2、4、6、8和5有点特殊，连接1-3时，如果之前2没有被选过，那么会在1-3之间插入2，即1-3-2；如果之前已经有过数字2，则直接1-3。数字4、6、8和5也同理。需要列出所有的可能的密码。</p>
+<p>当时的解法：使用一个树来保存结果，逐层添加新的数字，每次在后边加入新的元素时，需要判断是否有经过的数字（比如在1的后边填3，如果前边没有出现过2的话，则无法添加3，只能添加2）。感觉思路没有什么问题，但是当时需要在墙上把解题过程用代码写出来，后来写着写着就跪了。</p>
+<h2 id="图形学"><a href="#图形学" class="headerlink" title="图形学"></a>图形学</h2><h3 id="shader中制作描边特效的方法"><a href="#shader中制作描边特效的方法" class="headerlink" title="shader中制作描边特效的方法"></a>shader中制作描边特效的方法</h3><p>对于模型的描边，通常是借助于模板缓冲区，在单独的pass中对顶点做出一些沿法线的偏移来绘制。对于sprite的描边则不得不在片段着色器中实现。各种方法整理了一下，放在<a href="https://github.com/aillieo/unity3d-shader-collection/tree/master/Assets/05_Outlining" target="_blank" rel="noopener">这里</a>了。</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>还有一些问题，是难以回答出来或者完全不知道答案的，以后有时间再慢慢学习和研究：</p>
+<ul>
+<li>进程间通信的方法</li>
+<li>帧同步vs状态同步</li>
+<li>群体单位移动时的算法（避免拥塞）</li>
+</ul>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/Manual/UIBasicLayout.html" target="_blank" rel="noopener">https://docs.unity3d.com/Manual/UIBasicLayout.html</a></p>
+<p><a href="https://docs.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2?view=netframework-4.7.2" target="_blank" rel="noopener">https://docs.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2?view=netframework-4.7.2</a></p>
+<p><a href="https://referencesource.microsoft.com/#mscorlib/system/collections/generic/list.cs" target="_blank" rel="noopener">https://referencesource.microsoft.com/#mscorlib/system/collections/generic/list.cs</a></p>
+<p><a href="https://book.douban.com/subject/27108476/" target="_blank" rel="noopener">《Lua设计与实现》</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-35/" rel="tag"># C&#35;</a>
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/algorithm/" rel="tag"># algorithm</a>
+              <a href="/tags/Lua/" rel="tag"># Lua</a>
+              <a href="/tags/interview/" rel="tag"># interview</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-11-21-effective-c-sharp-notes-03/" rel="prev" title="《Effective C#》笔记 使用C#表达设计">
+      <i class="fa fa-chevron-left"></i> 《Effective C#》笔记 使用C#表达设计
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-12-21-reflection-on-career-01/" rel="next" title="一些记录和思考">
+      一些记录和思考 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Unity3D"><span class="nav-number">1.</span> <span class="nav-text">Unity3D</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#如何控制物体的渲染顺序（哪些因素影响到渲染顺序，影响的权重如何）？"><span class="nav-number">1.1.</span> <span class="nav-text">如何控制物体的渲染顺序（哪些因素影响到渲染顺序，影响的权重如何）？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UGUI中，Anchors和Pivot的含义和区别？"><span class="nav-number">1.2.</span> <span class="nav-text">UGUI中，Anchors和Pivot的含义和区别？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C-35"><span class="nav-number">2.</span> <span class="nav-text">C&amp;#35;</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#List是链表还是数组？"><span class="nav-number">2.1.</span> <span class="nav-text">List是链表还是数组？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dictionary-lt-T-U-gt-是无序还是有序？"><span class="nav-number">2.2.</span> <span class="nav-text">Dictionary&lt;T,U&gt;是无序还是有序？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lua"><span class="nav-number">3.</span> <span class="nav-text">Lua</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Lua中使用table做配表时的一些优化策略？"><span class="nav-number">3.1.</span> <span class="nav-text">Lua中使用table做配表时的一些优化策略？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lua中table对象包含哪些内容（由什么组成）？"><span class="nav-number">3.2.</span> <span class="nav-text">Lua中table对象包含哪些内容（由什么组成）？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lua中如何实现面向对象？"><span class="nav-number">3.3.</span> <span class="nav-text">Lua中如何实现面向对象？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如果有两个脚本互相require，会出现什么结果？"><span class="nav-number">3.4.</span> <span class="nav-text">如果有两个脚本互相require，会出现什么结果？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算法题"><span class="nav-number">4.</span> <span class="nav-text">算法题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#拷贝一个链表结构"><span class="nav-number">4.1.</span> <span class="nav-text">拷贝一个链表结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安卓解锁手势密码，列出所有的可能"><span class="nav-number">4.2.</span> <span class="nav-text">安卓解锁手势密码，列出所有的可能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#图形学"><span class="nav-number">5.</span> <span class="nav-text">图形学</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#shader中制作描边特效的方法"><span class="nav-number">5.1.</span> <span class="nav-text">shader中制作描边特效的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其它"><span class="nav-number">6.</span> <span class="nav-text">其它</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">7.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'fe9ff13f7b6d9311d5b0f0302c4818c1',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

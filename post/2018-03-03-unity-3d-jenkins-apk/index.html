@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="记录使用命令行方式调用Unity打apk包及Jenkins集成的一些方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D使用Jenkins自动构建apk">
+<meta property="og:url" content="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="记录使用命令行方式调用Unity打apk包及Jenkins集成的一些方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/2018-03-03-unity-3d-jenkins-apk/pic_1.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/2018-03-03-unity-3d-jenkins-apk/pic_2.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/2018-03-03-unity-3d-jenkins-apk/pic_3.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/2018-03-03-unity-3d-jenkins-apk/pic_4.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/2018-03-03-unity-3d-jenkins-apk/pic_5.png">
+<meta property="article:published_time" content="2018-03-03T06:30:47.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.058Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Unity">
+<meta property="article:tag" content="jenkins">
+<meta property="article:tag" content="自动">
+<meta property="article:tag" content="打包">
+<meta property="article:tag" content="apk">
+<meta property="article:tag" content="log">
+<meta property="article:tag" content="build">
+<meta property="article:tag" content="shell">
+<meta property="article:tag" content="命令行">
+<meta property="article:tag" content="参数">
+<meta property="article:tag" content="构建">
+<meta property="article:tag" content="svn">
+<meta property="article:tag" content="宏定义">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/2018-03-03-unity-3d-jenkins-apk/pic_1.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D使用Jenkins自动构建apk | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-03-03-unity-3d-jenkins-apk/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D使用Jenkins自动构建apk
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-03 14:30:47" itemprop="dateCreated datePublished" datetime="2018-03-03T14:30:47+08:00">2018-03-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录使用命令行方式调用Unity打apk包及Jenkins集成的一些方法。</p>
+<a id="more"></a>
+
+<h2 id="打包相关的API"><a href="#打包相关的API" class="headerlink" title="打包相关的API"></a>打包相关的API</h2><h3 id="BuildTarget"><a href="#BuildTarget" class="headerlink" title="BuildTarget"></a>BuildTarget</h3><p>枚举类型，指定要构建的目标平台。如选择目标平台为<code>BuildTarget.iOS</code>或<code>BuildTarget.Android</code>。</p>
+<h3 id="BuildTargetGroup"><a href="#BuildTargetGroup" class="headerlink" title="BuildTargetGroup"></a>BuildTargetGroup</h3><p>枚举类型，指定要构建的目标组。如选择目标组为<code>BuildTargetGroup.iOS</code>或<code>BuildTargetGroup.Android</code>。</p>
+<h3 id="BuildOptions"><a href="#BuildOptions" class="headerlink" title="BuildOptions"></a>BuildOptions</h3><p>枚举类型，构建选项，可以将多个选项组合在一起。以下是支持的一些枚举值，详细参考<a href="https://docs.unity3d.com/ScriptReference/BuildOptions.html" target="_blank" rel="noopener">BuildOptions</a>：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>None</td>
+<td>Perform the specified build without any special settings or extra tasks.</td>
+</tr>
+<tr>
+<td>Development</td>
+<td>Build a development version of the player.</td>
+</tr>
+<tr>
+<td>AutoRunPlayer</td>
+<td>Run the built player.</td>
+</tr>
+<tr>
+<td>ShowBuiltPlayer</td>
+<td>Show the built player.</td>
+</tr>
+<tr>
+<td>BuildAdditionalStreamedScenes</td>
+<td>Build a compressed asset bundle that contains streamed scenes loadable with the UnityWebRequest class.</td>
+</tr>
+<tr>
+<td>AcceptExternalModificationsToPlayer</td>
+<td>Used when building Xcode (iOS) or Eclipse (Android) projects.</td>
+</tr>
+<tr>
+<td>ConnectWithProfiler</td>
+<td>Start the player with a connection to the profiler in the editor.</td>
+</tr>
+<tr>
+<td>AllowDebugging</td>
+<td>Allow script debuggers to attach to the player remotely.</td>
+</tr>
+<tr>
+<td>SymlinkLibraries</td>
+<td>Symlink runtime libraries when generating iOS Xcode project. (Faster iteration time).</td>
+</tr>
+<tr>
+<td>UncompressedAssetBundle</td>
+<td>Don’t compress the data when creating the asset bundle.</td>
+</tr>
+<tr>
+<td>ConnectToHost</td>
+<td>Sets the Player to connect to the Editor.</td>
+</tr>
+<tr>
+<td>EnableHeadlessMode</td>
+<td>Build headless Linux standalone.</td>
+</tr>
+<tr>
+<td>BuildScriptsOnly</td>
+<td>Build only the scripts of a project.</td>
+</tr>
+<tr>
+<td>ForceEnableAssertions</td>
+<td>Include assertions in the build. By default, the assertions are only included in development builds.</td>
+</tr>
+<tr>
+<td>CompressWithLz4</td>
+<td>Use chunk-based LZ4 compression when building the Player.</td>
+</tr>
+<tr>
+<td>CompressWithLz4HC</td>
+<td>Use chunk-based LZ4 high-compression when building the Player.</td>
+</tr>
+<tr>
+<td>StrictMode</td>
+<td>Do not allow the build to succeed if any errors are reporting during it.</td>
+</tr>
+</tbody></table>
+<h3 id="BuildPlayerOptions"><a href="#BuildPlayerOptions" class="headerlink" title="BuildPlayerOptions"></a>BuildPlayerOptions</h3><p>提供用于控制<code>BuildPipeline.BuildPlayer</code>的行为的多种选项，详细参考<a href="https://docs.unity3d.com/ScriptReference/BuildPlayerOptions.html" target="_blank" rel="noopener">BuildPlayerOptions</a>：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>assetBundleManifestPath</td>
+<td>The path to an manifest file describing all of the asset bundles used in the build (optional).</td>
+</tr>
+<tr>
+<td>locationPathName</td>
+<td>The path where the application will be built.</td>
+</tr>
+<tr>
+<td>options</td>
+<td>Additional BuildOptions, like whether to run the built player.</td>
+</tr>
+<tr>
+<td>scenes</td>
+<td>The scenes to be included in the build. If empty, the currently open scene will be built. Paths are relative to the project folder (Assets/MyLevels/MyScene.unity).</td>
+</tr>
+<tr>
+<td>target</td>
+<td>The BuildTarget to build.</td>
+</tr>
+<tr>
+<td>targetGroup</td>
+<td>The BuildTargetGroup to build.</td>
+</tr>
+</tbody></table>
+<h3 id="BuildPipeline-BuildPlayer"><a href="#BuildPipeline-BuildPlayer" class="headerlink" title="BuildPipeline.BuildPlayer"></a>BuildPipeline.BuildPlayer</h3><p>构建打包工作其实是通过调用<code>BuildPipeline.BuildPlayer</code>来完成的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static string BuildPlayer(BuildPlayerOptions buildPlayerOptions);</span><br><span class="line">&#x2F;&#x2F; or</span><br><span class="line">public static string BuildPlayer(string[] levels, string locationPathName, BuildTarget target, BuildOptions options);</span><br><span class="line">&#x2F;&#x2F; or</span><br><span class="line">public static string BuildPlayer(EditorBuildSettingsScene[] levels, string locationPathName, BuildTarget target, BuildOptions options);</span><br></pre></td></tr></table></figure>
+
+<p>需要提供参数<code>buildPlayerOptions</code>或对应的<code>levels</code>、<code>locationPathName</code>、<code>target</code>和 <code>options</code>。</p>
+<h2 id="封装并提供静态方法"><a href="#封装并提供静态方法" class="headerlink" title="封装并提供静态方法"></a>封装并提供静态方法</h2><p>为了完成自动构建，需要对之前的构建方法进行封装，并提供一个外部方法供外部的shell脚本（或bat脚本、或python脚本）调用。同时还需要处理一些其他的工作，如处理由shell脚本向Unity传入的参数，以定制构建的内容（如版本、平台、渠道等）。</p>
+<h3 id="命令行参数获取"><a href="#命令行参数获取" class="headerlink" title="命令行参数获取"></a>命令行参数获取</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">string[] args &#x3D; System.Environment.GetCommandLineArgs();</span><br></pre></td></tr></table></figure>
+
+<p>此方法得到字符串数组，遍历数组并匹配其中的字符串，以判断构建的版本、平台、渠道等。</p>
+<h3 id="修改宏定义"><a href="#修改宏定义" class="headerlink" title="修改宏定义"></a>修改宏定义</h3><p>使用以下方法修改PlayerSetting的宏定义，注意会覆盖掉原来已有的宏定义。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static void SetScriptingDefineSymbolsForGroup(BuildTargetGroup targetGroup, string defines);</span><br></pre></td></tr></table></figure>
+
+<p>参数<code>defines</code>是由分号连接的各个宏组成的字符串。</p>
+<p>可以用<code>PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGrouptargetGroup)</code>来获取当前原有的宏。</p>
+<h3 id="选择构建的场景"><a href="#选择构建的场景" class="headerlink" title="选择构建的场景"></a>选择构建的场景</h3><p>处理构建的场景，将其转化为字符串数组（也可以直接用<code>EditorBuildSettingsScene</code>的数组）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">static string[] GetBuildScenes()</span><br><span class="line">&#123;</span><br><span class="line">	List&lt;string&gt; names &#x3D; new List&lt;string&gt;();</span><br><span class="line">	foreach(EditorBuildSettingsScene e in EditorBuildSettings.scenes)</span><br><span class="line">	&#123;</span><br><span class="line">		if (e !&#x3D; null &amp;&amp; e.enabled) </span><br><span class="line">		&#123;</span><br><span class="line">			names.Add (e.path);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	return names.ToArray();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="构建与构建前后处理"><a href="#构建与构建前后处理" class="headerlink" title="构建与构建前后处理"></a>构建与构建前后处理</h3><p>在构建的前后需要的额外的工作，如构建之前，需要处理脚本传入的参数，以更新构建的参数。除此之外还可能需要绑定生成lua文件、生成AssetBundle等。</p>
+<h3 id="完整的脚本"><a href="#完整的脚本" class="headerlink" title="完整的脚本"></a>完整的脚本</h3><p>以下是完整的C#脚本，ProjectBuild.cs：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br></pre></td><td class="code"><pre><span class="line">using UnityEngine;</span><br><span class="line">using UnityEditor;</span><br><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line"></span><br><span class="line">public class ProjectBuild</span><br><span class="line">&#123;</span><br><span class="line">	private static string m_flavor &#x3D; &quot;&quot;;</span><br><span class="line">	private static string m_svnRevision &#x3D; &quot;&quot;;</span><br><span class="line">	private static BuildTarget m_buildTarget &#x3D; BuildTarget.Android;</span><br><span class="line">	private static string BUILD_OUTPUT_ANDROID &#x3D; &quot;Bin&#x2F;Android&#x2F;&quot;;</span><br><span class="line"></span><br><span class="line">	[MenuItem(&quot;Tools&#x2F;AndroidBuild&#x2F;Default&quot;, false, 100)]</span><br><span class="line">	public static void Build()</span><br><span class="line">	&#123;</span><br><span class="line">		PreBuild ();</span><br><span class="line">		BuildPlayer ();</span><br><span class="line">		PostBuild ();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	private static string[] GetBuildScenes()</span><br><span class="line">	&#123;</span><br><span class="line">		List&lt;string&gt; names &#x3D; new List&lt;string&gt;();</span><br><span class="line">		foreach(EditorBuildSettingsScene e in EditorBuildSettings.scenes)</span><br><span class="line">		&#123;</span><br><span class="line">			if (e !&#x3D; null &amp;&amp; e.enabled) </span><br><span class="line">			&#123;</span><br><span class="line">				names.Add (e.path);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		return names.ToArray();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	private static void UpdateBuildParam()</span><br><span class="line">	&#123;</span><br><span class="line">		string commonDefineSymbols &#x3D; &quot;ASYNC_MODE;USING_DOTWEENING;&quot;;</span><br><span class="line">		string defineSymbolsForFlavor &#x3D; &quot;&quot;;</span><br><span class="line"></span><br><span class="line">		string[] args &#x3D; System.Environment.GetCommandLineArgs();</span><br><span class="line">		foreach(string arg in args)</span><br><span class="line">		&#123;</span><br><span class="line">			if (arg !&#x3D; null &amp;&amp; arg.Length &gt; 0)</span><br><span class="line">			&#123;</span><br><span class="line">				string oneArg &#x3D; arg.ToLower ();</span><br><span class="line">				if (oneArg.StartsWith(&quot;flavor&quot;)) </span><br><span class="line">				&#123;</span><br><span class="line">					string[] flavorArr &#x3D; oneArg.Split (&#39;&#x3D;&#39;);</span><br><span class="line">					if(flavorArr.Length &gt; 1)</span><br><span class="line">					&#123;</span><br><span class="line">						m_flavor &#x3D; flavorArr[1];</span><br><span class="line">						defineSymbolsForFlavor &#x3D; m_flavor.ToUpper() + &quot;;&quot;;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">				else if (oneArg.StartsWith(&quot;svn&quot;))</span><br><span class="line">				&#123;</span><br><span class="line">					string[] svnArr &#x3D; oneArg.Split (&#39;&#x3D;&#39;);</span><br><span class="line">					if(svnArr.Length &gt; 1)</span><br><span class="line">					&#123;</span><br><span class="line">						m_svnRevision &#x3D; svnArr[1];</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		string defineSymbols &#x3D; commonDefineSymbols + defineSymbolsForFlavor;</span><br><span class="line"></span><br><span class="line">		PlayerSettings.SetScriptingDefineSymbolsForGroup (BuildTargetGroup.Android, defineSymbols);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	private static void PreBuild()</span><br><span class="line">	&#123;</span><br><span class="line">		Debug.Log(&quot;PreBuild Start&quot;);</span><br><span class="line"></span><br><span class="line">		UpdateBuildParam ();</span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F;ToLuaMenu.OnPreBuild ();</span><br><span class="line"></span><br><span class="line">		Debug.Log(&quot;BuildAndroidRes&quot;);</span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F;Packager.BuildAndroidRes ();</span><br><span class="line"></span><br><span class="line">		Debug.Log(&quot;PreBuild Finish&quot;);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	private static void BuildPlayer()</span><br><span class="line">	&#123;</span><br><span class="line">		Debug.Log(&quot;BuildPlayer Start&quot;);</span><br><span class="line"></span><br><span class="line">		BuildOptions buildOption &#x3D; BuildOptions.None;</span><br><span class="line"></span><br><span class="line">		string locationPathName;</span><br><span class="line"></span><br><span class="line">		locationPathName &#x3D; BUILD_OUTPUT_ANDROID;</span><br><span class="line">		System.DateTime time &#x3D; System.DateTime.Now;</span><br><span class="line">		string timeStr &#x3D; time.Month.ToString (&quot;D2&quot;) + time.Day.ToString (&quot;D2&quot;) + &quot;_&quot; + time.Hour.ToString (&quot;D2&quot;) + time.Minute.ToString (&quot;D2&quot;);</span><br><span class="line">		locationPathName +&#x3D; &quot;GAME_&quot; + timeStr + &quot;_&quot; + m_svnRevision + &quot;_&quot; + m_flavor + &quot;.apk&quot;;</span><br><span class="line">		BuildPipeline.BuildPlayer(GetBuildScenes(), locationPathName, m_buildTarget, buildOption);</span><br><span class="line"></span><br><span class="line">		Debug.Log(&quot;BuildPlayer Finish&quot;);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	private static void PostBuild()</span><br><span class="line">	&#123;</span><br><span class="line">		Debug.Log(&quot;PostBuild&quot;);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="shell脚本调用"><a href="#shell脚本调用" class="headerlink" title="shell脚本调用"></a>shell脚本调用</h2><h3 id="命令行运行Unity"><a href="#命令行运行Unity" class="headerlink" title="命令行运行Unity"></a>命令行运行Unity</h3><p>shell脚本中首先需要定义一些路径变量，当然这些也可以直接配置在环境变量里，包括Unity程序的位置，项目工程的目录：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">UNITY_PATH=/Applications/Unity/Unity.app/Contents/MacOS/Unity</span><br><span class="line">PROJECT_PATH=/Users/aillieo/PROJECT/game</span><br></pre></td></tr></table></figure>
+
+<p>使用命令行方式运行Unity，执行以下命令开始构建，其它相关参数可以详见<a href="https://docs.unity3d.com/Manual/CommandLineArguments.html" target="_blank" rel="noopener">CommandLineArguments</a>：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">UNITY_PATH -projectPath <span class="variable">$PROJECT_PATH</span> -executeMethod ProjectBuild.Build -batchmode -quit <span class="variable">$@</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="其它操作与处理"><a href="#其它操作与处理" class="headerlink" title="其它操作与处理"></a>其它操作与处理</h3><h4 id="svn相关"><a href="#svn相关" class="headerlink" title="svn相关"></a>svn相关</h4><p>在构建之前，一般需要获取最新代码，切换到项目目录并拉取svn最新代码：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd $PROJECT_PATH</span><br><span class="line">svn up</span><br></pre></td></tr></table></figure>
+
+<p>如果需要当前svn版本号，可以使用以下的方法提取，保存该变量并传给Unity。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">svn info | grep Revision: | awk '&#123;print $2&#125;' </span><br><span class="line"><span class="meta">#</span><span class="bash">svn_rev=$(svn info | grep Revision: | awk <span class="string">'&#123;print $2&#125;'</span>)</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="记录log"><a href="#记录log" class="headerlink" title="记录log"></a>记录log</h4><p>如需记录log，在执行Unity构建方法时提供参数如下，即可保存log到指定文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-logFile log.txt</span><br></pre></td></tr></table></figure>
+
+<h4 id="移动文件"><a href="#移动文件" class="headerlink" title="移动文件"></a>移动文件</h4><p>构建完成之后，将构建完成的apk移动到指定的目录：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">APK_BUILD_PATH=$PROJECT_PATH/Bin/Android</span><br><span class="line"></span><br><span class="line">JENKINS_APK_PATH=$WORKSPACE</span><br><span class="line"></span><br><span class="line">mv $APK_BUILD_PATH/* $JENKINS_APK_PATH</span><br></pre></td></tr></table></figure>
+
+<h4 id="完整的shell脚本"><a href="#完整的shell脚本" class="headerlink" title="完整的shell脚本"></a>完整的shell脚本</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 配置路径</span></span><br><span class="line">UNITY_PATH=/Applications/Unity/Unity.app/Contents/MacOS/Unity</span><br><span class="line">PROJECT_PATH=/Users/aillieo/PROJECT/game</span><br><span class="line"></span><br><span class="line">APK_BUILD_PATH=$PROJECT_PATH/Bin/Android</span><br><span class="line">JENKINS_APK_PATH=$WORKSPACE</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 更新代码</span></span><br><span class="line">cd $PROJECT_PATH</span><br><span class="line">svn up</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 获取svn版本号</span></span><br><span class="line">svn_rev=$(svn info | grep Revision: | awk '&#123;print $2&#125;')</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 调用构建的静态方法</span></span><br><span class="line"><span class="meta">$</span><span class="bash">UNITY_PATH -projectPath <span class="variable">$PROJECT_PATH</span> -executeMethod ProjectBuild.Build -batchmode -quit <span class="variable">$@</span> svn=<span class="variable">$svn_rev</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 移动构建完成的apk</span></span><br><span class="line">mv $APK_BUILD_PATH/* $JENKINS_APK_PATH</span><br></pre></td></tr></table></figure>
+
+<h2 id="Jenkins配置"><a href="#Jenkins配置" class="headerlink" title="Jenkins配置"></a>Jenkins配置</h2><h3 id="工作空间"><a href="#工作空间" class="headerlink" title="工作空间"></a>工作空间</h3><p>配置<code>JENKINS_HOME</code>，有项目工作空间目录：</p>
+<p><img src="2018-03-03-unity-3d-jenkins-apk/pic_1.png" alt="alt text"></p>
+<p>构建的shell脚本内部可以使用<code>$WORKSPACE</code>来获取当前的工作空间目录。</p>
+<h3 id="配置构建参数"><a href="#配置构建参数" class="headerlink" title="配置构建参数"></a>配置构建参数</h3><p>可以创建多种类型的参数，这里以选项参数为例，其它类型参数同理：</p>
+<p><img src="2018-03-03-unity-3d-jenkins-apk/pic_2.png" alt="alt text"></p>
+<p><img src="2018-03-03-unity-3d-jenkins-apk/pic_3.png" alt="alt text"></p>
+<h3 id="调用shell脚本"><a href="#调用shell脚本" class="headerlink" title="调用shell脚本"></a>调用shell脚本</h3><p>调用脚本并直接传入构建参数：</p>
+<p><img src="2018-03-03-unity-3d-jenkins-apk/pic_4.png" alt="alt text"></p>
+<p><img src="2018-03-03-unity-3d-jenkins-apk/pic_5.png" alt="alt text"></p>
+<h3 id="实时输出log"><a href="#实时输出log" class="headerlink" title="实时输出log"></a>实时输出log</h3><p>此步骤的目的是将Unity产生的log实时输出到Jenkins的ConsoleOutput中。Unity通过命令行方式执行方法时不能直接将log（如代码中<code>Debug.Log()</code>方法输出的内容等）输出到控制台，因此在Jenkins中也无法实时查看。网上有一种借助python来实现的方法，可解决这一问题，详见<a href="https://www.jianshu.com/p/bd97cb8042a9" target="_blank" rel="noopener">Unity命令行模式，也能「日志实时输出」</a>。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/Manual/CommandLineArguments.html" target="_blank" rel="noopener">https://docs.unity3d.com/Manual/CommandLineArguments.html</a></p>
+<p><a href="https://docs.unity3d.com/ScriptReference/BuildPipeline.BuildPlayer.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/BuildPipeline.BuildPlayer.html</a></p>
+<p><a href="https://www.jianshu.com/p/a9261113b4ac" target="_blank" rel="noopener">https://www.jianshu.com/p/a9261113b4ac</a></p>
+<p><a href="http://www.xuanyusong.com/archives/2748" target="_blank" rel="noopener">http://www.xuanyusong.com/archives/2748</a></p>
+<p><a href="https://www.jianshu.com/p/bd97cb8042a9" target="_blank" rel="noopener">https://www.jianshu.com/p/bd97cb8042a9</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/shell/" rel="tag"># shell</a>
+              <a href="/tags/Jenkins/" rel="tag"># Jenkins</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-02-27-unity-3d-shader-basics-02/" rel="prev" title="Unity Shader基础（二）">
+      <i class="fa fa-chevron-left"></i> Unity Shader基础（二）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-03-09-unity-3d-ugui-source-code-01/" rel="next" title="Unity3D UGUI 源码学习">
+      Unity3D UGUI 源码学习 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#打包相关的API"><span class="nav-number">1.</span> <span class="nav-text">打包相关的API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BuildTarget"><span class="nav-number">1.1.</span> <span class="nav-text">BuildTarget</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BuildTargetGroup"><span class="nav-number">1.2.</span> <span class="nav-text">BuildTargetGroup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BuildOptions"><span class="nav-number">1.3.</span> <span class="nav-text">BuildOptions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BuildPlayerOptions"><span class="nav-number">1.4.</span> <span class="nav-text">BuildPlayerOptions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BuildPipeline-BuildPlayer"><span class="nav-number">1.5.</span> <span class="nav-text">BuildPipeline.BuildPlayer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#封装并提供静态方法"><span class="nav-number">2.</span> <span class="nav-text">封装并提供静态方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行参数获取"><span class="nav-number">2.1.</span> <span class="nav-text">命令行参数获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改宏定义"><span class="nav-number">2.2.</span> <span class="nav-text">修改宏定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选择构建的场景"><span class="nav-number">2.3.</span> <span class="nav-text">选择构建的场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构建与构建前后处理"><span class="nav-number">2.4.</span> <span class="nav-text">构建与构建前后处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#完整的脚本"><span class="nav-number">2.5.</span> <span class="nav-text">完整的脚本</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#shell脚本调用"><span class="nav-number">3.</span> <span class="nav-text">shell脚本调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#命令行运行Unity"><span class="nav-number">3.1.</span> <span class="nav-text">命令行运行Unity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其它操作与处理"><span class="nav-number">3.2.</span> <span class="nav-text">其它操作与处理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#svn相关"><span class="nav-number">3.2.1.</span> <span class="nav-text">svn相关</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#记录log"><span class="nav-number">3.2.2.</span> <span class="nav-text">记录log</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#移动文件"><span class="nav-number">3.2.3.</span> <span class="nav-text">移动文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#完整的shell脚本"><span class="nav-number">3.2.4.</span> <span class="nav-text">完整的shell脚本</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Jenkins配置"><span class="nav-number">4.</span> <span class="nav-text">Jenkins配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#工作空间"><span class="nav-number">4.1.</span> <span class="nav-text">工作空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置构建参数"><span class="nav-number">4.2.</span> <span class="nav-text">配置构建参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调用shell脚本"><span class="nav-number">4.3.</span> <span class="nav-text">调用shell脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实时输出log"><span class="nav-number">4.4.</span> <span class="nav-text">实时输出log</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '47680c0fcb97000b583345c2d7a3db78',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在计算机中，三维空间中点的位置可以用三坐标表示，此处用一个矢量来保存某一点的坐标。一个几何体可以看做是由很多点构成的，而其中的每个点都可以用以下的矢量表示：  $$ \begin{bmatrix}  x \\  y \\  z\\  \end{bmatrix} $$   而对其进行的各种变换（平移、缩放、旋转等）均可以用矩阵来表达，对基矢量组成的矩阵进行变换得到变换后的矩阵即可作为任意矢量进行相应">
+<meta property="og:type" content="article">
+<meta property="og:title" content="线性坐标变换">
+<meta property="og:url" content="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="在计算机中，三维空间中点的位置可以用三坐标表示，此处用一个矢量来保存某一点的坐标。一个几何体可以看做是由很多点构成的，而其中的每个点都可以用以下的矢量表示：  $$ \begin{bmatrix}  x \\  y \\  z\\  \end{bmatrix} $$   而对其进行的各种变换（平移、缩放、旋转等）均可以用矩阵来表达，对基矢量组成的矩阵进行变换得到变换后的矩阵即可作为任意矢量进行相应">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/2017-03-07-linear-transformation-of-coordinate-system/fig_01.png">
+<meta property="og:image" content="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/2017-03-07-linear-transformation-of-coordinate-system/fig_02.png">
+<meta property="og:image" content="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/2017-03-07-linear-transformation-of-coordinate-system/fig_03.png">
+<meta property="og:image" content="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/2017-03-07-linear-transformation-of-coordinate-system/fig_04.png">
+<meta property="article:published_time" content="2017-03-07T05:32:33.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.045Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="matrix">
+<meta property="article:tag" content="linear">
+<meta property="article:tag" content="transformation">
+<meta property="article:tag" content="coordinate">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/2017-03-07-linear-transformation-of-coordinate-system/fig_01.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>线性坐标变换 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          线性坐标变换
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-07 13:32:33" itemprop="dateCreated datePublished" datetime="2017-03-07T13:32:33+08:00">2017-03-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Mathematics/" itemprop="url" rel="index"><span itemprop="name">Mathematics</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在计算机中，三维空间中点的位置可以用三坐标表示，此处用一个矢量来保存某一点的坐标。一个几何体可以看做是由很多点构成的，而其中的每个点都可以用以下的矢量表示：</p>
+
+$$
+\begin{bmatrix}
+ x \\
+ y \\
+ z\\
+ \end{bmatrix}
+$$
+
+
+<p>而对其进行的各种变换（平移、缩放、旋转等）均可以用矩阵来表达，对基矢量组成的矩阵进行变换得到变换后的矩阵即可作为任意矢量进行相应坐标变换的变换矩阵。本文中使用的坐标系为左手坐标系（left-hand rule）。</p>
+<a id="more"></a>
+
+
+
+若使用$a$表示变换前的坐标，$b$表示变换之后的坐标，$F$表示变换操作（事实上是可以表示广义的函数映射），则可以写成以下形式：
+$$
+F(a) = b
+$$
+如果对于任意的变量$a$、$b$和任意数$k$满足：
+$$
+F(a+b) = F(a) + F(b) \\
+F(ka) = kF(a)
+$$
+则称 $F$为线性变换，除投影外，经过线性变换的平行线仍为平行线，线性变换保留直线和平行线，且不会移动原点。线性变换主要包括旋转（绕原点）、缩放、投影（正交）、镜像和切变等。
+
+
+
+<h2 id="旋转"><a href="#旋转" class="headerlink" title="旋转"></a>旋转</h2><p>在线性变换中，旋转操作不会改变原点的位置，即旋转中心为原点或转轴经过原点。</p>
+<h3 id="2D中的旋转"><a href="#2D中的旋转" class="headerlink" title="2D中的旋转"></a>2D中的旋转</h3>
+
+2D环境中物体绕原点旋转角度$\theta$（逆时针方向为正），根据旋转基矢量来推出变换矩阵：
+
+基矢量：
+$$
+\begin{bmatrix}
+p\\
+q
+\end{bmatrix}
+=
+\begin{bmatrix}
+1&0 \\
+0&1 \\
+\end{bmatrix}
+$$
+旋转之后得到$v'$：
+
+
+
+<p><img src="2017-03-07-linear-transformation-of-coordinate-system/fig_01.png" alt="fig"></p>
+
+
+则有：
+$$
+R(\theta) =
+\begin{bmatrix}
+p' \\
+q'
+\end{bmatrix}
+=
+\begin{bmatrix}
+\cos\theta& \sin\theta\\
+-\sin\theta& \cos\theta
+\end{bmatrix}
+$$
+
+
+
+<h3 id="绕坐标轴的旋转"><a href="#绕坐标轴的旋转" class="headerlink" title="绕坐标轴的旋转"></a>绕坐标轴的旋转</h3>
+
+绕$x$轴的旋转，根据旋转之后的基矢量容易得出旋转变换矩阵为：
+$$
+R_x(\theta) =
+\begin{bmatrix}
+p' \\
+q' \\
+r'
+\end{bmatrix}
+=
+\begin{bmatrix}
+1& 0 & 0 \\
+0&\cos\theta& \sin\theta\\
+0&-\sin\theta& \cos\theta
+\end{bmatrix}
+$$
+同理可得绕$y$轴和$z$轴的变换矩阵：
+$$
+R_y(\theta) =
+\begin{bmatrix}
+p' \\
+q' \\
+r'
+\end{bmatrix}
+=
+\begin{bmatrix}
+\cos\theta& 0 & -\sin\theta\\
+0&1&0 \\
+\sin\theta&0& \cos\theta
+\end{bmatrix}
+,
+R_z(\theta) =
+\begin{bmatrix}
+p' \\
+q' \\
+r'
+\end{bmatrix}
+=
+\begin{bmatrix}
+\cos\theta& \sin\theta & 0\\
+-\sin\theta& \cos\theta &0 \\
+0&0&1 
+\end{bmatrix}
+$$
+
+
+
+<h3 id="绕任意轴的旋转"><a href="#绕任意轴的旋转" class="headerlink" title="绕任意轴的旋转"></a>绕任意轴的旋转</h3>
+
+使用$n$来表示旋转的轴，则由$v$绕轴$n$旋转角度$\theta$得到$v'$可表示为：
+$$
+vR(n,\theta)=v'
+$$
+为推算出变换矩阵$R$，此处可以将空间中任意矢量$v$分解为$v_\parallel$和$v_\perp$，其中$v_\parallel$表示$v$平行于$n$的分量，$v_\perp$表示$v$垂直于$n$的分量，则有：
+$$
+v=v_\parallel + v_\perp
+$$
+
+
+
+<p><img src="2017-03-07-linear-transformation-of-coordinate-system/fig_02.png" alt="fig"></p>
+
+
+上图中，用$w$表示与$v_\perp$和$v_\perp$同时都垂直的矢量：
+$$
+v_\parallel = (v \cdot n)n \\
+v_\perp  = v - v _\parallel \\
+w = n \times v_\perp
+$$
+旋转后的$v'$：
+$$
+\begin{align}
+v'_\parallel  &=  v_\parallel \\
+v'_\perp  &= v _\perp\cos\theta + w\sin\theta \\
+\end{align}
+$$
+代入则有：
+$$
+\begin{align}
+v‘&=v’_\parallel + v‘_\perp \\
+   &=(v-(v\cdot n)n)\cos\theta + (n\times v)\sin\theta + (v\times n)n
+\end{align}
+$$
+使用基向量变换，最终推出$v$绕轴$n$旋转角度$\theta$得到$v'$的变换矩阵为：
+$$
+R(n,\theta) =
+\begin{bmatrix}
+n_x^2(1-\cos\theta)+ \cos\theta &
+n_xn_y(1-\cos\theta) + n_z\sin\theta &
+n_xn_z(1-\cos\theta) - n_y\sin\theta \\
+n_xn_y(1-\cos\theta) - n_z\sin\theta &
+n_y^2(1-\cos\theta)+ \cos\theta &
+n_yn_z(1-\cos\theta) + n_x\sin\theta \\
+n_xn_z(1-\cos\theta) + n_y\sin\theta &
+n_yn_z(1-\cos\theta) - n_x\sin\theta &
+n_z^2(1-\cos\theta)+ \cos\theta 
+\end{bmatrix}
+$$
+
+
+
+<h2 id="缩放"><a href="#缩放" class="headerlink" title="缩放"></a>缩放</h2><p>本文讨论的缩放均以原点为中心。</p>
+<p>可以指定比例因子$k$来使物体据此放大或缩小。如果在各个方向的比例因子一样则称之为均匀缩放，均匀缩放可保持物体的角度和比例不变。如果需要“挤压”或“拉伸”物体，则在不同方向应用不同的比例因子即可，这称为费均匀缩放。非均匀缩放时，物体的角度将发生变化。非均匀缩放的效果类似于切变。</p>
+
+
+如果$|k|<1$，物体将变小或变短，如果$|k|>1$，物体将变大或变长。如果$|k|=0$，就是正交投影，如果$|k|<0$，就是镜像。本节先讨论$|k|>0$的情况。
+
+
+
+<h3 id="沿坐标轴方向的缩放"><a href="#沿坐标轴方向的缩放" class="headerlink" title="沿坐标轴方向的缩放"></a>沿坐标轴方向的缩放</h3>
+
+先看2D情况，基矢量：
+$$
+\begin{bmatrix}
+p\\
+q
+\end{bmatrix}
+=
+\begin{bmatrix}
+1&0 \\
+0&1 \\
+\end{bmatrix}
+$$
+对$x$轴和$y$轴使用缩放因子$k_x$和$k_y$之后有：
+$$
+p'=k_xp = k_x\begin{bmatrix}1 & 0\end{bmatrix} = \begin{bmatrix}k_x & 0\end{bmatrix}  \\
+q'=k_yq = k_y\begin{bmatrix}0 &1\end{bmatrix}  = \begin{bmatrix}0 & k_y\end{bmatrix} 
+$$
+所以2D缩放矩阵：
+$$
+S(k_x,k_y) =
+\begin{bmatrix}
+p'\\
+q'
+\end{bmatrix}
+=
+\begin{bmatrix}
+k_x&0 \\
+0&k_y 
+\end{bmatrix}
+$$
+易得3D中增加缩放因子$k_z$后的缩放矩阵为：
+$$
+S(k_x,k_y,k_z) =
+\begin{bmatrix}
+k_x&0 & 0\\
+0&k_y  & 0\\
+0 & 0 & k_z
+\end{bmatrix}
+$$
+
+
+
+<h3 id="沿任意方向的缩放"><a href="#沿任意方向的缩放" class="headerlink" title="沿任意方向的缩放"></a>沿任意方向的缩放</h3>
+
+首先考虑2D情况，$n$为平行于缩放方向的单位矢量，$k$为缩放因子，缩放沿穿过原点并平行于$n$的直线（3D中为平面）进行。
+
+与之前推导旋转公式时相同，将$v$分解为$v_\parallel$和$v_\perp$，其中$v_\parallel$表示$v$平行于$n$的分量，$v_\perp$表示$v$垂直于$n$的分量：
+
+
+
+<p><img src="2017-03-07-linear-transformation-of-coordinate-system/fig_03.png" alt="fig"></p>
+
+
+则有：
+$$
+v = v_\parallel  + v_\perp \\
+v_\parallel = (v \cdot n)n \\
+v'_\perp = v_\perp \\
+v'_\parallel = kv_\parallel
+$$
+根据上述关系，则$v'$可以表示为：
+$$
+\begin{align}
+v' &=v'_\perp + v'_\parallel \\
+    &= v + (k-1)(v\cdot n)n
+\end{align}
+$$
+将$v$替换为2D的基向量，则可以得到：
+$$
+S(k_x,k_y) =
+\begin{bmatrix}
+p'\\
+q'
+\end{bmatrix}
+=
+\begin{bmatrix}
+1+(k-1)n_x^2 & (k-1)n_xn_y\\
+(k-1)n_xn_y & 1+(k-1)n_y^2
+\end{bmatrix}
+$$
+将$v$替换为3D的基向量：
+$$
+S(k_x,k_y,k_z) =
+\begin{bmatrix}
+p'\\
+q' \\
+r'
+\end{bmatrix}
+=
+\begin{bmatrix}
+1+(k-1)n_x^2 & (k-1)n_xn_y & (k-1)n_xn_z\\
+(k-1)n_xn_y & 1+(k-1)n_y^2 & (k-1)n_yn_z \\
+(k-1)n_xn_z & (k-1)n_zn_y & 1+(k-1)n_z^2
+\end{bmatrix}
+$$
+
+
+
+<h2 id="投影（正交）"><a href="#投影（正交）" class="headerlink" title="投影（正交）"></a>投影（正交）</h2><h3 id="向坐标轴或平面上投影"><a href="#向坐标轴或平面上投影" class="headerlink" title="向坐标轴或平面上投影"></a>向坐标轴或平面上投影</h3>
+
+向坐标轴或平面投影在实际中不常发生，大多数情况是向低维的变量赋值，且要抛弃维数时。如将3D点赋值给2D点，抛弃$z$分量，只复制$x$和$y$。结合上一节内容，使垂直方向上的缩放因子为0即可实现向坐标轴或平面投影：
+$$
+P_x = S(\begin{bmatrix}0 &1\end{bmatrix},0) = \begin{bmatrix}1 &0 \\ 0 & 0 \end{bmatrix} \\
+P_y = S(\begin{bmatrix}1 &0\end{bmatrix},0) = \begin{bmatrix}0 &0 \\ 0 & 1 \end{bmatrix} \\
+P_{xy} = S(\begin{bmatrix}0 &0&1\end{bmatrix},0) = \begin{bmatrix}1&0 &0 \\ 0 & 1 &0 \\ 0 & 0 & 0 \end{bmatrix} \\
+P_{xz} = S(\begin{bmatrix}0 &1&0\end{bmatrix},0) = \begin{bmatrix}1&0 &0 \\ 0 & 0 &0 \\ 0 & 0 & 1 \end{bmatrix} \\
+P_{yz} = S(\begin{bmatrix}1 &0&0\end{bmatrix},0) = \begin{bmatrix}0&0 &0 \\ 0 & 1 &0 \\ 0 & 0 &1 \end{bmatrix} \\
+$$
+
+
+
+<h3 id="向任意直线或平面投影"><a href="#向任意直线或平面投影" class="headerlink" title="向任意直线或平面投影"></a>向任意直线或平面投影</h3>
+
+此处讨论的任意直线及平面必须通过原点，投影由垂直于直线锪平面的单位矢量$n$定义，使该方向的缩放因子为0即可：
+$$
+P(n) = S(n,0) =
+\begin{bmatrix}
+1-n_x^2 & -n_xn_y\\
+-n_xn_y & 1-n_y^2
+\end{bmatrix}\\
+P(n)=S(n,0) =
+\begin{bmatrix}
+1-n_x^2 & -n_xn_y & -n_xn_z\\
+-n_xn_y & 1-n_y^2 &-n_yn_z \\
+-n_xn_z &-n_zn_y & 1-n_z^2
+\end{bmatrix}
+$$
+
+
+
+<h2 id="镜像"><a href="#镜像" class="headerlink" title="镜像"></a>镜像</h2>
+
+镜像（Reflection）使物体沿直线（2D中）或平面（3D中）翻转，使缩放因子为-1即可达到镜像变换的效果：
+$$
+R(n) = S(n,-1)=
+\begin{bmatrix}
+1-2n_x^2 & -2n_xn_y\\
+-2n_xn_y & 1-2n_y^2
+\end{bmatrix}
+\\
+R(n) = S(n,-1)=
+\begin{bmatrix}
+1-2n_x^2 & -2n_xn_y & -2n_xn_z\\
+-2n_xn_y &1-2n_y^2 & -2n_yn_z \\
+-2n_xn_z &-2n_zn_y & 1-2n_z^2
+\end{bmatrix}
+$$
+
+
+
+<h2 id="切变"><a href="#切变" class="headerlink" title="切变"></a>切变</h2><p>切变（Shearing）是一种坐标系扭曲变换，而非均匀地拉伸。切变发生时，角度会发生变化，但面积和体积会保持不变，基本思想是将某一坐标的乘积加到另一个上。如下图是将$y$乘以某因子然后加到$x$上，得到$x’=x+sy$。</p>
+<p><img src="2017-03-07-linear-transformation-of-coordinate-system/fig_04.png" alt="fig"></p>
+
+
+实现这个切变的变换矩阵为：
+$$
+H_x(s) =
+\begin{bmatrix}
+1 & 0 \\
+s & 1
+\end{bmatrix}
+$$
+$H_x$的意思是$x$坐标根据坐标$y$被切变，参数$s$控制着切变的方向和量。$y$坐标根据$x$坐标被切变的矩阵是：
+$$
+H_y(s) =
+\begin{bmatrix}
+1 & s \\
+0 & 1
+\end{bmatrix}
+$$
+3D中的切变方法会取出一个坐标，乘以不同的因子再加到另外两个坐标上。记法$H_{xy}$的意义是$x$、$y$坐标被坐标$z$改变：
+$$
+H_{xy}(s,t)= \begin{bmatrix} 1 & 0 &0 \\0 & 1&0 \\ s & t & 1 \end{bmatrix}  \\
+H_{xz}(s,t)= \begin{bmatrix} 1 & 0 &0 \\s & 1&t \\ 0 &0 & 1 \end{bmatrix}  \\
+H_{yy}(s,t)= \begin{bmatrix} 1 & s &t \\0 & 1&0 \\ 0 & 0 & 1 \end{bmatrix}
+$$
+
+
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/1400419/" target="_blank" rel="noopener">3D数学基础：图形与游戏开发</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/matrix/" rel="tag"># matrix</a>
+              <a href="/tags/linear/" rel="tag"># linear</a>
+              <a href="/tags/transformation/" rel="tag"># transformation</a>
+              <a href="/tags/coordinate/" rel="tag"># coordinate</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-03-06-cpp-stl-containers/" rel="prev" title="C++标准模板库：容器">
+      <i class="fa fa-chevron-left"></i> C++标准模板库：容器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-03-12-homogeneous-coordinate-and-affine-transformation/" rel="next" title="齐次坐标与仿射变换">
+      齐次坐标与仿射变换 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#旋转"><span class="nav-number">1.</span> <span class="nav-text">旋转</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2D中的旋转"><span class="nav-number">1.1.</span> <span class="nav-text">2D中的旋转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#绕坐标轴的旋转"><span class="nav-number">1.2.</span> <span class="nav-text">绕坐标轴的旋转</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#绕任意轴的旋转"><span class="nav-number">1.3.</span> <span class="nav-text">绕任意轴的旋转</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缩放"><span class="nav-number">2.</span> <span class="nav-text">缩放</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#沿坐标轴方向的缩放"><span class="nav-number">2.1.</span> <span class="nav-text">沿坐标轴方向的缩放</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#沿任意方向的缩放"><span class="nav-number">2.2.</span> <span class="nav-text">沿任意方向的缩放</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#投影（正交）"><span class="nav-number">3.</span> <span class="nav-text">投影（正交）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#向坐标轴或平面上投影"><span class="nav-number">3.1.</span> <span class="nav-text">向坐标轴或平面上投影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向任意直线或平面投影"><span class="nav-number">3.2.</span> <span class="nav-text">向任意直线或平面投影</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#镜像"><span class="nav-number">4.</span> <span class="nav-text">镜像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#切变"><span class="nav-number">5.</span> <span class="nav-text">切变</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">6.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'fa83a49e9eda27fe5eb08bcf055d042d',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

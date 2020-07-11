@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="使用Bitmap Font Generator生成字体文件时的字体设置、输出设置和描述文件，翻译自Bitmap Font Generator的在线文档。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Bitmap Font Generator 的设置和选项">
+<meta property="og:url" content="http://aillieo.cn/post/2017-09-16-bmfont-configuration/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="使用Bitmap Font Generator生成字体文件时的字体设置、输出设置和描述文件，翻译自Bitmap Font Generator的在线文档。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2017-09-16-bmfont-configuration/2017-09-16-bmfont-configuration/fig_1.png">
+<meta property="og:image" content="http://aillieo.cn/post/2017-09-16-bmfont-configuration/2017-09-16-bmfont-configuration/fig_2.png">
+<meta property="og:image" content="http://aillieo.cn/post/2017-09-16-bmfont-configuration/2017-09-16-bmfont-configuration/fig_3.png">
+<meta property="article:published_time" content="2017-09-16T14:32:29.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.049Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="bitmap">
+<meta property="article:tag" content="font">
+<meta property="article:tag" content="bmf">
+<meta property="article:tag" content="bmfont">
+<meta property="article:tag" content="config">
+<meta property="article:tag" content="setting">
+<meta property="article:tag" content="texture">
+<meta property="article:tag" content="channel">
+<meta property="article:tag" content="glyph">
+<meta property="article:tag" content="outline">
+<meta property="article:tag" content="图字">
+<meta property="article:tag" content="字体">
+<meta property="article:tag" content="纹理">
+<meta property="article:tag" content="字形">
+<meta property="article:tag" content="通道">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2017-09-16-bmfont-configuration/2017-09-16-bmfont-configuration/fig_1.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-09-16-bmfont-configuration/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Bitmap Font Generator 的设置和选项 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-09-16-bmfont-configuration/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Bitmap Font Generator 的设置和选项
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-16 22:32:29" itemprop="dateCreated datePublished" datetime="2017-09-16T22:32:29+08:00">2017-09-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Font/" itemprop="url" rel="index"><span itemprop="name">Font</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>使用Bitmap Font Generator生成字体文件时的字体设置、输出设置和描述文件，翻译自Bitmap Font Generator的<a href="http://www.angelcode.com/products/bmfont/documentation.html" target="_blank" rel="noopener">在线文档</a>。</p>
+<a id="more"></a>
+
+
+
+<h2 id="字体设置（Font-settings）"><a href="#字体设置（Font-settings）" class="headerlink" title="字体设置（Font settings）"></a>字体设置（Font settings）</h2><p>在选项（Option）菜单中选择字体设置或按下F键即可打开字体设置面板。<br>这一面板控制字体的属性，如字符集、字体外观等。</p>
+<p><img src="2017-09-16-bmfont-configuration/fig_1.png" alt="alt text"></p>
+<h3 id="字体图形（Font-graphics）"><a href="#字体图形（Font-graphics）" class="headerlink" title="字体图形（Font graphics）"></a>字体图形（Font graphics）</h3><p>无效字符字形（invalid character glyph）是指对于特定字符如果在TrueType字体中没有适当的字形时用作回退使用的字形。</p>
+<p>不包含字偶距（not include kerning pairs）的选项在使用此生成的bmfont的应用程序不支持字偶距，或源TrueType字体中有不正确的字偶距时非常实用。</p>
+<h3 id="光栅化（Rasterizing）"><a href="#光栅化（Rasterizing）" class="headerlink" title="光栅化（Rasterizing）"></a>光栅化（Rasterizing）</h3><p>增加从TrueType的轮廓渲染（render from TrueType outline）选项是因为Windows的本地字体引擎会会裁切掉上下超出单元高度（cell height）的字形。正常情况下这不是问题，并且在大多数情况下不会注意到这两种形式光栅化字形的区别。</p>
+<p>TrueType微调（TrueType hinting）可以 在文本以较小的尺寸渲染时，按照屏幕像素来调整字形边缘的显示，使文本更易读。在本地字体引擎中这一选项总是开启，当使用轮廓渲染（render from outline）时则可以选择将其关闭，以得到字符准确的形状。请注意对于较小的字体，细的线会变得不可见以至于字形变得不易读。</p>
+<p>ClearType是本地字体引擎提供的选项，可以借助LCD/LED屏幕的像素布局来使用次像素级平滑（subpixel smoothing）。当对字形光栅化时，会失去次像素级的平滑，但仍可以有较好的抗锯齿效果，所以就有了此选项，可以根据需要使用。</p>
+<p>当使用字体平滑（font smoothing）来生成字体时，建议仅使用字体平滑。如果使用了超采样（super sampling），由于向下采样时使用平均，生成的字体可能会降低锐度（sharpness）。这一现象在生成较小的字体时更明显。在字体平滑失效时，超采样会对光栅化字体非常有用。</p>
+<h3 id="Effects"><a href="#Effects" class="headerlink" title="Effects"></a>Effects</h3><p>生成字体时可选择同时生成一个烘培的可变宽度的轮廓。如果使用了轮廓（outline）字体会占用更多一点的纹理空间，但好处是不必在绘制字体的运行时再生成轮廓。</p>
+<h2 id="输出选项（Export-options）"><a href="#输出选项（Export-options）" class="headerlink" title="输出选项（Export options）"></a>输出选项（Export options）</h2><p>在选项（Option）菜单中选择输出选项或按下T键即可打开字体设置面板。</p>
+<p>这一面板控制字体如何存储，如纹理布局、文件格式等。</p>
+<p><img src="2017-09-16-bmfont-configuration/fig_2.png" alt="alt text"></p>
+<h3 id="内边距（Padding）"><a href="#内边距（Padding）" class="headerlink" title="内边距（Padding）"></a>内边距（Padding）</h3><p>当需要在其它的绘制程序中增加一些后处理效果时，内边距会很有用。例如，如果你要增加一个5x5核心的模糊特效，就要在每一侧增加2的内边距。与此相似，如果你想加一个阴影，你应当在字符的下部和右侧增加一点内边距（假定那就是你想增加阴影的方向）。</p>
+<h3 id="间距（Spacing）"><a href="#间距（Spacing）" class="headerlink" title="间距（Spacing）"></a>间距（Spacing）</h3><p>间距用于控制字体纹理中字符之间保留的最小空间。如果在绘制字体时使用mipmapping来缩放纹理，则需要增加间距（spacing）以避免在缩小纹理时出现的出血（bleeding）。mipmap纹理的级别越多，需要的间距也越多。</p>
+<p>双线性过滤方式也可能引起出血，所以除非你使用的是像素级的完美图片，即每个纹素与屏幕上的像素都一一对应完美映射，你需要在竖直方向和水平方向留至少1的间距。</p>
+<h3 id="统一单元高度（Equalize-the-cell-heights）"><a href="#统一单元高度（Equalize-the-cell-heights）" class="headerlink" title="统一单元高度（Equalize the cell heights）"></a>统一单元高度（Equalize the cell heights）</h3><p>当勾选这一选项时，所有的字体字符都会被输出到等高的单元里。当你最终产生的字体的工作流中包含有基于字符高度的后处理步骤时，这一选项会非常有用，如使用渐变。</p>
+<p>弊端在于纹理中能容纳的字符数会变少，并且字体渲染器要绘制更大的长方形。</p>
+<h3 id="强制零偏移（Force-offsets-to-zero）"><a href="#强制零偏移（Force-offsets-to-zero）" class="headerlink" title="强制零偏移（Force offsets to zero）"></a>强制零偏移（Force offsets to zero）</h3><p>这一选项是为了增加对无法处理xoffset， yoffset和xadvance的字体渲染器的支持。当勾选此选项时，字形图像会增加内间距，以将xoffset和yoffset设为0，并且xadvance会与宽度相等。这一选项也会强制统一单元高度（Equalize the cell heights）。</p>
+<p>注意如果原始的TrueType字体使用了负的xoffsets或xadvance小于字形宽度，这一选项会改变最终字符的间距，如字符有悬垂部分时。</p>
+<h3 id="纹理（Texture）"><a href="#纹理（Texture）" class="headerlink" title="纹理（Texture）"></a>纹理（Texture）</h3><p>BMFont支持多种不同的纹理布局。宽度和高度，即纹理的尺寸。应当使纹理的尺寸尽可能小，同时仍能够将所有的字符容纳在一张纹理内。</p>
+<p>如果导入有带颜色的图标，或是计划在后处理时为字符加入颜色，应当选取32bit格式，否则8bit格式就足够。</p>
+<p>如果选择了32bit格式，则可以通过选择在每个通道打包字符（pack characters in each channel）来优化纹理内存的使用，这种情况下将需要一个特殊的<a href="http://www.angelcode.com/products/bmfont/doc/pixel_shader.html" target="_blank" rel="noopener">像素着色器</a>在绘制时解码。在这一模式下，你仍可以导入带颜色的图标，字符会以适当的放方式环绕其打包在一起。</p>
+<p>8bit模式下，字体轮廓也可以与字符一起编码，与将字符轮廓存储为带颜色的图片相比，这将允许你在相同的空间里存储更多字符。这也需要在绘制时使用特殊的<a href="http://www.angelcode.com/products/bmfont/doc/pixel_shader.html" target="_blank" rel="noopener">像素着色器</a>来解码。</p>
+<h3 id="通道选项（Channel-options）"><a href="#通道选项（Channel-options）" class="headerlink" title="通道选项（Channel options）"></a>通道选项（Channel options）</h3><ul>
+<li>字形（glyph） : 该通道将根据字形几何来设置。值为1表示像素位于字形内。</li>
+<li>轮廓（outline） : 该通道将根据轮廓几何来设置。值为1表示像素位于轮廓或字形内。</li>
+<li>字形+轮廓（glyph + outline） : 编码得到的值可以区分字形和轮廓。值0.5表示该像素位于轮廓内但不在字形内。值为1表示像素位于字形内。</li>
+<li>1（one） : 通道内所有像素都被设为1。</li>
+<li>0（zero） : 通道内所有像素都被设为0。</li>
+</ul>
+<p>以下是一些常见的选择：</p>
+<ul>
+<li>32bit 白色字形黑色轮廓: alpha = <em>outline</em>, red = green = blue = <em>glyph</em></li>
+<li>32bit 白色字形无轮廓: alpha = <em>glyph</em>, red = green = blue = <em>one</em></li>
+<li>使用8bit来编码打包的字形和轮廓: alpha = <em>glyph + outline</em></li>
+<li>打包字形纹理不带轮廓: alpha = <em>glyph</em></li>
+</ul>
+<h3 id="文件格式（File-format）"><a href="#文件格式（File-format）" class="headerlink" title="文件格式（File format）"></a>文件格式（File format）</h3><p>最后你可以选择字体描述文件和纹理文件的格式。绝大多数情况下是个按需选择的问题，而不是说某一个会优于另一个。然而如果你想节省磁盘空间，应当选择二进制描述文件和png纹理。</p>
+<h2 id="File-format"><a href="#File-format" class="headerlink" title="File format"></a>File format</h2><p>生成的字体描述文件的内容。</p>
+<h3 id="info"><a href="#info" class="headerlink" title="info"></a>info</h3><p>此标签包含字体是如何生成的等信息。</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>face</td>
+<td>使用的true type 字体的名称</td>
+</tr>
+<tr>
+<td>size</td>
+<td>true type字体的大小</td>
+</tr>
+<tr>
+<td>bold</td>
+<td>字体是粗体</td>
+</tr>
+<tr>
+<td>italic</td>
+<td>字体是斜体</td>
+</tr>
+<tr>
+<td>charset</td>
+<td>OEM字符集的名称（如不使用unicode）</td>
+</tr>
+<tr>
+<td>unicode</td>
+<td>设为1表示使用unicode字符集</td>
+</tr>
+<tr>
+<td>stretchH</td>
+<td>字符高度延伸比例，100%表示不延伸</td>
+</tr>
+<tr>
+<td>smooth</td>
+<td>设为1表示开启平滑</td>
+</tr>
+<tr>
+<td>aa</td>
+<td>使用的超采样的级别，1表示不使用超采样</td>
+</tr>
+<tr>
+<td>padding</td>
+<td>每个字符的内间距 (up, right, down, left)</td>
+</tr>
+<tr>
+<td>spacing</td>
+<td>字符的间距 (horizontal, vertical).</td>
+</tr>
+<tr>
+<td>outline</td>
+<td>每个字符的轮廓宽度</td>
+</tr>
+</tbody></table>
+<h3 id="common"><a href="#common" class="headerlink" title="common"></a>common</h3><p>此标签包含所有字符的共用信息。</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>lineHeight</td>
+<td>以像素为单位的两行文本的距离</td>
+</tr>
+<tr>
+<td>base</td>
+<td>从该行的顶部到字符基部的像素数（参见下图，两条水平虚线的距离）</td>
+</tr>
+<tr>
+<td>scaleW</td>
+<td>纹理的宽度，用来确定字符图片的x坐标</td>
+</tr>
+<tr>
+<td>scaleH</td>
+<td>纹理的高度，用来确定字符图片的y坐标</td>
+</tr>
+<tr>
+<td>pages</td>
+<td>字体包含的纹理的页数</td>
+</tr>
+<tr>
+<td>packed</td>
+<td>如果黑白的字符打包放入每个纹理通道中，则会将其设为1。这种情况下alphaChnl用来描述各通道存储的内容</td>
+</tr>
+<tr>
+<td>alphaChnl</td>
+<td>如果存储<em>glyph</em>数据则设置为0，存储<em>outline</em>则设为1，存储<em>glyph + outline</em>则设为2，若通道设为设为<em>zero</em>则设为3，如设为<em>one</em>则设为4</td>
+</tr>
+<tr>
+<td>redChnl</td>
+<td>如果存储<em>glyph</em>数据则设置为0，存储<em>outline</em>则设为1，存储<em>glyph + outline</em>则设为2，若通道设为设为<em>zero</em>则设为3，如设为<em>one</em>则设为4</td>
+</tr>
+<tr>
+<td>greenChnl</td>
+<td>如果存储<em>glyph</em>数据则设置为0，存储<em>outline</em>则设为1，存储<em>glyph + outline</em>则设为2，若通道设为设为<em>zero</em>则设为3，如设为<em>one</em>则设为4</td>
+</tr>
+<tr>
+<td>blueChnl</td>
+<td>如果存储<em>glyph</em>数据则设置为0，存储<em>outline</em>则设为1，存储<em>glyph + outline</em>则设为2，若通道设为设为<em>zero</em>则设为3，如设为<em>one</em>则设为4</td>
+</tr>
+</tbody></table>
+<p><img src="2017-09-16-bmfont-configuration/fig_3.png" alt="alt text"></p>
+<h3 id="page"><a href="#page" class="headerlink" title="page"></a>page</h3><p>此标签定义纹理文件的名称。字体中的每一页会对应有一个此标签。</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>页面id</td>
+</tr>
+<tr>
+<td>file</td>
+<td>纹理文件的名称</td>
+</tr>
+</tbody></table>
+<h3 id="char"><a href="#char" class="headerlink" title="char"></a>char</h3><p>此标签描述字体中的字符。字体中包含的每一个字符会对应有一个此标签。</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>id</td>
+<td>字符的id</td>
+</tr>
+<tr>
+<td>x</td>
+<td>纹理中字符图片的左侧位置</td>
+</tr>
+<tr>
+<td>y</td>
+<td>纹理中字符图片的顶部位置</td>
+</tr>
+<tr>
+<td>width</td>
+<td>纹理中字符图片的宽度</td>
+</tr>
+<tr>
+<td>height</td>
+<td>纹理中字符图片的高度</td>
+</tr>
+<tr>
+<td>xoffset</td>
+<td>当复制纹理中图片到屏幕时，需要从当前位置偏移的距离</td>
+</tr>
+<tr>
+<td>yoffset</td>
+<td>当复制纹理中图片到屏幕时，需要从当前位置偏移的距离</td>
+</tr>
+<tr>
+<td>xadvance</td>
+<td>在绘制字体之后，当前位置需要向后推进的距离</td>
+</tr>
+<tr>
+<td>page</td>
+<td>包含字符图片的纹理页面</td>
+</tr>
+<tr>
+<td>chnl</td>
+<td>包含有字符图片的纹理通道（1 = blue, 2 = green, 4 = red, 8 = alpha, 15 = all channels）</td>
+</tr>
+</tbody></table>
+<h3 id="字偶距（kerning）"><a href="#字偶距（kerning）" class="headerlink" title="字偶距（kerning）"></a>字偶距（kerning）</h3><p>字偶距信息用来调整某些特定字符的间距，如某些字符会比其它字符放置得更靠近彼此。</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>first</td>
+<td>第一个字符id</td>
+</tr>
+<tr>
+<td>second</td>
+<td>第二个字符id</td>
+</tr>
+<tr>
+<td>amount</td>
+<td>当在紧接着第一个字符绘制第二个字符时x位置应当做出的调整量。</td>
+</tr>
+</tbody></table>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="http://www.angelcode.com/products/bmfont/documentation.html" target="_blank" rel="noopener">http://www.angelcode.com/products/bmfont/documentation.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/font/" rel="tag"># font</a>
+              <a href="/tags/bitmap/" rel="tag"># bitmap</a>
+              <a href="/tags/TRANSLATION/" rel="tag"># TRANSLATION</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-09-10-python-struct-pack-unpack/" rel="prev" title="python使用struct模块打包和解包">
+      <i class="fa fa-chevron-left"></i> python使用struct模块打包和解包
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-09-18-python-decorator/" rel="next" title="python装饰器">
+      python装饰器 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#字体设置（Font-settings）"><span class="nav-number">1.</span> <span class="nav-text">字体设置（Font settings）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#字体图形（Font-graphics）"><span class="nav-number">1.1.</span> <span class="nav-text">字体图形（Font graphics）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#光栅化（Rasterizing）"><span class="nav-number">1.2.</span> <span class="nav-text">光栅化（Rasterizing）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Effects"><span class="nav-number">1.3.</span> <span class="nav-text">Effects</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#输出选项（Export-options）"><span class="nav-number">2.</span> <span class="nav-text">输出选项（Export options）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内边距（Padding）"><span class="nav-number">2.1.</span> <span class="nav-text">内边距（Padding）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#间距（Spacing）"><span class="nav-number">2.2.</span> <span class="nav-text">间距（Spacing）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#统一单元高度（Equalize-the-cell-heights）"><span class="nav-number">2.3.</span> <span class="nav-text">统一单元高度（Equalize the cell heights）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#强制零偏移（Force-offsets-to-zero）"><span class="nav-number">2.4.</span> <span class="nav-text">强制零偏移（Force offsets to zero）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#纹理（Texture）"><span class="nav-number">2.5.</span> <span class="nav-text">纹理（Texture）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通道选项（Channel-options）"><span class="nav-number">2.6.</span> <span class="nav-text">通道选项（Channel options）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件格式（File-format）"><span class="nav-number">2.7.</span> <span class="nav-text">文件格式（File format）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#File-format"><span class="nav-number">3.</span> <span class="nav-text">File format</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#info"><span class="nav-number">3.1.</span> <span class="nav-text">info</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#common"><span class="nav-number">3.2.</span> <span class="nav-text">common</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#page"><span class="nav-number">3.3.</span> <span class="nav-text">page</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#char"><span class="nav-number">3.4.</span> <span class="nav-text">char</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#字偶距（kerning）"><span class="nav-number">3.5.</span> <span class="nav-text">字偶距（kerning）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'a423fee18a9d89dc87c2a50f796d303b',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

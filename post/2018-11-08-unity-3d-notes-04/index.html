@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近在项目中有需求在UI中增加一个雷达图。首先考虑到使用BaseMeshEffect通过OnPopulateMesh中计算顶点位置实现，但由于项目已上线，增加cs脚本无法热更新支持，因此考虑在shader中实现，并将材质的一些属性暴露出来，供lua控制修改。 最终得到效果是这样的：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D 基于shader和Image的雷达图">
+<meta property="og:url" content="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="最近在项目中有需求在UI中增加一个雷达图。首先考虑到使用BaseMeshEffect通过OnPopulateMesh中计算顶点位置实现，但由于项目已上线，增加cs脚本无法热更新支持，因此考虑在shader中实现，并将材质的一些属性暴露出来，供lua控制修改。 最终得到效果是这样的：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/2018-11-11-unity-3d-notes-04/pic_4.gif">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/2018-11-11-unity-3d-notes-04/pic_1.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/2018-11-11-unity-3d-notes-04/pic_5.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/2018-11-11-unity-3d-notes-04/pic_2.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/2018-11-11-unity-3d-notes-04/pic_3.png">
+<meta property="article:published_time" content="2018-11-08T11:49:02.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.075Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Unity3D">
+<meta property="article:tag" content="shader">
+<meta property="article:tag" content="shaderlab">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/2018-11-11-unity-3d-notes-04/pic_4.gif">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D 基于shader和Image的雷达图 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-11-08-unity-3d-notes-04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D 基于shader和Image的雷达图
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-11-08 19:49:02" itemprop="dateCreated datePublished" datetime="2018-11-08T19:49:02+08:00">2018-11-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近在项目中有需求在UI中增加一个雷达图。首先考虑到使用<code>BaseMeshEffect</code>通过<code>OnPopulateMesh</code>中计算顶点位置实现，但由于项目已上线，增加cs脚本无法热更新支持，因此考虑在shader中实现，并将材质的一些属性暴露出来，供lua控制修改。</p>
+<p>最终得到效果是这样的：</p>
+<p><img src="2018-11-11-unity-3d-notes-04/pic_4.gif" alt="img"></p>
+<a id="more"></a>
+
+<p>一开始的想法是在片段着色器中计算，通过比较某个点是否在多边形内来控制输出颜色，而多边形的各个顶点是通过雷达图各维度计算出来的。这么一来在frag中需要进行大量的计算、<code>if...else</code>判断和大量的<code>for</code>循环。</p>
+<p>调整思路，将雷达图的各个维度分解为一个一个的三角形，三角形中心重叠在一起且中心角的角度相等（等分了360度），于是决定在vert阶段做手脚，将一个由两个三角形组成的Image，通过修改顶点绘制成为一个三角形，且三角形的顶角角度、相邻两边长度都受shader的属性控制，大概的示意图如下：</p>
+<p><img src="2018-11-11-unity-3d-notes-04/pic_1.png" alt="img"></p>
+<p>实现过程中的一些要点如下：</p>
+<ol>
+<li><p>绘制Image时，可以通过uv坐标判断出当前绘制的是哪个顶点；</p>
+</li>
+<li><p>使用<code>PositionAsUV1</code>组件传递个顶点相对于轴点的坐标；</p>
+</li>
+<li><p>利用简单的三角函数计算，将Image的四个顶点的坐标表示成角度和长度的函数；</p>
+</li>
+<li><p>片段着色器中，根据像素距离边缘的尺寸处理透明度；</p>
+</li>
+</ol>
+<p>以下详细说明：</p>
+<h3 id="Image顶点的判断"><a href="#Image顶点的判断" class="headerlink" title="Image顶点的判断"></a>Image顶点的判断</h3><p>因为是一个正方形，很容易根据纹理uv判断：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">v2f <span class="title">vert</span><span class="params">(<span class="keyword">appdata_t</span> IN)</span>     </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(IN.texcoord.x &gt; <span class="number">0.5f</span> &amp;&amp; IN.texcoord.y &lt; <span class="number">0.5f</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// 右下角</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span>(IN.texcoord.x &lt; <span class="number">0.5f</span> &amp;&amp; IN.texcoord.y &gt; <span class="number">0.5f</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// 左上角</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> <span class="keyword">if</span>(IN.texcoord.x &gt; <span class="number">0.5f</span> &amp;&amp; IN.texcoord.y &gt; <span class="number">0.5f</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// 右上角</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">// 左下角</span></span><br><span class="line">	&#125;</span><br><span class="line">    <span class="keyword">return</span> OUT;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="position的传递"><a href="#position的传递" class="headerlink" title="position的传递"></a>position的传递</h3><p>借助UGUI的组件<code>PositionAsUV1</code>。此处传到<code>TEXCOORD1</code>的<code>position</code>是相对于轴点Pivot的坐标，而<code>vertex</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">appdata_t</span>     </span></span><br><span class="line"><span class="class">&#123;</span>     </span><br><span class="line">    float4 vertex   : POSITION;     </span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>是顶点在Canvas上的坐标。</p>
+<h3 id="修改顶点位置"><a href="#修改顶点位置" class="headerlink" title="修改顶点位置"></a>修改顶点位置</h3><p>这个是最重要的过程了。这里有四个输入参数：</p>
+<ul>
+<li><p><code>ValueStart</code> ： 起始侧的数值，范围0-1，对应起始边的长度；</p>
+</li>
+<li><p><code>ValueEnd</code> ： 终止侧的数值，范围0-1，对应终止边的长度；</p>
+</li>
+<li><p><code>AngleStart</code> ： 起始角度，从此角度开始绘制三角形；</p>
+</li>
+<li><p><code>AngleRange</code> ： 范围角度，三角形从起始角度开始持续的角度；</p>
+</li>
+</ul>
+<p>具体参见下图：</p>
+<p><img src="2018-11-11-unity-3d-notes-04/pic_5.png" alt="img"></p>
+<p>需要得到的四个点的坐标，也标注在图上了，左上角、右上角、左下角、右下角以此记为lt、rt、lb、rb。除了lb不受影响之外，原来的lt、rb及rt都需要经过一些变换，表示成这前边四个参数的函数，图上表示为lt’、rb’和rt’。主要处理lt’和rb’，因为rt可处理为lt和rb的中点。</p>
+<p><img src="2018-11-11-unity-3d-notes-04/pic_2.png" alt="img"></p>
+<p>在处理各个顶点时，要注意传入的<code>vertex</code>和<code>position</code>也是对应定点的值。因此必须分别处理四个顶点，最后将处理完成的顶点赋值给<code>vertex</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">float</span> AngleEnd = _AngleStart + _AngleRange;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(IN.texcoord.x &gt; <span class="number">0.5f</span> &amp;&amp; IN.texcoord.y &lt; <span class="number">0.5f</span>)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 右下角</span></span><br><span class="line">	IN.vertex.x -= IN.<span class="built_in">position</span>.x;</span><br><span class="line">	IN.vertex.x += (IN.<span class="built_in">position</span>.x * <span class="built_in">cos</span>(radians(_AngleStart)))*_ValueStart;</span><br><span class="line">	IN.vertex.y += <span class="built_in">sin</span>(radians(_AngleStart)) * IN.<span class="built_in">position</span>.x * _ValueStart;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span>(IN.texcoord.x &lt; <span class="number">0.5f</span> &amp;&amp; IN.texcoord.y &gt; <span class="number">0.5f</span>)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 左上角</span></span><br><span class="line">	IN.vertex.y -= IN.<span class="built_in">position</span>.y;</span><br><span class="line">	IN.vertex.x += (IN.<span class="built_in">position</span>.y * <span class="built_in">cos</span>(radians(AngleEnd)))*_ValueEnd;</span><br><span class="line">	IN.vertex.y += <span class="built_in">sin</span>(radians(AngleEnd)) * IN.<span class="built_in">position</span>.y * _ValueEnd;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span>(IN.texcoord.x &gt; <span class="number">0.5f</span> &amp;&amp; IN.texcoord.y &gt; <span class="number">0.5f</span>)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 左下 作为基准</span></span><br><span class="line">	float2 lb = IN.vertex - IN.<span class="built_in">position</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 左上</span></span><br><span class="line">	float2 lt = lb;</span><br><span class="line">	lt.x += (IN.<span class="built_in">position</span>.y * <span class="built_in">cos</span>(radians(AngleEnd)))*_ValueEnd;</span><br><span class="line">	lt.y += <span class="built_in">sin</span>(radians(AngleEnd)) * IN.<span class="built_in">position</span>.y * _ValueEnd;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 右下</span></span><br><span class="line">	float2 rb = lb;</span><br><span class="line">	rb.x += (IN.<span class="built_in">position</span>.x * <span class="built_in">cos</span>(radians(_AngleStart)))*_ValueStart;</span><br><span class="line">	rb.y += <span class="built_in">sin</span>(radians(_AngleStart)) * IN.<span class="built_in">position</span>.x * _ValueStart;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 右上是中点</span></span><br><span class="line">	IN.vertex.xy = <span class="number">0.5f</span> * (lt + rb);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 左下角了</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="像素透明度计算"><a href="#像素透明度计算" class="headerlink" title="像素透明度计算"></a>像素透明度计算</h3><p>截止上一步，已经可以绘制出各个三角形了，但是目前这些图形使用的都是统一的颜色，视觉效果不佳。现在给雷达图增加描边效果。</p>
+<p><img src="2018-11-11-unity-3d-notes-04/pic_3.png" alt="img"></p>
+<p>原理是在顶点着色器中，保存顶点到雷达外部边缘的距离edge，实际上除了左下角的点之外，另外三个顶点的edge值都是0。左下角的点需要计算点到对边的距离。考虑到各个三角形的<code>_AngleRange</code>都是一样的，为了简化计算，做了近似处理，直接使用两个边长的乘积：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">edge = _ValueStart * _ValueEnd;</span><br></pre></td></tr></table></figure>
+
+<p>接下来在片段着色器中获取到插值后的edge，使用smoothstep()来计算alpha值，edge小于0时将alpha取1，edge小于0.8时将alpha取0：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">half alpha = smoothstep(<span class="number">0.8</span>, <span class="number">1.0</span>, <span class="number">1.0</span> - IN.edge);</span><br></pre></td></tr></table></figure>
+
+<p>然后将参数alpha值和step的阈值参数化：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">half alpha = _InnerAlpha + (<span class="number">1</span> - _InnerAlpha) * smoothstep( <span class="number">1.0</span> - _EdgeThickness, <span class="number">1.0</span>, <span class="number">1.0</span> - IN.edge);</span><br></pre></td></tr></table></figure>
+
+<p>最终效果和相关代码参见<a href="https://github.com/aillieo/unity3d-shader-collection/tree/master/Assets/03_RadarImage" target="_blank" rel="noopener">这里</a>。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/shader/" rel="tag"># shader</a>
+              <a href="/tags/ShaderLab/" rel="tag"># ShaderLab</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-11-01-unity-3d-shader-notes-03/" rel="prev" title="Unity Shader笔记（三） 在片段着色器中获取世界坐标">
+      <i class="fa fa-chevron-left"></i> Unity Shader笔记（三） 在片段着色器中获取世界坐标
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-11-13-effective-c-sharp-notes-01/" rel="next" title="《Effective C#》笔记 C#语言习惯">
+      《Effective C#》笔记 C#语言习惯 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Image顶点的判断"><span class="nav-number">1.</span> <span class="nav-text">Image顶点的判断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#position的传递"><span class="nav-number">2.</span> <span class="nav-text">position的传递</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改顶点位置"><span class="nav-number">3.</span> <span class="nav-text">修改顶点位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#像素透明度计算"><span class="nav-number">4.</span> <span class="nav-text">像素透明度计算</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number"></span> <span class="nav-text">REFERENCE</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '47c797a8d68e301681f4210bce43e1a3',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

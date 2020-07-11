@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文是《C++ Primer Plus（第6版）中文版》的笔记。 标准模板库 STLSTL提供了一组表示容器、迭代器、函数对象和算法的模板，容器是一个与数组类似的单元，可以存储若干个值。STL容器是同质的，即存储的值的类型相同；算法是完成特定任务（如对数组进行排序或在链表中查找特定值）的处方；迭代器能够用来遍历容器的对象，与能够遍历数组的指针类似，是广义指针；函数对象是类似于函数的对象，可以是类对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++标准模板库：容器">
+<meta property="og:url" content="http://aillieo.cn/post/2017-03-06-cpp-stl-containers/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="本文是《C++ Primer Plus（第6版）中文版》的笔记。 标准模板库 STLSTL提供了一组表示容器、迭代器、函数对象和算法的模板，容器是一个与数组类似的单元，可以存储若干个值。STL容器是同质的，即存储的值的类型相同；算法是完成特定任务（如对数组进行排序或在链表中查找特定值）的处方；迭代器能够用来遍历容器的对象，与能够遍历数组的指针类似，是广义指针；函数对象是类似于函数的对象，可以是类对">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-03-06T07:11:20.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.045Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C&amp;#43;&amp;#43;">
+<meta property="article:tag" content="STL">
+<meta property="article:tag" content="generic programming">
+<meta property="article:tag" content="iterator">
+<meta property="article:tag" content="container">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-03-06-cpp-stl-containers/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>C++标准模板库：容器 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-03-06-cpp-stl-containers/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++标准模板库：容器
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-06 15:11:20" itemprop="dateCreated datePublished" datetime="2017-03-06T15:11:20+08:00">2017-03-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-43-43/" itemprop="url" rel="index"><span itemprop="name">C&#43;&#43;</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文是《C++ Primer Plus（第6版）中文版》的笔记。</p>
+<h2 id="标准模板库-STL"><a href="#标准模板库-STL" class="headerlink" title="标准模板库 STL"></a>标准模板库 STL</h2><p>STL提供了一组表示容器、迭代器、函数对象和算法的模板，容器是一个与数组类似的单元，可以存储若干个值。STL容器是同质的，即存储的值的类型相同；算法是完成特定任务（如对数组进行排序或在链表中查找特定值）的处方；迭代器能够用来遍历容器的对象，与能够遍历数组的指针类似，是广义指针；函数对象是类似于函数的对象，可以是类对象或函数指针（包括函数名，因为函数名被用作指针），STL使得能够构造各种容器（包括数组、队列和链表）和执行各种操作（包括搜索、排序和随机排列）。</p>
+<a id="more"></a>
+
+<h2 id="泛型编程"><a href="#泛型编程" class="headerlink" title="泛型编程"></a>泛型编程</h2><p>C++中的STL就是一种泛型编程，面向对象编程关注的是编程的数据方面，而泛型编程关注的是算法。泛型编程旨在编写独立于数据类型的代码，模板就是C++中编写通用程序的工具。</p>
+<h3 id="为何使用迭代器"><a href="#为何使用迭代器" class="headerlink" title="为何使用迭代器"></a>为何使用迭代器</h3><p>模板使得算法独立于存储的数据类型，而在STL中迭代器（iterator）使算法独立于使用的容器类型。</p>
+<p>为达到上述目的，必须对迭代器和容器进行设计，如迭代器需要重载<code>*</code>，<code>++</code>等运算符，容器中增加了可用<code>end()</code>获取的超尾元素等。</p>
+<h3 id="迭代器类型"><a href="#迭代器类型" class="headerlink" title="迭代器类型"></a>迭代器类型</h3><p>为满足不同算法的要求，STL中定义了5中类型的迭代器，并根据所需的迭代器类型对算法进行描述。5种迭代器为输入迭代器、输出迭代器、正向迭代器、双向迭代器和随机访问迭代器。5种迭代器有一些共同点，如都可以执行解除引用操作，即都定义了<code>*</code>运算符，也都可以使用<code>==</code>或<code>!=</code>比较相等或不等（但可能被重载）。5种迭代器详细说明如下：</p>
+<h4 id="输入迭代器"><a href="#输入迭代器" class="headerlink" title="输入迭代器"></a>输入迭代器</h4><p>这里“输入”是从程序的角度说的，即来自容器的信息被视为输入。</p>
+<p>输入迭代器的解引用操作可以读取容器中的值，但不一定能让程序修改其值。需要输入迭代器的算法将不会修改容器中的值。输入迭代器支持前缀和后缀的<code>++</code>运算符，以能够遍历容器中的所有值。输入迭代器是单向迭代器，可以递增，不能倒退。</p>
+<h4 id="输出迭代器"><a href="#输出迭代器" class="headerlink" title="输出迭代器"></a>输出迭代器</h4><p>“输出”也是从程序的角度说的，程序的输出即是容器的输入。其解除引用操作可以写但不能读。如果是单通行只写算法，则可以使用输出迭代器。</p>
+<h4 id="正向迭代器"><a href="#正向迭代器" class="headerlink" title="正向迭代器"></a>正向迭代器</h4><p>正向迭代器只使用<code>++</code>运算符来遍历容器。与输入和输出迭代器不同的是，它总是按照相同的顺序遍历一系列值。将正向迭代器递增后，仍然可以对前边的迭代器解除引用（如果保存了它），并可以得到相同的值。因此正向迭代器可用于多次通行算法。正向迭代器可读可写，如果用<code>const</code>修饰则使得只能读取。</p>
+<h4 id="双向迭代器"><a href="#双向迭代器" class="headerlink" title="双向迭代器"></a>双向迭代器</h4><p>双向迭代器支持所有正向迭代器的特性，并且还支持前缀和后缀的<code>--</code>运算。 </p>
+<h4 id="随机访问迭代器"><a href="#随机访问迭代器" class="headerlink" title="随机访问迭代器"></a>随机访问迭代器</h4><p>随机访问迭代器具有双向迭代器的所有特性，同时添加了支持随机访问的操作（如指针增加运算）和用于对元素进行排序的关系运算符。</p>
+<h3 id="迭代器层次结构"><a href="#迭代器层次结构" class="headerlink" title="迭代器层次结构"></a>迭代器层次结构</h3><p>迭代器的类型形成了一个层次结构。如正向迭代器具有输入迭代器和输出迭代器的全部功能，同时还有自己的功能；双向迭代器具有正向迭代器的全部功能，同时还有自己的功能；随机访问迭代器具有正向迭代器的全部功能，同时还有自己的功能等。</p>
+<p>下表总结了5种迭代器的功能，其中<code>i</code>表示迭代器，<code>n</code>表示整数：</p>
+<table>
+<thead>
+<tr>
+<th>迭代器功能</th>
+<th>输入</th>
+<th>输出</th>
+<th>正向</th>
+<th>双向</th>
+<th>随机访问</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>解除引用读取</td>
+<td>Y</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>解除引用写入</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>固定和可重复排序</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td><code>++i, i++</code></td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td><code>--i, i--</code></td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+<td>Y</td>
+</tr>
+<tr>
+<td><code>i[n]</code></td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+</tr>
+<tr>
+<td><code>i+n</code></td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+</tr>
+<tr>
+<td><code>i-n</code></td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+</tr>
+<tr>
+<td><code>i+=n</code></td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+</tr>
+<tr>
+<td><code>i-=n</code></td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>N</td>
+<td>Y</td>
+</tr>
+</tbody></table>
+<p>在编写算法时，应尽可能使用要求最低的迭代器，并让其适用于容器的最大区间。</p>
+<h3 id="概念、改进和模型"><a href="#概念、改进和模型" class="headerlink" title="概念、改进和模型"></a>概念、改进和模型</h3><ul>
+<li>概念（concept）：用于描述算法对于迭代器实现的一系列要求，如输入迭代器概念、正向迭代器概念等等</li>
+<li>改进（refinement）：用于表示概念之间的继承关系，如双向迭代器是对正向迭代器概念的一种改进</li>
+<li>模型（model）：概念的具体实现被称为模型，如指向int的常规指针是一个随机访问迭代器模型，也是一个正向迭代器模型，因为它满足该概念的所有要求</li>
+</ul>
+<h4 id="将指针用作迭代器"><a href="#将指针用作迭代器" class="headerlink" title="将指针用作迭代器"></a>将指针用作迭代器</h4><p>迭代器是广义的指针，指针满足所有迭代器要求。迭代器是STL算法的接口，而指针是迭代器，因此STL算法可以使用指针来对基于指针的非STL容器进行操作。</p>
+<h3 id="概念、改进和模型-1"><a href="#概念、改进和模型-1" class="headerlink" title="概念、改进和模型"></a>概念、改进和模型</h3><p>例如可以对数组调用STL的排序算法：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">int</span> SIZE = <span class="number">100</span>;</span><br><span class="line"><span class="keyword">double</span> arr[SIZE];</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">sort(arr , arr + SIZE);</span><br></pre></td></tr></table></figure>
+<p>又例如，STL的<code>copy()</code>操作也可以将一个数组复制到一个矢量中：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> cast[<span class="number">10</span>] = &#123;<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">0</span>&#125;;</span><br><span class="line"><span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">dice</span><span class="params">(<span class="number">10</span>)</span></span>;</span><br><span class="line">copy(casts , casts+<span class="number">10</span> , dice.<span class="built_in">begin</span>());</span><br></pre></td></tr></table></figure>
+
+<p>STL中有<code>ostream_iterator</code>迭代器模板，它是输出迭代器概念的一个模型， 也是一个适配器，可以将一些其他接口转换为STL使用的接口，创建方法如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iterator&gt;</span></span></span><br><span class="line">ostream_iterator&lt;int,char&gt; out_iter(cout," ");</span><br></pre></td></tr></table></figure>
+
+<p>上述定义的输出流迭代器中，两个迭代器参数中，第一个<code>int</code>表示发送给输出流的数据类型，<code>char</code>表示输出流使用的字符类型（另一个可能的值为<code>wchar_t</code>）。构造函数的第一个参数<code>cout</code>指定了要使用的输出流（也可以是用于文件的输出流），第二个参数字符串是发送给输出流的每个数据项后显示的分隔符。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*out_iter++ = <span class="number">15</span>;</span><br></pre></td></tr></table></figure>
+
+<p>表示将<code>15</code>和空格发送给<code>cout</code>管理的输出流中，并且为下一个输出操作做好准备。所以也可以有以下的用法：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">copy(dice.<span class="built_in">begin</span>(), dice.<span class="built_in">end</span>(), out_iter); <span class="comment">//将矢量dice中的内容发送至输出流</span></span><br></pre></td></tr></table></figure>
+
+<p>与<code>ostream_iterator</code>类似，STL中还有<code>istream_iterator</code>，是一个输入迭代器概念的模型。</p>
+<h4 id="其他有用的迭代器"><a href="#其他有用的迭代器" class="headerlink" title="其他有用的迭代器"></a>其他有用的迭代器</h4><p>反向迭代器<code>reverse_iterator</code>，对<code>reverse_iterator</code>执行递加操作将会导致其递减，这是为了简化对已有函数的使用。</p>
+<p>插入迭代器<code>back_insert_iterator</code>、<code>front_insert_iterator</code>和<code>insert_iterator</code>也是为了提高STL算法通用性而设计，<code>back_insert_iterator</code>将元素插入到容器的尾部，而<code>front_insert_iterator</code>将元素插入到容器的前端。<code>insert_iterator</code>将元素插入到其构造时构造参数指定的位置前边。插入迭代器的使用有一些限制，如<code>back_insert_iterator</code>可用于<code>vector</code>这样的允许在尾部增加元素的容器，但<code>front_insert_iterator</code>却不可以。<code>front_insert_iterator</code>可用于<code>queue</code>，允许在前段插入。<code>insert_iterator</code>不受插入位置的限制，可以用在<code>vector</code>中在最前端插入。这些迭代器在声明时需要将容器作为模板参数，将实际的容器标识符作为构造函数的参数，例如：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">back_insert_iterator&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; &gt; <span class="title">back_iter</span><span class="params">(dice)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>front_insert_iterator</code>的声明方式与上边类似。在声明<code>insert_iterator</code>时需要额外指定插入位置作为构造参数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">insert_iterator&lt;<span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; &gt; <span class="title">insert_iter</span><span class="params">(dice, dice.<span class="built_in">begin</span>())</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="容器"><a href="#容器" class="headerlink" title="容器"></a>容器</h2><h3 id="容器种类"><a href="#容器种类" class="headerlink" title="容器种类"></a>容器种类</h3><p>STL中有容器概念和容器类型，概念是具有名称（如容器、序列容器、关联容器等）的通用类别；容器类型是可用于创建具体容器对象的模板。</p>
+<h4 id="容器概念"><a href="#容器概念" class="headerlink" title="容器概念"></a>容器概念</h4><p>容器概念指定了所有STL容器类都必须满足的一系列要求：</p>
+<ul>
+<li><p>容器是存储其它对象的对象，被存储的对象必须是同一类型的（可以是对象或内置类型值）；</p>
+</li>
+<li><p>当容器过期时（销毁），存储在其中的数据也会过期（如果存储的是指针，则其指向的数据不一定过期）；</p>
+</li>
+<li><p>只有可复制构造和可赋值的类型才可以存储在容器中（C++11中又增加了复制插入CopyInsertable和移动插入MoveInsertable）；</p>
+</li>
+<li><p>下表是所有的容器都提供的特征和操作：</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>返回类型</th>
+<th>说明</th>
+<th>复杂度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X::iterator</td>
+<td>指向T的迭代器类型</td>
+<td>满足正向迭代器要求的任何迭代器</td>
+<td>编译时间</td>
+</tr>
+<tr>
+<td>X::value_type</td>
+<td>T</td>
+<td>T的类型</td>
+<td>编译时间</td>
+</tr>
+<tr>
+<td>X u</td>
+<td></td>
+<td>创建一个名为u的空容器</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>X()</td>
+<td></td>
+<td>创建一个匿名空容器</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>X u(a)</td>
+<td></td>
+<td>调用复制构造函数后u==a</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>X u = a</td>
+<td></td>
+<td>作用同X u(a)</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>r = a</td>
+<td>X&amp;</td>
+<td>调用赋值运算后r==a</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>(&amp;a)-&gt;~X()</td>
+<td>void</td>
+<td>对容器中每个元素应用析构函数</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>a.begin()</td>
+<td>迭代器</td>
+<td>返回指向容器第一个元素的迭代器</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>a.end()</td>
+<td>迭代器</td>
+<td>返回超尾元素迭代器</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>a.size()</td>
+<td>无符号整型</td>
+<td>返回元素的个数，等价于a.end() - a.begin()</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>a.swap(b)</td>
+<td>void</td>
+<td>交换a和b的内容</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>a==b</td>
+<td>可转换为bool</td>
+<td>如果a和b的长度相同，且a中每个元素都等于（==）b中相应元素，则为真</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>a!=b</td>
+<td>可转换为bool</td>
+<td>返回!(a==b)</td>
+<td>线性</td>
+</tr>
+</tbody></table>
+<p>（表中<code>X</code>表示容器类型，<code>T</code>表示存储的对象类型，<code>a</code>和<code>b</code>表示类型为<code>X</code>的值，<code>r</code>表示类型为<code>X&amp;</code>的值，<code>u</code>表示类型为<code>X</code>标识符。）</p>
+<h4 id="C-11新增的容器要求"><a href="#C-11新增的容器要求" class="headerlink" title="C++11新增的容器要求"></a>C++11新增的容器要求</h4><p>C++11中增加了右值引用的概念，及移动构造、移动赋值操作，也增加了对通用容器的要求：</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>返回类型</th>
+<th>说明</th>
+<th>复杂度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X u(rv)</td>
+<td></td>
+<td>调用移动构造函数后，u的值与rv的原始值相同</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>X u = rv</td>
+<td></td>
+<td>同X u(rv)</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>a = rv</td>
+<td>X&amp;</td>
+<td>调用移动赋值运算符后，u的值与rv的原始值相同</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>a.cbegin()</td>
+<td>const_iterator</td>
+<td>返回指向容器第一个元素的const迭代器</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>a.cend()</td>
+<td>const_iterator</td>
+<td>返回指向容器超尾元素的const迭代器</td>
+<td>固定</td>
+</tr>
+</tbody></table>
+<p>（表中<code>rv</code>表示类型为<code>X</code>的非常量右值，<code>X::iterator</code>需要满足正向迭代器的要求。）</p>
+<h4 id="序列"><a href="#序列" class="headerlink" title="序列"></a>序列</h4><p>序列（sequence）是对通用容器概念的一种重要改进。STL中有7种序列：deque、forward_list（C++11）、list、queue、priority_queue、stack和vector。序列概念要求迭代器至少是正向迭代器，以保证元素按照特定顺序排列，不会在两次迭代之间发生变化。array也被归类到序列容器，虽然它并不满足序列的所有要求。</p>
+<p>序列要求其元素按照严格的线形顺序排列。数组和链表都是序列，但分支结构不是。序列中的元素可以执行诸如将值插入到特定位置、删除特定区间等操作，参见下表：</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>返回类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X a(n,t)</td>
+<td></td>
+<td>声明一个名为a的由n个t值组成的序列</td>
+</tr>
+<tr>
+<td>X(n,t)</td>
+<td></td>
+<td>创建一个由n个t值组成的匿名序列</td>
+</tr>
+<tr>
+<td>X a(i,j)</td>
+<td></td>
+<td>声明一个名为a的序列，并将其初始化为区间[i,j)的内容</td>
+</tr>
+<tr>
+<td>X(i,j)</td>
+<td></td>
+<td>创建一个匿名序列，并将其初始化为区间[i,j)的内容</td>
+</tr>
+<tr>
+<td>a.insert(p,t)</td>
+<td>迭代器</td>
+<td>将t插入到p的前面</td>
+</tr>
+<tr>
+<td>a.insert(p,n,t)</td>
+<td>void</td>
+<td>将n个t插入到p的前面</td>
+</tr>
+<tr>
+<td>a.insert(p,i,j)</td>
+<td>void</td>
+<td>将区间[i,j)中的元素插入到p的前面</td>
+</tr>
+<tr>
+<td>a.erase(p)</td>
+<td>迭代器</td>
+<td>删除p指向的元素</td>
+</tr>
+<tr>
+<td>a.erase(p.q)</td>
+<td>迭代器</td>
+<td>删除区间[p,q)中的元素</td>
+</tr>
+<tr>
+<td>a.clear()</td>
+<td>void</td>
+<td>等价于erase(begin(),end())</td>
+</tr>
+</tbody></table>
+<p>（表中<code>X</code>表示容器类型，<code>a</code>表示类型为<code>X</code>的值，<code>t</code>表示存储的对象类型<code>T</code>的值，<code>n</code>表示整数，<code>p</code>、<code>q</code>、<code>i</code>和<code>j</code>表示迭代器。）</p>
+<p>序列概念的模型deque，list，queue，priority_queue，stack和vector支持上表中的所有操作。除此之外，还有一些其他操作，见下表，下表中的所有操作的时间复杂度均为固定时间：</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>返回类型</th>
+<th>含义</th>
+<th>容器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a.front()</td>
+<td>T&amp;</td>
+<td>*a.begin()</td>
+<td>vector、list、deque</td>
+</tr>
+<tr>
+<td>a.back()</td>
+<td>T&amp;</td>
+<td>*–a.end()</td>
+<td>vector、list、 deque</td>
+</tr>
+<tr>
+<td>a.push_front(t)</td>
+<td>void</td>
+<td>a.insert(a.begin(), t)</td>
+<td>list、deque</td>
+</tr>
+<tr>
+<td>a.push_back(t)</td>
+<td>void</td>
+<td>a.insert(a.end(), t)</td>
+<td>vector、 list、deque</td>
+</tr>
+<tr>
+<td>a.pop_front(t)</td>
+<td>void</td>
+<td>a.erase(a.begin())</td>
+<td>list、deque</td>
+</tr>
+<tr>
+<td>a.pop_back(t)</td>
+<td>void</td>
+<td>a.erase(–a.end())</td>
+<td>vector、list、deque</td>
+</tr>
+<tr>
+<td>a[n]</td>
+<td>T&amp;</td>
+<td>*(a.begin() + n)</td>
+<td>vector、deque</td>
+</tr>
+<tr>
+<td>a.at(n)</td>
+<td>T&amp;</td>
+<td>*(a.begin() + n)</td>
+<td>vector、deque</td>
+</tr>
+</tbody></table>
+<p>在上表中，<code>a[n]</code>和<code>a.at(n)</code>的差异在于当n查出容器有效区间时，<code>a.at(n)</code>会检查边界并抛出异常 <code>out_of_range</code>；<code>vector</code>不支持<code>push_front()</code>和<code>pop_front()</code>是因为在<code>vector</code>的头部插入或删除新元素会引发复杂度为线性时间而非固定时间的操作。</p>
+<p>具体说明几种序列容器类型：</p>
+<h5 id="vector"><a href="#vector" class="headerlink" title="vector"></a>vector</h5><p>vector是数组的一种类表示，可以自动内存管理，动态改变vector对象的长度。可对元素随机访问，在尾部添加或删除元素为固定时间复杂度，但在头部添加或删除元素是线性时间复杂度。</p>
+<p>vector还是可反转容器（reversible container）概念的模型，可使用反向迭代器逆序迭代：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">for_each(dice.rbegin(), dice.rend(), Show);  <span class="comment">// display in reversed order</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h5><p>deque是双端队列（double-ended queue），在STL中其实现类似于vector，主要区别在于deque对象在其头部插入和删除元素的时间是固定的。为实现这一目的，deque对象设计比vector对象更为复杂，因此在对元素的随机访问和在序列中部执行限行时间的插入和删除操作，vector容器的执行速度会更快些。</p>
+<h5 id="list"><a href="#list" class="headerlink" title="list"></a>list</h5><p>list模板类表示双向链表，除了第一个和最后一个元素外，每个元素都与前后的元素相链接。list在链表中任意位置插入和删除元素都是固定时间的复杂度，但不支持随机访问。在list中插入或删除元素后链表迭代器指向的元素不变。list也是可反转容器。</p>
+<p>除序列和可反转容器的函数外，list还有一些链表专用成员函数，见下表（Alloc参数通常有默认值）：</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>说明</th>
+<th>复杂度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>void merge(list&lt;T, Alloc&gt;&amp; x)</td>
+<td>将链表x与调用链表合并，两个链表必须是经过排序的。合并之后，调用链表中保存合并的链表，x为空。</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>void remove(const T &amp; val)</td>
+<td>从链表中删除val的所有实例</td>
+<td>线性</td>
+</tr>
+<tr>
+<td>void sort()</td>
+<td>使用运算符<code>&lt;</code>对链表进行排序</td>
+<td>NlogN</td>
+</tr>
+<tr>
+<td>void splice(iterator pos,list&lt;T, Alloc&gt; x)</td>
+<td>将链表x的内容插入到pos的前面，完成后x为空。</td>
+<td>固定</td>
+</tr>
+<tr>
+<td>void unique()</td>
+<td>将连续的相同元素压缩为单个元素</td>
+<td>线性</td>
+</tr>
+</tbody></table>
+<p>补充：</p>
+<p>方法<code>insert()</code>和<code>splice()</code>的区别在于，前者将原始区间的副本插入到目标地址，而后者会将原始区间移到目标地址。list只能使用其成员函数<code>sort()</code>，而非成员函数<code>sort()</code>不能作用于list。</p>
+<p><code>sort()</code>、<code>merge()</code>和<code>unique()</code>还有各自拥有接受另一个参数的版本，该参数用于指定用来比较元素的函数。<code>remove()</code>也有一个接受另一个参数的版本，该参数用于指定一个用来确定是否删除元素的函数。</p>
+<h5 id="forward-list"><a href="#forward-list" class="headerlink" title="forward_list"></a>forward_list</h5><p>C++11中的容器，实现了单链表。这种链表中每个节点都只链接到下一个节点，而没有链接到前一个节点。因此forward_list只需要正向迭代器。forward_list是不可反转容器，比list更简单、更紧凑，但功能更少。</p>
+<h5 id="queue"><a href="#queue" class="headerlink" title="queue"></a>queue</h5><p>queue模板是一个适配器类，让底层类展示典型的队列接口。queue不仅不允许随机访问元素，甚至不允许遍历队列。可以进行队列的操作如在队尾添加元素、从队首删除元素、查看队首和队尾的值、检查元素数目和测试队列是否为空等：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bool empty()</td>
+<td>返回队列是否为空</td>
+</tr>
+<tr>
+<td>size_type size()</td>
+<td>返回队列中元素数目</td>
+</tr>
+<tr>
+<td>T&amp; front()</td>
+<td>返回指向队首元素的引用</td>
+</tr>
+<tr>
+<td>T&amp; back()</td>
+<td>返回指向队尾元素的引用</td>
+</tr>
+<tr>
+<td>void push(const T&amp; x)</td>
+<td>在队尾插入元素x</td>
+</tr>
+<tr>
+<td>void pop()</td>
+<td>删除队首元素</td>
+</tr>
+</tbody></table>
+<h5 id="priority-queue"><a href="#priority-queue" class="headerlink" title="priority_queue"></a>priority_queue</h5><p>priority_queue模板类是一个适配器类，与queue支持的操作相同。但在priority_queue中最大的元素总是被移到队首，其默认的底层类是vector。有两种构造函数，在构造时可以指定用于确定哪个元素放到队首的比较方式：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">priority_queue&lt;<span class="keyword">int</span>&gt; pq1;  <span class="comment">// default version</span></span><br><span class="line"><span class="function">priority_queue&lt;<span class="keyword">int</span>&gt; <span class="title">pq2</span><span class="params">(greater&lt;<span class="keyword">int</span>&gt;)</span></span>;  <span class="comment">// use greater&lt;int&gt; to order</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="stack"><a href="#stack" class="headerlink" title="stack"></a>stack</h5><p>与队列相似，stack是一个适配器类，给底层的类（默认是vector）提供了典型的栈接口。stack不允许随机访问栈元素，甚至不允许遍历栈。可以将元素推到栈顶、从栈顶弹出元素、查看栈顶的值、检查元素数目和测试栈是否为空：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bool empty()</td>
+<td>返回栈是否为空</td>
+</tr>
+<tr>
+<td>size_type size()</td>
+<td>返回栈中元素数目</td>
+</tr>
+<tr>
+<td>T&amp; top()</td>
+<td>返回栈顶元素的引用</td>
+</tr>
+<tr>
+<td>void push(const T&amp; x)</td>
+<td>在栈顶部插入x</td>
+</tr>
+<tr>
+<td>void pop()</td>
+<td>删除栈顶元素</td>
+</tr>
+</tbody></table>
+<h5 id="array"><a href="#array" class="headerlink" title="array"></a>array</h5><p>C++11的array并非STL容器，因为其长度是固定的。array没有可以调整大小的操作如<code>push_back()</code>和<code>insert()</code>， 但有<code>operator[]()</code>和<code>at()</code>。STL中的很多标准算法如<code>copy()</code>和<code>for_each()</code>等可用于array对象。</p>
+<h3 id="关联容器"><a href="#关联容器" class="headerlink" title="关联容器"></a>关联容器</h3><p>关联容器（associative containers） 是对容器概念的另一个改进。关联容器将值与键关联在一起，并使用键来查找值。对于容器<code>X</code>，表达式<code>X::value_type</code>通常指出了存储在容器中的值类型，在关联容器中，表达式<code>X::key_type</code>指出了键的类型。</p>
+<p>关联容器的优点在于对元素的快速访问，允许插入新元素但不能指定元素的插入位置，关联容器的底层通常有用于确定数据存放位置的算法，以便能够快速检索信息，关联容器通常使用树来实现。</p>
+<p>STL中有4中关联容器：set、multiset、map和multimap。set是最简单的关联容器，对于set来说，值的类型与键相同（值就是键），键是唯一的，所以集合中不会有多个相同的键。multiset与set相似，只是可能有多个值的键相同。</p>
+<p>map中值与键的类型不同，键是唯一的，每个键只对应一个值。multimap中一个键可以与多个值相关联。</p>
+<p>关联容器的成员变量和方法详见下边的两个表格：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X::key_type</td>
+<td>键的类型</td>
+</tr>
+<tr>
+<td>X::key_compare</td>
+<td>key_type的比较函数，默认less&lt;key_type&gt;</td>
+</tr>
+<tr>
+<td>X::value_compare</td>
+<td>在set和multiset中等同于key_compare，在map或multimap中为pair&lt;const Key, T&gt;值提供了排序功能。</td>
+</tr>
+<tr>
+<td>X::mapped_type</td>
+<td>T，关联数据的类型（map和multimap中）</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X(i,j,c)</td>
+<td>创建一个空容器，插入区间[i,j)的元素，并将c作为比较对象</td>
+</tr>
+<tr>
+<td>X a(i,j,c)</td>
+<td>创建一个名为a的空容器，插入区间[i,j)的元素，并将c作为比较对象</td>
+</tr>
+<tr>
+<td>X(i,j)</td>
+<td>创建一个空容器，插入区间[i,j)的元素，使用Compare()作为比较对象</td>
+</tr>
+<tr>
+<td>X a(i,j)</td>
+<td>创建一个名为a的空容器，插入区间[i,j)的元素，使用Compare()作为比较对象</td>
+</tr>
+<tr>
+<td>X(il);</td>
+<td>等价于X(il.begin(), il.end())</td>
+</tr>
+<tr>
+<td>a = il</td>
+<td>将[il.begin(), il.end())的内容赋给a</td>
+</tr>
+<tr>
+<td>a.key_comp()</td>
+<td>返回构造a时使用的比较对象</td>
+</tr>
+<tr>
+<td>a.value_comp()</td>
+<td>返回a的value_compare对象</td>
+</tr>
+<tr>
+<td>a_uniq.insert(t)</td>
+<td>a中不包含相同键的值时，将t插入容器a。该方法返回一个pair&lt;iterator,bool&gt;值。其中bool的值为是否成功进行了插入，iterator指向与t相同的元素</td>
+</tr>
+<tr>
+<td>a_eq.insert(t)</td>
+<td>插入t并返回一个指向其位置的迭代器</td>
+</tr>
+<tr>
+<td>a.insert(p,t)</td>
+<td>将p作为insert()开始搜索的位置，将t插入。如果a是a_uniq则当且仅当a中没有与t的键相同的值时才插入；如果a是a_eq则直接插入。无论是否进行插入该方法都会返回一个指向拥有相同键的位置的迭代器</td>
+</tr>
+<tr>
+<td>a.insert(i,j)</td>
+<td>将区间[i, j)的元素插入a</td>
+</tr>
+<tr>
+<td>a.insert(il)</td>
+<td>将初始化列表il中的元素插入a</td>
+</tr>
+<tr>
+<td>a_uniq.emplace(args)</td>
+<td>与a_uniq.insert(t)相似，但使用参数列表与参数包args的内容匹配的构造函数</td>
+</tr>
+<tr>
+<td>a_eq.emplace(args)</td>
+<td>与a_eq.insert(t)相似，但使用参数列表与参数包args的内容匹配的构造函数</td>
+</tr>
+<tr>
+<td>a.emplace_hint(args)</td>
+<td>与a.insert(p,t)相似，但使用参数列表与参数包args的内容匹配的构造函数</td>
+</tr>
+<tr>
+<td>a.erase(k)</td>
+<td>删除a中键与k相同的所有元素，并返回删除元素的数目</td>
+</tr>
+<tr>
+<td>a.erase(q)</td>
+<td>删除q指向的元素</td>
+</tr>
+<tr>
+<td>a.erase(q1,q2)</td>
+<td>删除区间[q1, q2)中的元素</td>
+</tr>
+<tr>
+<td>a.clear()</td>
+<td>等价于erase(a.begin(), a.end())</td>
+</tr>
+<tr>
+<td>a.find(k)</td>
+<td>返回一个迭代器，该迭代器指向键与k相同的元素；如果没有找到这样的元素则返回a.end</td>
+</tr>
+<tr>
+<td>a.count(k)</td>
+<td>返回键与k相同的元素的数量</td>
+</tr>
+<tr>
+<td>a.lower_bound(k)</td>
+<td>返回一个迭代器，该迭代器指向第一个键不小于k的元素</td>
+</tr>
+<tr>
+<td>a.upper_bound(k)</td>
+<td>返回一个迭代器，该迭代器指向第一个键大于k的元素</td>
+</tr>
+<tr>
+<td>a.equal_range(k)</td>
+<td>返回一个pair，第一值为a.lower_bound(k)，第二值为a.upper_bound(k)</td>
+</tr>
+<tr>
+<td>a.operator[](k)</td>
+<td>返回一个引用，该引用指向与键k关联的值（仅限于map容器）</td>
+</tr>
+</tbody></table>
+<p>通常，比较对象不要求键相同时值是相同的，等价键（equivalent key）意味着两个值（相同或不同）的键相同。上表中<code>X</code>是容器类，<code>a</code>是类型为X的对象。如果<code>X</code>使用唯一键（即set或map）则<code>a_uniq</code>将是类型为<code>X</code>的对象。如果<code>X</code>允许一键多值（multiset或multimap）则<code>a_eq</code>是类型为<code>X</code>的对象。<code>i</code>和<code>j</code>是指向<code>value_type</code>元素的输入迭代器，<code>[i,j]</code>是一个有效的区间，<code>p</code>和<code>q2</code>是指向<code>a</code>的迭代器，<code>q</code>和<code>q1</code>是指向<code>a</code>的可解除引用的迭代器，<code>[q1,q2]</code>是有效区间，<code>t</code>是<code>X::value_type</code>值，<code>k</code>是<code>X::key_type</code>值，<code>il</code>是<code>initializer&lt;value_type&gt;</code>对象。</p>
+<h3 id="无序关联容器"><a href="#无序关联容器" class="headerlink" title="无序关联容器"></a>无序关联容器</h3><p>无序关联容器是对容器概念的另一种改进。与关联容器一样，无序关联容器也将值与键关联起来，并用键来查找值。但底层的差别在于，关联容器是基于树结构的，而无序关联容器是基于数据结构哈希表，旨在提高添加和删除元素的速度以及提高查找算法的效率。STL中的四种无序关联容器是unordered_set、unordered_multiset、  unordered_map 和unordered_multimap。</p>
+<p>哈希函数（hash function）将键转换为索引值。哈希函数中有桶（bucket）的概念，不同的key得到不同的索引值（如使用数字编码等）后，将这些索引值根据桶的个数求余，求余得到的是与桶的数量相同的一组不同索引值，根据索引值将key放于桶中。如需在容器中搜索键，则对键执行哈希函数，进而只在索引对应的桶中搜索，理想情况下应有足够多的桶，每个桶只包含为数不多的key。C++11库中提供了模板<code>hash&lt;key&gt;</code>，无序关联容器默认使用该模板，为各种整型、浮点型、指针及一些模板类（如string）定义了改模板的具体化。</p>
+<p>无序关联容器的成员变量及方法见下边的表格：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X::key_type</td>
+<td>Key键类型</td>
+</tr>
+<tr>
+<td>X::key_equal</td>
+<td>指向一个二元函数，用于判断两个类型为Key的参数是否相等</td>
+</tr>
+<tr>
+<td>X::hasher</td>
+<td>Hash，散列函数，一个这样的一元函数对象，如果hf类型为Hash，k的类型为Key，则hf(k)的类型为std::size_t</td>
+</tr>
+<tr>
+<td>X::local_iterator</td>
+<td>一个类型与X::iterator相同的迭代器，但只能用于一个桶（Hash bucket）</td>
+</tr>
+<tr>
+<td>X::const_local_iterator</td>
+<td>一个类型与X::const_iterator相同的迭代器，但只能用于一个桶（Hash bucket）</td>
+</tr>
+<tr>
+<td>X::mapped_type</td>
+<td>T关联的数据类型（仅限map和multimap）</td>
+</tr>
+</tbody></table>
+<p>无序关联列表的方法与关联列表相似，所以上边关联容器列表的大多数方法也适用于无序关联列表，例外是：无序关联列表不存在<code>lower_bound(k)</code>、<code>upper_bound(k)</code>以及构造函数<code>X(i,j,c)</code>等涉及到排序或比较大小关系的方法。关联列表中有“大于”或“小于”的概念，但是在无序关联列表中只有“等于”和“不等于”。</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>X(n,hf,eq)</td>
+<td>创建一个空容器，至少包含n个桶，将hf用作哈希函数，将eq用作判断键相等的函数。如果省略了eq，则将key_equal()用作判断键相等的函数；如果省略了hf，则将hasher()用作哈希函数；如果省略了n，则包含的桶数不确定</td>
+</tr>
+<tr>
+<td>X a(n,hf,eq)</td>
+<td>创建一个名为a的空容器，至少包含n个桶，将hf用作哈希函数，将eq用作判断键相等的函数。如果省略了eq，则将key_equal()用作判断键相等的函数；如果省略了hf，则将hasher()用作哈希函数；如果省略了n，则包含的桶数不确定</td>
+</tr>
+<tr>
+<td>X(i,j,n,hf,eq)</td>
+<td>创建一个空容器，至少包含n个桶，将hf用作哈希函数，将eq用作判断键相等的函数，向其插入[i,j)中的元素。如果省略了eq，则将key_equal()用作判断键相等的函数；如果省略了hf，则将hasher()用作哈希函数；如果省略了n，则包含的桶数不确定</td>
+</tr>
+<tr>
+<td>X a(i,j,n,hf,eq)</td>
+<td>创建一个名为a的空容器，至少包含n个桶，将hf用作哈希函数，将eq用作判断键相等的函数，向其插入[i,j)中的元素。如果省略了eq，则将key_equal()用作判断键相等的函数；如果省略了hf，则将hasher()用作哈希函数；如果省略了n，则包含的桶数不确定</td>
+</tr>
+<tr>
+<td>b.hash_function()</td>
+<td>返回b使用的哈希函数</td>
+</tr>
+<tr>
+<td>b.key_eq()</td>
+<td>返回创建b时使用的判断键相等的函数</td>
+</tr>
+<tr>
+<td>b.bucket_count()</td>
+<td>返回b包含的桶数</td>
+</tr>
+<tr>
+<td>b.max_bucket_count()</td>
+<td>返回b最多可包含的桶的个数的上限值</td>
+</tr>
+<tr>
+<td>b.bucket(k)</td>
+<td>返回键为k的元素所属的桶的索引</td>
+</tr>
+<tr>
+<td>b.bucket_size(n)</td>
+<td>返回索引为n的桶可包含的元素个数</td>
+</tr>
+<tr>
+<td>b.begin(n)</td>
+<td>返回一个迭代器，指向所因为n的桶中的第一个元素</td>
+</tr>
+<tr>
+<td>b.end(n)</td>
+<td>返回一个迭代器，指向所因为n的桶中的最后一个元素</td>
+</tr>
+<tr>
+<td>b.cbegin(n)</td>
+<td>返回一个常量迭代器，指向所因为n的桶中的第一个元素</td>
+</tr>
+<tr>
+<td>b.cbegin(n)</td>
+<td>返回一个常量迭代器，指向所因为n的桶中的最后一个元素</td>
+</tr>
+<tr>
+<td>b.load_factor()</td>
+<td>返回每个桶包含的平均元素数</td>
+</tr>
+<tr>
+<td>b.max_load_factor()</td>
+<td>返回负载系数的最大可能取值，超过这个值后，容器将增加桶</td>
+</tr>
+<tr>
+<td>b.max_load_factor(z)</td>
+<td>可能修改最大负载系数，建议值为z</td>
+</tr>
+<tr>
+<td>a.rehash(n)</td>
+<td>将桶数调整为不小于n，并确保a.bucket_count() &gt; a.size()/a.max_load.factor()</td>
+</tr>
+<tr>
+<td>a.reserve(n)</td>
+<td>等价于a.rehash(ceil(n/a.max_load_factor()))</td>
+</tr>
+</tbody></table>
+<p>表中<code>X</code>是无序关联容器，<code>a</code>是类型为<code>X</code>的对象，<code>b</code>可能是类型为<code>X</code>的常量对象，<code>hf</code>是类型为<code>hasher</code>的值，<code>eq</code>是类型为<code>key_equal</code>的值，<code>n</code>是类型为<code>size_type</code>的值，<code>z</code>是类型为<code>float</code>的值。<code>i</code>和<code>j</code>是指向<code>value_type</code>元素的输入迭代器，<code>[i,j]</code>是一个有效的区间，<code>p</code>和<code>q2</code>是指向<code>a</code>的迭代器，<code>q</code>和<code>q1</code>是指向<code>a</code>的可解除引用的迭代器，<code>[q1,q2]</code>是有效区间，<code>t</code>是<code>X::value_type</code>值，<code>k</code>是<code>X::key_type</code>值，<code>il</code>是<code>initializer&lt;value_type&gt;</code>对象。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/10789789/" target="_blank" rel="noopener">C++ Primer Plus（第6版）中文版</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-43-43/" rel="tag"># C&#43;&#43;</a>
+              <a href="/tags/STL/" rel="tag"># STL</a>
+              <a href="/tags/generic-programming/" rel="tag"># generic programming</a>
+              <a href="/tags/iterator/" rel="tag"># iterator</a>
+              <a href="/tags/container/" rel="tag"># container</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-03-03-grep-on-windows-findstr/" rel="prev" title="Windows下的grep —— findstr">
+      <i class="fa fa-chevron-left"></i> Windows下的grep —— findstr
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-03-07-linear-transformation-of-coordinate-system/" rel="next" title="线性坐标变换">
+      线性坐标变换 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#标准模板库-STL"><span class="nav-number">1.</span> <span class="nav-text">标准模板库 STL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#泛型编程"><span class="nav-number">2.</span> <span class="nav-text">泛型编程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#为何使用迭代器"><span class="nav-number">2.1.</span> <span class="nav-text">为何使用迭代器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代器类型"><span class="nav-number">2.2.</span> <span class="nav-text">迭代器类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#输入迭代器"><span class="nav-number">2.2.1.</span> <span class="nav-text">输入迭代器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#输出迭代器"><span class="nav-number">2.2.2.</span> <span class="nav-text">输出迭代器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#正向迭代器"><span class="nav-number">2.2.3.</span> <span class="nav-text">正向迭代器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#双向迭代器"><span class="nav-number">2.2.4.</span> <span class="nav-text">双向迭代器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#随机访问迭代器"><span class="nav-number">2.2.5.</span> <span class="nav-text">随机访问迭代器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代器层次结构"><span class="nav-number">2.3.</span> <span class="nav-text">迭代器层次结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#概念、改进和模型"><span class="nav-number">2.4.</span> <span class="nav-text">概念、改进和模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#将指针用作迭代器"><span class="nav-number">2.4.1.</span> <span class="nav-text">将指针用作迭代器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#概念、改进和模型-1"><span class="nav-number">2.5.</span> <span class="nav-text">概念、改进和模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#其他有用的迭代器"><span class="nav-number">2.5.1.</span> <span class="nav-text">其他有用的迭代器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#容器"><span class="nav-number">3.</span> <span class="nav-text">容器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#容器种类"><span class="nav-number">3.1.</span> <span class="nav-text">容器种类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#容器概念"><span class="nav-number">3.1.1.</span> <span class="nav-text">容器概念</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#C-11新增的容器要求"><span class="nav-number">3.1.2.</span> <span class="nav-text">C++11新增的容器要求</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#序列"><span class="nav-number">3.1.3.</span> <span class="nav-text">序列</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#vector"><span class="nav-number">3.1.3.1.</span> <span class="nav-text">vector</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#deque"><span class="nav-number">3.1.3.2.</span> <span class="nav-text">deque</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#list"><span class="nav-number">3.1.3.3.</span> <span class="nav-text">list</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#forward-list"><span class="nav-number">3.1.3.4.</span> <span class="nav-text">forward_list</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#queue"><span class="nav-number">3.1.3.5.</span> <span class="nav-text">queue</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#priority-queue"><span class="nav-number">3.1.3.6.</span> <span class="nav-text">priority_queue</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#stack"><span class="nav-number">3.1.3.7.</span> <span class="nav-text">stack</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#array"><span class="nav-number">3.1.3.8.</span> <span class="nav-text">array</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关联容器"><span class="nav-number">3.2.</span> <span class="nav-text">关联容器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#无序关联容器"><span class="nav-number">3.3.</span> <span class="nav-text">无序关联容器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'c1b3e68c260d19ea37b9124283be6898',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在UGUI中遇到的其它类，统一放在一起了。主要包括CoroutineTween、IndexedSet、ListPool、ReflectionMethodsCache和SetPropertyUtility等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 其它">
+<meta property="og:url" content="http://aillieo.cn/post/2018-09-07-unity-3d-ugui-source-code-15/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="在UGUI中遇到的其它类，统一放在一起了。主要包括CoroutineTween、IndexedSet、ListPool、ReflectionMethodsCache和SetPropertyUtility等。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-09-07T13:39:56.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.072Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="CoroutineTween">
+<meta property="article:tag" content="tween">
+<meta property="article:tag" content="coroutine">
+<meta property="article:tag" content="IndexedSet">
+<meta property="article:tag" content="ObjectPool">
+<meta property="article:tag" content="ListPool">
+<meta property="article:tag" content="ReflectionMethodsCache">
+<meta property="article:tag" content="SetPropertyUtility">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-09-07-unity-3d-ugui-source-code-15/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 其它 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-09-07-unity-3d-ugui-source-code-15/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 其它
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-09-07 21:39:56" itemprop="dateCreated datePublished" datetime="2018-09-07T21:39:56+08:00">2018-09-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在UGUI中遇到的其它类，统一放在一起了。主要包括<code>CoroutineTween</code>、<code>IndexedSet</code>、<code>ListPool</code>、<code>ReflectionMethodsCache</code>和<code>SetPropertyUtility</code>等。</p>
+<a id="more"></a>
+
+<h2 id="CoroutineTween"><a href="#CoroutineTween" class="headerlink" title="CoroutineTween"></a>CoroutineTween</h2><p>用于实现一些逐帧变化的数值或动画。之前一直用DOTween插件做动画，推测其背后是相似的原理。<code>CoroutineTween.cs</code>包含了1个接口，2个实现了该接口的struct和1个类：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">namespace UnityEngine.UI.CoroutineTween</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; Base interface for tweeners,</span><br><span class="line">    &#x2F;&#x2F; using an interface instead of</span><br><span class="line">    &#x2F;&#x2F; an abstract class as we want the</span><br><span class="line">    &#x2F;&#x2F; tweens to be structs.</span><br><span class="line">    internal interface ITweenValue</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Color tween class, receives the</span><br><span class="line">    &#x2F;&#x2F; TweenValue callback and then sets</span><br><span class="line">    &#x2F;&#x2F; the value on the target.</span><br><span class="line">    internal struct ColorTween : ITweenValue</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Float tween class, receives the</span><br><span class="line">    &#x2F;&#x2F; TweenValue callback and then sets</span><br><span class="line">    &#x2F;&#x2F; the value on the target.</span><br><span class="line">    internal struct FloatTween : ITweenValue</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Tween runner, executes the given tween.</span><br><span class="line">    &#x2F;&#x2F; The coroutine will live within the given</span><br><span class="line">    &#x2F;&#x2F; behaviour container.</span><br><span class="line">    internal class TweenRunner&lt;T&gt; where T : struct, ITweenValue</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来逐个学习：</p>
+<h3 id="ITweenValue"><a href="#ITweenValue" class="headerlink" title="ITweenValue"></a>ITweenValue</h3><p>可以用来“Tween”的值，可以是一个浮点数、一个颜色等。它包含了一个方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">void TweenValue(float floatPercentage);</span><br></pre></td></tr></table></figure>
+<p>是实现渐变的最核心的函数。</p>
+<h3 id="TweenRunner"><a href="#TweenRunner" class="headerlink" title="TweenRunner"></a>TweenRunner</h3><p><code>TweenRunner</code>用于驱动一个Tween，借助于协程来实现每帧的更新，以下是其包含的<code>Start</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">private static IEnumerator Start(T tweenInfo)</span><br><span class="line">&#123;</span><br><span class="line">    if (!tweenInfo.ValidTarget())</span><br><span class="line">        yield break;</span><br><span class="line"></span><br><span class="line">    var elapsedTime &#x3D; 0.0f;</span><br><span class="line">    while (elapsedTime &lt; tweenInfo.duration)</span><br><span class="line">    &#123;</span><br><span class="line">        elapsedTime +&#x3D; tweenInfo.ignoreTimeScale ? Time.unscaledDeltaTime : Time.deltaTime;</span><br><span class="line">        var percentage &#x3D; Mathf.Clamp01(elapsedTime &#x2F; tweenInfo.duration);</span><br><span class="line">        tweenInfo.TweenValue(percentage);</span><br><span class="line">        yield return null;</span><br><span class="line">    &#125;</span><br><span class="line">    tweenInfo.TweenValue(1.0f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>ITweenValue</code>和<code>TweenRunner</code>组成了最近本的框架。</p>
+<h3 id="ColorTween"><a href="#ColorTween" class="headerlink" title="ColorTween"></a>ColorTween</h3><p><code>ColorTween</code>是颜色渐变动画类，其实现了<code>TweenValue</code>方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public void TweenValue(float floatPercentage)</span><br><span class="line">&#123;</span><br><span class="line">    if (!ValidTarget())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var newColor &#x3D; Color.Lerp(m_StartColor, m_TargetColor, floatPercentage);</span><br><span class="line"></span><br><span class="line">    if (m_TweenMode &#x3D;&#x3D; ColorTweenMode.Alpha)</span><br><span class="line">    &#123;</span><br><span class="line">        newColor.r &#x3D; m_StartColor.r;</span><br><span class="line">        newColor.g &#x3D; m_StartColor.g;</span><br><span class="line">        newColor.b &#x3D; m_StartColor.b;</span><br><span class="line">    &#125;</span><br><span class="line">    else if (m_TweenMode &#x3D;&#x3D; ColorTweenMode.RGB)</span><br><span class="line">    &#123;</span><br><span class="line">        newColor.a &#x3D; m_StartColor.a;</span><br><span class="line">    &#125;</span><br><span class="line">    m_Target.Invoke(newColor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以下是在<code>Graphic</code>中使用<code>ColorTween</code>完成颜色渐变的相关代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">protected Graphic()</span><br><span class="line">&#123;</span><br><span class="line">    if (m_ColorTweenRunner &#x3D;&#x3D; null)</span><br><span class="line">        m_ColorTweenRunner &#x3D; new TweenRunner&lt;ColorTween&gt;();</span><br><span class="line">    m_ColorTweenRunner.Init(this);</span><br><span class="line">    useLegacyMeshGeneration &#x3D; true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">public virtual void CrossFadeColor(Color targetColor, float duration, bool ignoreTimeScale, bool useAlpha, bool useRGB)</span><br><span class="line">&#123;</span><br><span class="line">    if (canvasRenderer &#x3D;&#x3D; null || (!useRGB &amp;&amp; !useAlpha))</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    Color currentColor &#x3D; canvasRenderer.GetColor();</span><br><span class="line">    if (currentColor.Equals(targetColor))</span><br><span class="line">    &#123;</span><br><span class="line">        m_ColorTweenRunner.StopTween();</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ColorTween.ColorTweenMode mode &#x3D; (useRGB &amp;&amp; useAlpha ?</span><br><span class="line">                                        ColorTween.ColorTweenMode.All :</span><br><span class="line">                                        (useRGB ? ColorTween.ColorTweenMode.RGB : ColorTween.ColorTweenMode.Alpha));</span><br><span class="line"></span><br><span class="line">    var colorTween &#x3D; new ColorTween &#123; duration &#x3D; duration, startColor &#x3D; canvasRenderer.GetColor(), targetColor &#x3D; targetColor &#125;;</span><br><span class="line">    colorTween.AddOnChangedCallback(canvasRenderer.SetColor);</span><br><span class="line">    colorTween.ignoreTimeScale &#x3D; ignoreTimeScale;</span><br><span class="line">    colorTween.tweenMode &#x3D; mode;</span><br><span class="line">    m_ColorTweenRunner.StartTween(colorTween);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="FloatTween"><a href="#FloatTween" class="headerlink" title="FloatTween"></a>FloatTween</h3><p>与<code>ColorTween</code>原理相似，<code>FloatTween</code>用来在每帧改变的是浮点数的值，不再赘述。</p>
+<h2 id="IndexedSet"><a href="#IndexedSet" class="headerlink" title="IndexedSet"></a>IndexedSet</h2><p>一个数据容器，内部维护的是一个数据的List和一个以数据为键以索引顺序为值的字典。主要特点是数据唯一，且按顺序存储。支持的接口有快速随机移除，快速在尾部添加不重复的数据项，顺序访问等。</p>
+<h2 id="ListPool"><a href="#ListPool" class="headerlink" title="ListPool"></a>ListPool</h2><p><code>ListPool</code>是各种List的对象池，其基于<code>ObjectPool&lt;T&gt;</code>实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">internal class ObjectPool&lt;T&gt; where T : new()</span><br><span class="line">&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">internal static class ListPool&lt;T&gt;</span><br><span class="line">&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>ObjectPool&lt;T&gt;</code>内部使用一个Stack来保存对象并计数，以实现对象复用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">public T Get()</span><br><span class="line">&#123;</span><br><span class="line">    T element;</span><br><span class="line">    if (m_Stack.Count &#x3D;&#x3D; 0)</span><br><span class="line">    &#123;</span><br><span class="line">        element &#x3D; new T();</span><br><span class="line">        countAll++;</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">    &#123;</span><br><span class="line">        element &#x3D; m_Stack.Pop();</span><br><span class="line">    &#125;</span><br><span class="line">    if (m_ActionOnGet !&#x3D; null)</span><br><span class="line">        m_ActionOnGet(element);</span><br><span class="line">    return element;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public void Release(T element)</span><br><span class="line">&#123;</span><br><span class="line">    if (m_Stack.Count &gt; 0 &amp;&amp; ReferenceEquals(m_Stack.Peek(), element))</span><br><span class="line">        Debug.LogError(&quot;Internal error. Trying to destroy object that is already released to pool.&quot;);</span><br><span class="line">    if (m_ActionOnRelease !&#x3D; null)</span><br><span class="line">        m_ActionOnRelease(element);</span><br><span class="line">    m_Stack.Push(element);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="ReflectionMethodsCache"><a href="#ReflectionMethodsCache" class="headerlink" title="ReflectionMethodsCache"></a>ReflectionMethodsCache</h2><p>使用反射的方法获取函数，降低模块间的依赖程度。如当调用<code>Physics.Raycast(...)</code>方法时，其中包含这样的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">internal class ReflectionMethodsCache</span><br><span class="line">&#123;</span><br><span class="line">    public delegate bool Raycast3DCallback (Ray r, out RaycastHit hit, float f, int i);</span><br><span class="line">    </span><br><span class="line">    public Raycast3DCallback raycast3D &#x3D; null;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; ...</span><br><span class="line"></span><br><span class="line">    public ReflectionMethodsCache() </span><br><span class="line">    &#123;</span><br><span class="line">        var raycast3DMethodInfo &#x3D; typeof(Physics).GetMethod(&quot;Raycast&quot;, new[] &#123;typeof(Ray), typeof(RaycastHit).MakeByRefType(), typeof(float), typeof(int)&#125;);</span><br><span class="line">        if (raycast3DMethodInfo !&#x3D; null)</span><br><span class="line">            raycast3D &#x3D; (Raycast3DCallback)UnityEngineInternal.ScriptingUtils.CreateDelegate(typeof(Raycast3DCallback), raycast3DMethodInfo);</span><br><span class="line">        </span><br><span class="line">        &#x2F;&#x2F; ...</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; ...</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>GraphicRaycaster</code>中可以看到其使用方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if (ReflectionMethodsCache.Singleton.raycast3D !&#x3D; null)</span><br><span class="line">&#123;</span><br><span class="line">    RaycastHit hit;</span><br><span class="line">    if (ReflectionMethodsCache.Singleton.raycast3D(ray, out hit, dist, m_BlockingMask))</span><br><span class="line">        hitDistance &#x3D; hit.distance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="SetPropertyUtility"><a href="#SetPropertyUtility" class="headerlink" title="SetPropertyUtility"></a>SetPropertyUtility</h2><p>一个工具类，当调用set方法（set属性）时，判断二者是否相等，如果不相等则替换为新的值，最后返回bool值表示是否替换了旧的值，如在设置颜色时：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public static bool SetColor(ref Color currentValue, Color newValue)</span><br><span class="line">&#123;</span><br><span class="line">    if (currentValue.r &#x3D;&#x3D; newValue.r &amp;&amp; currentValue.g &#x3D;&#x3D; newValue.g &amp;&amp; currentValue.b &#x3D;&#x3D; newValue.b &amp;&amp; currentValue.a &#x3D;&#x3D; newValue.a)</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    currentValue &#x3D; newValue;</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>Graphic</code>有调用如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public virtual Color color </span><br><span class="line">&#123;</span><br><span class="line">    get </span><br><span class="line">    &#123;</span><br><span class="line">        return m_Color; </span><br><span class="line">    &#125;</span><br><span class="line">    set </span><br><span class="line">    &#123;</span><br><span class="line">        if (SetPropertyUtility.SetColor(ref m_Color, value)) </span><br><span class="line">            SetVerticesDirty(); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-08-08-unity-3d-ugui-source-code-14/" rel="prev" title="Unity3D UGUI 源码学习 BaseMeshEffect">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 BaseMeshEffect
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-09-13-lua-notes-03/" rel="next" title="Lua笔记 效率&性能">
+      Lua笔记 效率&性能 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CoroutineTween"><span class="nav-number">1.</span> <span class="nav-text">CoroutineTween</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ITweenValue"><span class="nav-number">1.1.</span> <span class="nav-text">ITweenValue</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TweenRunner"><span class="nav-number">1.2.</span> <span class="nav-text">TweenRunner</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ColorTween"><span class="nav-number">1.3.</span> <span class="nav-text">ColorTween</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FloatTween"><span class="nav-number">1.4.</span> <span class="nav-text">FloatTween</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IndexedSet"><span class="nav-number">2.</span> <span class="nav-text">IndexedSet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ListPool"><span class="nav-number">3.</span> <span class="nav-text">ListPool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ReflectionMethodsCache"><span class="nav-number">4.</span> <span class="nav-text">ReflectionMethodsCache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetPropertyUtility"><span class="nav-number">5.</span> <span class="nav-text">SetPropertyUtility</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">6.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'b5228169ae226cf2772c13bcb5865e06',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

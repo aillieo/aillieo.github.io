@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="大O符号大O符号（Big-O notation）是用于描述函数渐近行为的数学符号。它用另一个（通常更简单的）函数来描述一个函数数量级的渐近上界。下图展示了算法分析中一些常见的增长曲线。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见算法复杂度Cheatsheet">
+<meta property="og:url" content="http://aillieo.cn/post/2017-01-09-algorithm-complexity-cheatsheet/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="大O符号大O符号（Big-O notation）是用于描述函数渐近行为的数学符号。它用另一个（通常更简单的）函数来描述一个函数数量级的渐近上界。下图展示了算法分析中一些常见的增长曲线。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2017-01-09-algorithm-complexity-cheatsheet/2017-01-09-algorithm-complexity-cheatsheet/fig_01.png">
+<meta property="article:published_time" content="2017-01-09T10:35:18.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.041Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="algorithm">
+<meta property="article:tag" content="Big-O">
+<meta property="article:tag" content="sorting">
+<meta property="article:tag" content="data structure">
+<meta property="article:tag" content="heap">
+<meta property="article:tag" content="graph">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2017-01-09-algorithm-complexity-cheatsheet/2017-01-09-algorithm-complexity-cheatsheet/fig_01.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-01-09-algorithm-complexity-cheatsheet/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>常见算法复杂度Cheatsheet | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-01-09-algorithm-complexity-cheatsheet/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          常见算法复杂度Cheatsheet
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-01-09 18:35:18" itemprop="dateCreated datePublished" datetime="2017-01-09T18:35:18+08:00">2017-01-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Cheatsheets/" itemprop="url" rel="index"><span itemprop="name">Cheatsheets</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="大O符号"><a href="#大O符号" class="headerlink" title="大O符号"></a>大O符号</h2><p>大O符号（Big-O notation）是用于描述函数渐近行为的数学符号。它用另一个（通常更简单的）函数来描述一个函数数量级的渐近上界。下图展示了算法分析中一些常见的增长曲线。</p>
+<a id="more"></a>
+
+<p><img src="2017-01-09-algorithm-complexity-cheatsheet/fig_01.png" alt="fig"></p>
+<h2 id="数组排序"><a href="#数组排序" class="headerlink" title="数组排序"></a>数组排序</h2>
+<table>
+<thead>
+<tr>
+<th rowspan = "2" style="text-align:center">Algorithm</th>
+<th rowspan = "2" style="text-align:center">Categories</th>
+<th rowspan = "2" style="text-align:center">Stability</th>
+<td colspan = "3" style="text-align:center">Time Complexity</td>
+<td style="text-align:center">Space Complexity</td>
+</tr>
+<tr>
+<th style="text-align:center">Best</th>
+<th style="text-align:center">Average</th>
+<th style="text-align:center">Worst</th>
+<th style="text-align:center">Worst</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quicksort</td>
+<td>Exchange sorts</td>
+<td>unstable</td>
+<td>&#x3A9;(n log(n))</td>
+<td>&#x398;(n log(n))</td>
+<td>O(n^2)</td>
+<td>O(n) / O(log(n))</td>
+</tr>
+<tr>
+<td>Mergesort</td>
+<td>Merge sorts</td>
+<td>stable</td>
+<td>&#x3A9;(n log(n))</td>
+<td>&#x398;(n log(n))</td>
+<td>O(n log(n))</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Timsort</td>
+<td>Hybrid sorts</td>
+<td>stable</td>
+<td>&#x3A9;(n)</td>
+<td>&#x398;(n log(n))</td>
+<td>O(n log(n))</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Heapsort</td>
+<td>Selection sorts</td>
+<td>unstable</td>
+<td>&#x3A9;(n log(n))</td>
+<td>&#x398;(n log(n))</td>
+<td>O(n log(n))</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Bubble Sort</td>
+<td>Exchange sorts</td>
+<td>stable</td>
+<td>&#x3A9;(n)</td>
+<td>&#x398;(n^2)</td>
+<td>O(n^2)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Insertion Sort</td>
+<td>Insertion sorts</td>
+<td>stable</td>
+<td>&#x3A9;(n)</td>
+<td>&#x398;(n^2)</td>
+<td>O(n^2)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Selection Sort</td>
+<td>Selection sorts</td>
+<td>unstable</td>
+<td>&#x3A9;(n^2)</td>
+<td>&#x398;(n^2)</td>
+<td>O(n^2)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Shell Sort</td>
+<td>Insertion sorts</td>
+<td>unstable</td>
+<td>&#x3A9;(n log(n))</td>
+<td>&#x398;(n(log(n))^2)</td>
+<td>O(n(log(n))^2)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Bucket Sort</td>
+<td>Distribution sorts</td>
+<td>stable</td>
+<td>&#x3A9;(n+k)</td>
+<td>&#x398;(n+k)</td>
+<td>O(n^2)</td>
+<td>O(nk) / O(n)</td>
+</tr>
+<tr>
+<td>Radix Sort</td>
+<td>Distribution sorts</td>
+<td>stable</td>
+<td>&#x3A9;(nk)</td>
+<td>&#x398;(nk)</td>
+<td>O(nk)</td>
+<td>O(n+k)</td>
+</tr>
+<tr>
+<td>Counting Sort</td>
+<td>Distribution sorts</td>
+<td>stable</td>
+<td>&#x3A9;(n+k)</td>
+<td>&#x398;(n+k)</td>
+<td>O(n+k)</td>
+<td>O(k)</td>
+</tr>
+<tr>
+<td>Cubesort</td>
+<td>-</td>
+<td>stable</td>
+<td>&#x3A9;(n)</td>
+<td>&#x398;(n log(n))</td>
+<td>O(n log(n))</td>
+<td>O(n)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+<h2 id="数据结构操作"><a href="#数据结构操作" class="headerlink" title="数据结构操作"></a>数据结构操作</h2><h3 id="通用数据结构"><a href="#通用数据结构" class="headerlink" title="通用数据结构"></a>通用数据结构</h3>
+<table>
+<thead>
+<tr>
+<th rowspan = "3"  style="text-align:center">Data Structure</th>
+<td colspan = "8"  style="text-align:center">Time Complexity</td>
+<td style="text-align:center">Space Complexity</td>
+</tr>
+<tr>
+<td colspan = "4"  style="text-align:center">Average</td>
+<td colspan = "4"  style="text-align:center">Worst</td>
+<td style="text-align:center">Worst</td>
+</tr>
+<tr>
+<th style="text-align:center">Access</th>
+<th style="text-align:center">Search</th>
+<th style="text-align:center">Insertion</th>
+<th style="text-align:center">Deletion</th>
+<th style="text-align:center">Access</th>
+<th style="text-align:center">Search</th>
+<th style="text-align:center">Insertion</th>
+<th style="text-align:center">Deletion</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Array</td>
+<td>&#x398;(1)</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(n) / O(1)</td>
+<td>&#x398;(n) / O(1)</td>
+<td>O(1)</td>
+<td>O(n)</td>
+<td>O(n) / O(1)</td>
+<td>O(n) / O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Stack</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(1)</td>
+<td>&#x398;(1)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Queue</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(1)</td>
+<td>&#x398;(1)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Singly-Linked List</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(1)</td>
+<td>&#x398;(1)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Doubly-Linked List</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(n)</td>
+<td>&#x398;(1)</td>
+<td>&#x398;(1)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Skip List</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n log(n))</td>
+</tr>
+<tr>
+<td>Hash Table</td>
+<td>N/A</td>
+<td>&#x398;(1)</td>
+<td>&#x398;(1)</td>
+<td>&#x398;(1)</td>
+<td>N/A</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Binary Search Tree</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Cartesian Tree</td>
+<td>N/A</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>N/A</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>B-Tree</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Red-Black Tree</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>Splay Tree</td>
+<td>N/A</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>N/A</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>AVL Tree</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>KD Tree</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>&#x398;(log(n))</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+<h3 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h3>
+<table>
+<thead>
+<tr>
+<th rowspan = "2"  style="text-align:center">Heaps</th>
+<td colspan = "7" style="text-align:center" >Time Complexity</td>
+</tr>
+<tr>
+<th style="text-align:center">Heapify</th>
+<th style="text-align:center">Find Max</th>
+<th style="text-align:center">Extract Max</th>
+<th style="text-align:center">Increase Key</th>
+<th style="text-align:center">Insert</th>
+<th style="text-align:center">Delete</th>
+<th style="text-align:center">Merge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sorted LinkedList</td>
+<td>-</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(m+n)</td>
+</tr>
+<tr>
+<td>Unsorted Linked List</td>
+<td>-</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Binary Heap</td>
+<td>O(n)</td>
+<td>O(1)</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(m+n)</td>
+</tr>
+<tr>
+<td>Binomial Heap</td>
+<td>-</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+</tr>
+<tr>
+<td>Fibonacci Heap</td>
+<td>-</td>
+<td>O(1)</td>
+<td>O(log(n))</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(log(n))</td>
+<td>O(1)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+<h3 id="图"><a href="#图" class="headerlink" title="图"></a>图</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Node / Edge Management</th>
+<th style="text-align:center">Storage</th>
+<th style="text-align:center">Add Vertex</th>
+<th style="text-align:center">Add Edge</th>
+<th style="text-align:center">Remove V ertex</th>
+<th style="text-align:center">Remove Edge</th>
+<th style="text-align:center">Query</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Adjacency List</td>
+<td>O(|V|+|E|)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(|V| + |E|)</td>
+<td>O(|E|)</td>
+<td>O(|V|)</td>
+</tr>
+<tr>
+<td>Incidence List</td>
+<td>O(|V|+|E|)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(|E|)</td>
+<td>O(|E|)</td>
+<td>O(|E|)</td>
+</tr>
+<tr>
+<td>Adjacency Matrix</td>
+<td>O(|V|^2)</td>
+<td>O(|V|^2)</td>
+<td>O(1)</td>
+<td>O(|V|^2)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Incidence Matrix</td>
+<td>O(|V| &#x22C5; |E|)</td>
+<td>O(|V| &#x22C5; |E|)</td>
+<td>O(|V| &#x22C5; |E|)</td>
+<td>O(|V| &#x22C5; |E|)</td>
+<td>O(|V| &#x22C5; |E|)</td>
+<td>O(|E|)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+<h2 id="查找算法"><a href="#查找算法" class="headerlink" title="查找算法"></a>查找算法</h2>
+<table>
+<thead>
+<tr>
+<th rowspan = "2"  style="text-align:center">Algorithm</th>
+<th rowspan = "2"  style="text-align:center">Data Structure</th>
+<td colspan = "2" style="text-align:center" >Time Complexity</td>
+<td style="text-align:center">Space Complexity</td>
+</tr>
+<tr>
+<th style="text-align:center">Average</th>
+<th style="text-align:center">Worst</th>
+<th style="text-align:center">Worst</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Depth First Search</td>
+<td>Graph of |V|vertices and |E|edges</td>
+<td>-</td>
+<td>O(|E| + |V|)</td>
+<td>O(|V|)</td>
+</tr>
+<tr>
+<td>Breadth First Search</td>
+<td>Graph of |V|vertices and |E|edges</td>
+<td>-</td>
+<td>O(|E| + |V|)</td>
+<td>O(|V|)</td>
+</tr>
+<tr>
+<td>Binary Search</td>
+<td>Sorted array of nelements</td>
+<td>O(log(n))</td>
+<td>O(log(n))</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Brute Force</td>
+<td>Array</td>
+<td>O(n)</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Shortest path by Bellman-Ford</td>
+<td>Graph with |V|vertices and |E|edges</td>
+<td>O(|V||E|)</td>
+<td>O(|V||E|)</td>
+<td>O(|V|)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="http://www.bigocheatsheet.com/" target="_blank" rel="noopener">http://www.bigocheatsheet.com/</a><br><a href="http://en.wikipedia.org/wiki/Array_data_structure" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Array_data_structure</a><br><a href="http://en.wikipedia.org/wiki/Singly_linked_list#Singly_linked_lists" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Singly_linked_list#Singly_linked_lists</a><br><a href="http://en.wikipedia.org/wiki/Doubly_linked_list" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Doubly_linked_list</a><br><a href="http://en.wikipedia.org/wiki/Skip_list" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Skip_list</a><br><a href="http://en.wikipedia.org/wiki/Hash_table" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Hash_table</a><br><a href="http://en.wikipedia.org/wiki/Binary_search_tree" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Binary_search_tree</a><br><a href="http://en.wikipedia.org/wiki/Quicksort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Quicksort</a><br><a href="http://en.wikipedia.org/wiki/Merge_sort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Merge_sort</a><br><a href="http://en.wikipedia.org/wiki/Timsort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Timsort</a><br><a href="http://en.wikipedia.org/wiki/Heapsort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Heapsort</a><br><a href="http://en.wikipedia.org/wiki/Bubble_sort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Bubble_sort</a><br><a href="http://en.wikipedia.org/wiki/Insertion_sort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Insertion_sort</a><br><a href="http://en.wikipedia.org/wiki/Selection_sort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Selection_sort</a><br><a href="http://en.wikipedia.org/wiki/Bucket_sort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Bucket_sort</a><br><a href="http://en.wikipedia.org/wiki/Radix_sort" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Radix_sort</a><br><a href="http://en.wikipedia.org/wiki/Adjacency_list" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Adjacency_list</a><br><a href="http://en.wikipedia.org/wiki/Incidence_list" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Incidence_list</a><br><a href="http://en.wikipedia.org/wiki/Incidence_matrix" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Incidence_matrix</a><br><a href="http://en.wikipedia.org/wiki/Adjacency_matrix" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Adjacency_matrix</a><br><a href="http://en.wikipedia.org/wiki/Linked_list" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Linked_list</a><br><a href="http://en.wikipedia.org/wiki/Binary_heap" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Binary_heap</a><br><a href="http://en.wikipedia.org/wiki/Binomial_heap" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Binomial_heap</a><br><a href="http://en.wikipedia.org/wiki/Fibonacci_heap" target="_blank" rel="noopener">http://en.wikipedia.org/wiki/Fibonacci_heap</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/algorithm/" rel="tag"># algorithm</a>
+              <a href="/tags/Big-O/" rel="tag"># Big-O</a>
+              <a href="/tags/sorting/" rel="tag"># sorting</a>
+              <a href="/tags/data-structure/" rel="tag"># data structure</a>
+              <a href="/tags/heap/" rel="tag"># heap</a>
+              <a href="/tags/graph/" rel="tag"># graph</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-01-01-base-64-encode-decode/" rel="prev" title="Base64编码与解码">
+      <i class="fa fa-chevron-left"></i> Base64编码与解码
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-01-15-opengl-es-glsl-01/" rel="next" title="OpenGL ES 2.0 着色器语言GLSL（一）">
+      OpenGL ES 2.0 着色器语言GLSL（一） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#大O符号"><span class="nav-number">1.</span> <span class="nav-text">大O符号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数组排序"><span class="nav-number">2.</span> <span class="nav-text">数组排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据结构操作"><span class="nav-number">3.</span> <span class="nav-text">数据结构操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通用数据结构"><span class="nav-number">3.1.</span> <span class="nav-text">通用数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#堆"><span class="nav-number">3.2.</span> <span class="nav-text">堆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#图"><span class="nav-number">3.3.</span> <span class="nav-text">图</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查找算法"><span class="nav-number">4.</span> <span class="nav-text">查找算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '35dd8ebc0daa19112b593dc74479a299',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

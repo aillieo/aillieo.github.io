@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文记录的是在LoadRunner中模拟客户端使用protobuf发送和接收消息的过程，需要将使用的protobuf相关函数封装在dll内并在虚拟用户脚本中调用，涉及到的文件和源代码可以到这里下载。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在LoadRunner中使用protobuf">
+<meta property="og:url" content="http://aillieo.cn/post/2016-12-16-loadrunner-protobuf/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="本文记录的是在LoadRunner中模拟客户端使用protobuf发送和接收消息的过程，需要将使用的protobuf相关函数封装在dll内并在虚拟用户脚本中调用，涉及到的文件和源代码可以到这里下载。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2016-12-16-loadrunner-protobuf/2016-12-16-loadrunner-protobuf/fig_01.png">
+<meta property="og:image" content="http://aillieo.cn/post/2016-12-16-loadrunner-protobuf/2016-12-16-loadrunner-protobuf/fig_02.png">
+<meta property="article:published_time" content="2016-12-16T09:44:55.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.040Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="LoadRunner">
+<meta property="article:tag" content="testing">
+<meta property="article:tag" content="protobuf">
+<meta property="article:tag" content="dll">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2016-12-16-loadrunner-protobuf/2016-12-16-loadrunner-protobuf/fig_01.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2016-12-16-loadrunner-protobuf/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>在LoadRunner中使用protobuf | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2016-12-16-loadrunner-protobuf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在LoadRunner中使用protobuf
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-12-16 17:44:55" itemprop="dateCreated datePublished" datetime="2016-12-16T17:44:55+08:00">2016-12-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Testing/" itemprop="url" rel="index"><span itemprop="name">Testing</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文记录的是在LoadRunner中模拟客户端使用protobuf发送和接收消息的过程，需要将使用的protobuf相关函数封装在dll内并在虚拟用户脚本中调用，涉及到的文件和源代码可以到<a href="https://github.com/aillieo/LoadRunner-protobuf-demo" target="_blank" rel="noopener">这里</a>下载。</p>
+<a id="more"></a>
+
+<h2 id="编写message"><a href="#编写message" class="headerlink" title="编写message"></a>编写message</h2><p>在实际应用中，可以直接使用客户端的中相关的代码文件，这里由于做演示，因此新生成一个简单的message。使用的protobuf版本为2.5，Visual Studio版本为2012。</p>
+<p>编写<code>MsgName.proto</code>文件如下，只有一个字符型的数据<code>name</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">option optimize_for &#x3D; LITE_RUNTIME;</span><br><span class="line">message MsgName</span><br><span class="line">&#123;</span><br><span class="line">	required string name &#x3D; 1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行脚本生成消息的相关代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">protoc --cpp_out&#x3D;. *.proto</span><br><span class="line">copy *.cc *.cpp &#x2F;Y</span><br><span class="line">del *.cc</span><br></pre></td></tr></table></figure>
+
+<p>得到<code>MsgName.h</code>和<code>MsgName.cpp</code>。</p>
+<h2 id="构建dll工程"><a href="#构建dll工程" class="headerlink" title="构建dll工程"></a>构建dll工程</h2><h3 id="建立工程并包含依赖文件"><a href="#建立工程并包含依赖文件" class="headerlink" title="建立工程并包含依赖文件"></a>建立工程并包含依赖文件</h3><p>在Visual Studio中构建Win32工程，并设置为DLL类型。</p>
+<p><img src="2016-12-16-loadrunner-protobuf/fig_01.png" alt="fig"></p>
+<p><img src="2016-12-16-loadrunner-protobuf/fig_02.png" alt="fig"></p>
+<p>完成工程建立之后，在工程中导入protobuf相关的文件，更新附加包含目录。导入之前生成的<code>MsgName.h</code>和<code>MsgName.cpp</code>。</p>
+<h3 id="接口编写"><a href="#接口编写" class="headerlink" title="接口编写"></a>接口编写</h3><p>新建一组h和cpp文件，如<code>pb.h</code>和<code>pb.cpp</code>，输出给LoadRunner使用的函数将在这两个文件中编写。首先在<code>pb.h</code>中声明函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once;  </span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> DLL_IMPLEMENT  </span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DLL_API __declspec(dllexport)  </span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span>  </span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DLL_API __declspec(dllimport)  </span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span>  </span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 辅助函数 内部使用 将protobuf序列化后的字符串封装成消息发送给服务器</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">constructMessage</span><span class="params">(<span class="keyword">char</span>* des , short nType, <span class="keyword">int</span> nIndex, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span> &amp;dataStr)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 导出函数 给LoadRunner调用 输入字符串name 赋值给消息并序列化 传给des</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> <span class="function">DLL_API <span class="keyword">int</span> <span class="title">getSerializedName</span><span class="params">(<span class="keyword">char</span>* des, <span class="keyword">char</span>* name)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 导出函数 给LoadRunner调用 输入接收到的消息src及长度len 反序列化 并得出name字段传给name</span></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> <span class="function">DLL_API <span class="keyword">int</span> <span class="title">getParsedName</span><span class="params">(<span class="keyword">char</span>* name, <span class="keyword">char</span>* src, <span class="keyword">int</span> len)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>在pb.cpp编写函数实现</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DLL_IMPLEMENT  </span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(lib, <span class="meta-string">"ws2_32.lib"</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"pb.h"</span>  </span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Windows.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;intrin.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;  </span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"MsgName.pb.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">constructMessage</span><span class="params">(<span class="keyword">char</span>* des , short nType, <span class="keyword">int</span> nIndex, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span> &amp;dataStr )</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//数据有效长度 不包含nSize本身占的字节</span></span><br><span class="line">	short nSize = <span class="keyword">sizeof</span>(short) + <span class="keyword">sizeof</span>(<span class="keyword">int</span>) +  dataStr.length()*<span class="keyword">sizeof</span>(<span class="keyword">char</span>) ;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">int</span> pos = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	nSize = htons(nSize);</span><br><span class="line">	<span class="built_in">memcpy</span>(des + pos,&amp;nSize,<span class="keyword">sizeof</span>(short));</span><br><span class="line">	pos += <span class="keyword">sizeof</span>(short);</span><br><span class="line"></span><br><span class="line">	nType = htons(nType);</span><br><span class="line">	<span class="built_in">memcpy</span>(des + pos,&amp;nType,<span class="keyword">sizeof</span>(short));</span><br><span class="line">	pos += <span class="keyword">sizeof</span>(short);</span><br><span class="line"></span><br><span class="line">	nIndex = htonl(nIndex);</span><br><span class="line">	<span class="built_in">memcpy</span>(des + pos,&amp;nIndex,<span class="keyword">sizeof</span>(<span class="keyword">int</span>));</span><br><span class="line">	pos += <span class="keyword">sizeof</span>(<span class="keyword">int</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">memcpy</span>(des + pos,dataStr.c_str(),dataStr.length()*<span class="keyword">sizeof</span>(<span class="keyword">char</span>));</span><br><span class="line">	pos += dataStr.length()*<span class="keyword">sizeof</span>(<span class="keyword">char</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//返回构建完成的消息的长度</span></span><br><span class="line">	<span class="keyword">return</span> pos;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">DLL_API <span class="keyword">int</span> <span class="title">getSerializedName</span><span class="params">(<span class="keyword">char</span>* des, <span class="keyword">char</span>* name)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 声明一个MsgName</span></span><br><span class="line">	MsgName msgname; </span><br><span class="line">  </span><br><span class="line">	<span class="comment">// 为其传入name字段</span></span><br><span class="line">	msgname.set_name(name);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">std</span>::<span class="built_in">string</span> s_data;</span><br><span class="line">	</span><br><span class="line">  	<span class="comment">// 序列化给s_data</span></span><br><span class="line">  	msgname.SerializeToString(&amp;s_data);</span><br><span class="line"></span><br><span class="line">  	<span class="comment">// 构建消息并传给des</span></span><br><span class="line">	<span class="keyword">int</span> len = constructMessage(des, <span class="number">0</span>, <span class="number">0</span>, s_data);</span><br><span class="line">	</span><br><span class="line">  	<span class="comment">// 返回构建成的消息的长度</span></span><br><span class="line">	<span class="keyword">return</span> len;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">DLL_API <span class="keyword">int</span> <span class="title">getParsedName</span><span class="params">(<span class="keyword">char</span>* name, <span class="keyword">char</span>* src, <span class="keyword">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">  	<span class="comment">// 去掉消息前部的 nType 和 nIndex 的数据</span></span><br><span class="line">	<span class="keyword">int</span> offset = <span class="keyword">sizeof</span>(short) + <span class="keyword">sizeof</span>(<span class="keyword">int</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(len&lt;=offset) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">std</span>::<span class="built_in">string</span> data;</span><br><span class="line">	data.assign(src + offset , len - offset);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 声明一个MsgName</span></span><br><span class="line">	MsgName msgname; </span><br><span class="line">  </span><br><span class="line">  	<span class="comment">// 从data反序列化</span></span><br><span class="line">	<span class="keyword">if</span> (!msgname.ParseFromString(data)) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">  	<span class="comment">// 得到消息中的name并赋给name</span></span><br><span class="line">	<span class="built_in">strcpy</span>(name, msgname.name().c_str());</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span> ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完成之后编译并生成<code>pb_dll.dll</code>。</p>
+<h2 id="在LoadRunner中使用导出的dll文件"><a href="#在LoadRunner中使用导出的dll文件" class="headerlink" title="在LoadRunner中使用导出的dll文件"></a>在LoadRunner中使用导出的dll文件</h2><h3 id="加载文件"><a href="#加载文件" class="headerlink" title="加载文件"></a>加载文件</h3><p>将上一步生成的<code>pb_dll.dll</code>放入虚拟用户脚本的文件夹内，使用之前先加载dll，例如可以在<code>vuser_init.c</code>中加入以下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lr_load_dll(<span class="string">"pb_dll.dll"</span>);</span><br></pre></td></tr></table></figure>
+<p>如返回值为0，则表示加载成功，可以在<code>Action.c</code>中使用dll内封装的函数。</p>
+<h3 id="调用函数"><a href="#调用函数" class="headerlink" title="调用函数"></a>调用函数</h3><p>在<code>Action.c</code>内直接调用函数即可，详见以下代码，封装<code>name</code>生成消息并序列化，发送给服务器后得到返回的消息，再将返回的消息反序列化出返回的<code>name</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">Action()</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">char</span>* sendStr;</span><br><span class="line">	<span class="keyword">char</span>* rece;</span><br><span class="line">	<span class="keyword">int</span> receLen = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">char</span>* name;</span><br><span class="line"></span><br><span class="line">	lrs_create_socket(<span class="string">"socket0"</span>, <span class="string">"TCP"</span>, <span class="string">"LocalHost=0"</span>, <span class="string">"RemoteHost=192.168.1.200:2000"</span>, LrsLastArg);</span><br><span class="line"></span><br><span class="line">	rece = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="number">1024</span> * <span class="keyword">sizeof</span>(<span class="keyword">char</span>));</span><br><span class="line">	sendStr = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="number">1024</span> * <span class="keyword">sizeof</span>(<span class="keyword">char</span>));</span><br><span class="line">	name = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="number">128</span> * <span class="keyword">sizeof</span>(<span class="keyword">char</span>));</span><br><span class="line"></span><br><span class="line">	receLen = getSerializedName(rece, <span class="string">"TestingName"</span>);</span><br><span class="line"></span><br><span class="line">	dataToHex(rece, sendStr, receLen );</span><br><span class="line"></span><br><span class="line">	lrs_set_send_buffer(<span class="string">"socket0"</span>, sendStr , <span class="built_in">strlen</span>(sendStr) );</span><br><span class="line">	lrs_send(<span class="string">"socket0"</span>, <span class="string">"buf0"</span>, LrsLastArg);</span><br><span class="line"></span><br><span class="line">	custom_lrs_receive(<span class="string">"socket0"</span>, <span class="string">"buf1"</span>, LrsLastArg);</span><br><span class="line">	</span><br><span class="line">	lrs_get_last_received_buffer(<span class="string">"socket0"</span>, &amp;rece, &amp;receLen);</span><br><span class="line"></span><br><span class="line">	getParsedName(name, rece, receLen);</span><br><span class="line"></span><br><span class="line">	lr_output_message(<span class="string">"name from sever is %s "</span>,name);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">free</span>(rece);</span><br><span class="line">	<span class="built_in">free</span>(sendStr);</span><br><span class="line">	<span class="built_in">free</span>(name);</span><br><span class="line"></span><br><span class="line">	lrs_close_socket(<span class="string">"socket0"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://github.com/google/protobuf/blob/master/cmake/README.md" target="_blank" rel="noopener">https://github.com/google/protobuf/blob/master/cmake/README.md</a><br><a href="http://www.cnblogs.com/tangxin-blog/p/5698137.html" target="_blank" rel="noopener">http://www.cnblogs.com/tangxin-blog/p/5698137.html</a><br><a href="http://blog.csdn.net/jiang1986829/article/details/48467269" target="_blank" rel="noopener">http://blog.csdn.net/jiang1986829/article/details/48467269</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LoadRunner/" rel="tag"># LoadRunner</a>
+              <a href="/tags/testing/" rel="tag"># testing</a>
+              <a href="/tags/protobuf/" rel="tag"># protobuf</a>
+              <a href="/tags/dll/" rel="tag"># dll</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2016-12-14-loadrunner-game-server/" rel="prev" title="使用LoadRunner进行游戏服务器压力测试">
+      <i class="fa fa-chevron-left"></i> 使用LoadRunner进行游戏服务器压力测试
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-01-01-base-64-encode-decode/" rel="next" title="Base64编码与解码">
+      Base64编码与解码 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#编写message"><span class="nav-number">1.</span> <span class="nav-text">编写message</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构建dll工程"><span class="nav-number">2.</span> <span class="nav-text">构建dll工程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#建立工程并包含依赖文件"><span class="nav-number">2.1.</span> <span class="nav-text">建立工程并包含依赖文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口编写"><span class="nav-number">2.2.</span> <span class="nav-text">接口编写</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在LoadRunner中使用导出的dll文件"><span class="nav-number">3.</span> <span class="nav-text">在LoadRunner中使用导出的dll文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载文件"><span class="nav-number">3.1.</span> <span class="nav-text">加载文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调用函数"><span class="nav-number">3.2.</span> <span class="nav-text">调用函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '0e3f53567aac40292178b32de59cb4f1',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

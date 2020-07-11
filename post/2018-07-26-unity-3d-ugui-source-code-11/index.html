@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Text用于在UI中绘制文本标签。文字绘制是比较复杂的过程，Text和Unity中的很多其它类共同完成这一绘制过程。本文会围绕UGUI中的Text类并拓展到相关的其它类，以学习和了解文本是如何绘制出来的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 Text">
+<meta property="og:url" content="http://aillieo.cn/post/2018-07-26-unity-3d-ugui-source-code-11/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="Text用于在UI中绘制文本标签。文字绘制是比较复杂的过程，Text和Unity中的很多其它类共同完成这一绘制过程。本文会围绕UGUI中的Text类并拓展到相关的其它类，以学习和了解文本是如何绘制出来的。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-07-26T15:25:40.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.071Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="text">
+<meta property="article:tag" content="文本">
+<meta property="article:tag" content="font">
+<meta property="article:tag" content="字体">
+<meta property="article:tag" content="vertex">
+<meta property="article:tag" content="quad">
+<meta property="article:tag" content="addquad">
+<meta property="article:tag" content="fontdata">
+<meta property="article:tag" content="FontUpdateTracker">
+<meta property="article:tag" content="TextGenerator">
+<meta property="article:tag" content="TextGenerationSettings">
+<meta property="article:tag" content="CharacterInfo">
+<meta property="article:tag" content="textureRebuilt">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-07-26-unity-3d-ugui-source-code-11/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 Text | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-07-26-unity-3d-ugui-source-code-11/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 Text
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-26 23:25:40" itemprop="dateCreated datePublished" datetime="2018-07-26T23:25:40+08:00">2018-07-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>Text</code>用于在UI中绘制文本标签。文字绘制是比较复杂的过程，<code>Text</code>和Unity中的很多其它类共同完成这一绘制过程。本文会围绕UGUI中的<code>Text</code>类并拓展到相关的其它类，以学习和了解文本是如何绘制出来的。</p>
+<a id="more"></a>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class Text : MaskableGraphic, ILayoutElement</span><br></pre></td></tr></table></figure>
+
+<p><code>Text</code>继承自<code>MaskableGraphic</code>，并实现接口<code>ILayoutElement</code>。</p>
+<h2 id="绘制相关"><a href="#绘制相关" class="headerlink" title="绘制相关"></a>绘制相关</h2><p>继承自<code>MaskableGraphic</code>，覆写了基类绘制相关的一些方法，同样是分为几何和材质两部分：</p>
+<h3 id="几何"><a href="#几何" class="headerlink" title="几何"></a>几何</h3><p>使用基类的<code>UpdateGeometry()</code>但覆写了<code>OnPopulateMesh</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">readonly UIVertex[] m_TempVerts &#x3D; new UIVertex[4];</span><br><span class="line">protected override void OnPopulateMesh(VertexHelper toFill)</span><br><span class="line">&#123;</span><br><span class="line">    if (font &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; We don&#39;t care if we the font Texture changes while we are doing our Update.</span><br><span class="line">    &#x2F;&#x2F; The end result of cachedTextGenerator will be valid for this instance.</span><br><span class="line">    &#x2F;&#x2F; Otherwise we can get issues like Case 619238.</span><br><span class="line">    m_DisableFontTextureRebuiltCallback &#x3D; true;</span><br><span class="line"></span><br><span class="line">    Vector2 extents &#x3D; rectTransform.rect.size;</span><br><span class="line"></span><br><span class="line">    var settings &#x3D; GetGenerationSettings(extents);</span><br><span class="line">    cachedTextGenerator.PopulateWithErrors(text, settings, gameObject);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Apply the offset to the vertices</span><br><span class="line">    IList&lt;UIVertex&gt; verts &#x3D; cachedTextGenerator.verts;</span><br><span class="line">    float unitsPerPixel &#x3D; 1 &#x2F; pixelsPerUnit;</span><br><span class="line">    &#x2F;&#x2F;Last 4 verts are always a new line... (\n)</span><br><span class="line">    int vertCount &#x3D; verts.Count - 4;</span><br><span class="line"></span><br><span class="line">    Vector2 roundingOffset &#x3D; new Vector2(verts[0].position.x, verts[0].position.y) * unitsPerPixel;</span><br><span class="line">    roundingOffset &#x3D; PixelAdjustPoint(roundingOffset) - roundingOffset;</span><br><span class="line">    toFill.Clear();</span><br><span class="line">    if (roundingOffset !&#x3D; Vector2.zero)</span><br><span class="line">    &#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; vertCount; ++i)</span><br><span class="line">        &#123;</span><br><span class="line">            int tempVertsIndex &#x3D; i &amp; 3;</span><br><span class="line">            m_TempVerts[tempVertsIndex] &#x3D; verts[i];</span><br><span class="line">            m_TempVerts[tempVertsIndex].position *&#x3D; unitsPerPixel;</span><br><span class="line">            m_TempVerts[tempVertsIndex].position.x +&#x3D; roundingOffset.x;</span><br><span class="line">            m_TempVerts[tempVertsIndex].position.y +&#x3D; roundingOffset.y;</span><br><span class="line">            if (tempVertsIndex &#x3D;&#x3D; 3)</span><br><span class="line">                toFill.AddUIVertexQuad(m_TempVerts);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">    &#123;</span><br><span class="line">        for (int i &#x3D; 0; i &lt; vertCount; ++i)</span><br><span class="line">        &#123;</span><br><span class="line">            int tempVertsIndex &#x3D; i &amp; 3;</span><br><span class="line">            m_TempVerts[tempVertsIndex] &#x3D; verts[i];</span><br><span class="line">            m_TempVerts[tempVertsIndex].position *&#x3D; unitsPerPixel;</span><br><span class="line">            if (tempVertsIndex &#x3D;&#x3D; 3)</span><br><span class="line">                toFill.AddUIVertexQuad(m_TempVerts);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m_DisableFontTextureRebuiltCallback &#x3D; false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在开始生成网格之前，首先会将<code>m_DisableFontTextureRebuiltCallback</code>置为true，即在此函数执行期间，禁止rebuild的回调。如果被调用了<code>FontTextureChanged</code>会直接返回。<code>FontTextureChanged</code>内会调用<code>UpdateGeometry</code>，增加一个状态判断避免循环调用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public void FontTextureChanged()</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; Only invoke if we are not destroyed.</span><br><span class="line">    if (!this)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    if (m_DisableFontTextureRebuiltCallback)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    cachedTextGenerator.Invalidate();</span><br><span class="line"></span><br><span class="line">    if (!IsActive())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; this is a bit hacky, but it is currently the</span><br><span class="line">    &#x2F;&#x2F; cleanest solution....</span><br><span class="line">    &#x2F;&#x2F; if we detect the font texture has changed and are in a rebuild loop</span><br><span class="line">    &#x2F;&#x2F; we just regenerate the verts for the new UV&#39;s</span><br><span class="line">    if (CanvasUpdateRegistry.IsRebuildingGraphics() || CanvasUpdateRegistry.IsRebuildingLayout())</span><br><span class="line">        UpdateGeometry();</span><br><span class="line">    else</span><br><span class="line">        SetAllDirty();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而<code>FontTextureChanged</code>方法是在是在<code>FontUpdateTracker.RebuildForFont(...)</code>中调用的。稍后会展开<code>FontUpdateTracker</code>这个类。</p>
+<p>回到<code>OnPopulateMesh</code>，接下来会根据<code>RectTransform</code>的尺寸生成一份<code>TextGenerationSettings</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">public TextGenerationSettings GetGenerationSettings(Vector2 extents)</span><br><span class="line">&#123;</span><br><span class="line">    var settings &#x3D; new TextGenerationSettings();</span><br><span class="line"></span><br><span class="line">    settings.generationExtents &#x3D; extents;</span><br><span class="line">    if (font !&#x3D; null &amp;&amp; font.dynamic)</span><br><span class="line">    &#123;</span><br><span class="line">        settings.fontSize &#x3D; m_FontData.fontSize;</span><br><span class="line">        settings.resizeTextMinSize &#x3D; m_FontData.minSize;</span><br><span class="line">        settings.resizeTextMaxSize &#x3D; m_FontData.maxSize;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Other settings</span><br><span class="line">    settings.textAnchor &#x3D; m_FontData.alignment;</span><br><span class="line">    settings.alignByGeometry &#x3D; m_FontData.alignByGeometry;</span><br><span class="line">    settings.scaleFactor &#x3D; pixelsPerUnit;</span><br><span class="line">    settings.color &#x3D; color;</span><br><span class="line">    settings.font &#x3D; font;</span><br><span class="line">    settings.pivot &#x3D; rectTransform.pivot;</span><br><span class="line">    settings.richText &#x3D; m_FontData.richText;</span><br><span class="line">    settings.lineSpacing &#x3D; m_FontData.lineSpacing;</span><br><span class="line">    settings.fontStyle &#x3D; m_FontData.fontStyle;</span><br><span class="line">    settings.resizeTextForBestFit &#x3D; m_FontData.bestFit;</span><br><span class="line">    settings.updateBounds &#x3D; false;</span><br><span class="line">    settings.horizontalOverflow &#x3D; m_FontData.horizontalOverflow;</span><br><span class="line">    settings.verticalOverflow &#x3D; m_FontData.verticalOverflow;</span><br><span class="line"></span><br><span class="line">    return settings;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际上是把自己的<code>m_FontData</code>中的各个字段传给<code>TextGenerationSettings</code>。接下来把文本内容、文字设置传给<code>cachedTextGenerator</code>生成顶点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cachedTextGenerator.PopulateWithErrors(text, settings, gameObject);</span><br></pre></td></tr></table></figure>
+
+<p>这一过程的源码并没有在UGUI中。接着获取顶点信息，保存到<code>IList&lt;UIVertex&gt; verts</code>，供后续的步骤使用。判断是否需要计算偏移，取<code>verts</code>中的一个顶点（<code>verts[0]</code>），先计算其在<code>RectTransform</code>度量单位的坐标，保存在<code>roundingOffset</code>中，然后计算其<code>PixelAdjustPoint</code>之后的坐标。如果二者相等则无需偏移，否则偏移量为<code>roundingOffset</code>。最后是向<code>VertexHelper</code>写入顶点数据。在<code>verts</code>中存储的顶点坐标，每四个一组（对应一个字符）以<code>AddUIVertexQuad</code>的形式填入<code>VertexHelper</code>。遍历顶点列表<code>verts</code>时使用<code>i &amp; 3</code>相当于<code>i</code>对4取模。</p>
+<h3 id="材质"><a href="#材质" class="headerlink" title="材质"></a>材质</h3><p>更新材质调用<code>Graphic</code>的<code>UpdateMaterial()</code>，其中<code>Text</code>覆写了<code>mainTexture</code>属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public override Texture mainTexture</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        if (font !&#x3D; null &amp;&amp; font.material !&#x3D; null &amp;&amp; font.material.mainTexture !&#x3D; null)</span><br><span class="line">            return font.material.mainTexture;</span><br><span class="line"></span><br><span class="line">        if (m_Material !&#x3D; null)</span><br><span class="line">            return m_Material.mainTexture;</span><br><span class="line"></span><br><span class="line">        return base.mainTexture;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>取<code>font.material.mainTexture</code></p>
+<h3 id="其它相关类"><a href="#其它相关类" class="headerlink" title="其它相关类"></a>其它相关类</h3><p>可以看到在<code>Text</code>中都是一些比较浅层的逻辑，在其背后还有很多相关的类，以下是其中的一部分：</p>
+<h4 id="FontData"><a href="#FontData" class="headerlink" title="FontData"></a>FontData</h4><p>也在命名空间<code>UnityEngine.UI</code>中，记录的全部都是标签组件的相关信息，通过<code>FontData.defaultFontData</code>，我们可以看到其中的一些主要的字段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public static FontData defaultFontData</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        var fontData &#x3D; new FontData</span><br><span class="line">        &#123;</span><br><span class="line">            m_FontSize  &#x3D; 14,</span><br><span class="line">            m_LineSpacing &#x3D; 1f,</span><br><span class="line">            m_FontStyle &#x3D; FontStyle.Normal,</span><br><span class="line">            m_BestFit &#x3D; false,</span><br><span class="line">            m_MinSize &#x3D; 10,</span><br><span class="line">            m_MaxSize &#x3D; 40,</span><br><span class="line">            m_Alignment &#x3D; TextAnchor.UpperLeft,</span><br><span class="line">            m_HorizontalOverflow &#x3D; HorizontalWrapMode.Wrap,</span><br><span class="line">            m_VerticalOverflow &#x3D; VerticalWrapMode.Truncate,</span><br><span class="line">            m_RichText  &#x3D; true,</span><br><span class="line">            m_AlignByGeometry &#x3D; false</span><br><span class="line">        &#125;;</span><br><span class="line">        return fontData;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当外部读取与设置<code>Text</code>的这些属性时，会对应读取与设置<code>FontData</code>的字段，例如以下是<code>Text</code>的字号属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public int fontSize</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        return m_FontData.fontSize;</span><br><span class="line">    &#125;</span><br><span class="line">    set</span><br><span class="line">    &#123;</span><br><span class="line">        if (m_FontData.fontSize &#x3D;&#x3D; value)</span><br><span class="line">            return;</span><br><span class="line">        m_FontData.fontSize &#x3D; value;</span><br><span class="line"></span><br><span class="line">        SetVerticesDirty();</span><br><span class="line">        SetLayoutDirty();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="FontUpdateTracker"><a href="#FontUpdateTracker" class="headerlink" title="FontUpdateTracker"></a>FontUpdateTracker</h4><p>包含于命名空间<code>UnityEngine.UI</code>中，是用于更新和重建<code>Text</code>的工具类。主要有三个方法，增加、减少管理的<code>Text</code>，以及重建的回调<code>RebuildForFont</code>。重建的回调会添加给<code>Font.textureRebuilt</code>。其内部维护了一个字典，以<code>Font</code>为key，以使用该<code>Font</code>的<code>Text</code>组成的<code>HashSet</code>为值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">public static class FontUpdateTracker</span><br><span class="line">&#123;</span><br><span class="line">    static Dictionary&lt;Font, HashSet&lt;Text&gt;&gt; m_Tracked &#x3D; new Dictionary&lt;Font, HashSet&lt;Text&gt;&gt;();</span><br><span class="line"></span><br><span class="line">    public static void TrackText(Text t)</span><br><span class="line">    &#123;</span><br><span class="line">        if (t.font &#x3D;&#x3D; null)</span><br><span class="line">            return;</span><br><span class="line"></span><br><span class="line">        HashSet&lt;Text&gt; exists;</span><br><span class="line">        m_Tracked.TryGetValue(t.font, out exists);</span><br><span class="line">        if (exists &#x3D;&#x3D; null)</span><br><span class="line">        &#123;</span><br><span class="line">            &#x2F;&#x2F; The textureRebuilt event is global for all fonts, so we add our delegate the first time we register *any* Text</span><br><span class="line">            if (m_Tracked.Count &#x3D;&#x3D; 0)</span><br><span class="line">                Font.textureRebuilt +&#x3D; RebuildForFont;</span><br><span class="line"></span><br><span class="line">            exists &#x3D; new HashSet&lt;Text&gt;();</span><br><span class="line">            m_Tracked.Add(t.font, exists);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (!exists.Contains(t))</span><br><span class="line">            exists.Add(t);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private static void RebuildForFont(Font f)</span><br><span class="line">    &#123;</span><br><span class="line">        HashSet&lt;Text&gt; texts;</span><br><span class="line">        m_Tracked.TryGetValue(f, out texts);</span><br><span class="line"></span><br><span class="line">        if (texts &#x3D;&#x3D; null)</span><br><span class="line">            return;</span><br><span class="line"></span><br><span class="line">        foreach (var text in texts)</span><br><span class="line">            text.FontTextureChanged();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void UntrackText(Text t)</span><br><span class="line">    &#123;</span><br><span class="line">        if (t.font &#x3D;&#x3D; null)</span><br><span class="line">            return;</span><br><span class="line"></span><br><span class="line">        HashSet&lt;Text&gt; texts;</span><br><span class="line">        m_Tracked.TryGetValue(t.font, out texts);</span><br><span class="line"></span><br><span class="line">        if (texts &#x3D;&#x3D; null)</span><br><span class="line">            return;</span><br><span class="line"></span><br><span class="line">        texts.Remove(t);</span><br><span class="line"></span><br><span class="line">        if (texts.Count &#x3D;&#x3D; 0)</span><br><span class="line">        &#123;</span><br><span class="line">            m_Tracked.Remove(t.font);</span><br><span class="line"></span><br><span class="line">            &#x2F;&#x2F; There is a global textureRebuilt event for all fonts, so once the last Text reference goes away, remove our delegate</span><br><span class="line">            if (m_Tracked.Count &#x3D;&#x3D; 0)</span><br><span class="line">                Font.textureRebuilt -&#x3D; RebuildForFont;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="TextGenerationSettings"><a href="#TextGenerationSettings" class="headerlink" title="TextGenerationSettings"></a>TextGenerationSettings</h4><p>是一个struct结构，没有在UGUI的源码中，暴露出来的公有属性和<code>FontData</code>几乎完全一样。存储文本的信息，提供给<code>TextGenerator</code>用以生成顶点。</p>
+<h4 id="TextGenerator"><a href="#TextGenerator" class="headerlink" title="TextGenerator"></a>TextGenerator</h4><p><code>TextGenerator</code>位于命名空间<code>UnityEngine</code>，UGUI中同样没有源码。在其它途径可以看到它的一些信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">namespace UnityEngine</span><br><span class="line">&#123;</span><br><span class="line">    [UsedByNativeCode]</span><br><span class="line">    [StructLayout(LayoutKind.Sequential)]</span><br><span class="line">    public sealed class TextGenerator : IDisposable</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>前边调用过它的<code>PopulateWithErrors()</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public bool PopulateWithErrors(string str, TextGenerationSettings settings, GameObject context)</span><br><span class="line">&#123;</span><br><span class="line">	TextGenerationError textGenerationError &#x3D; this.PopulateWithError(str, settings);</span><br><span class="line">	bool result;</span><br><span class="line">	if (textGenerationError &#x3D;&#x3D; TextGenerationError.None)</span><br><span class="line">	&#123;</span><br><span class="line">		result &#x3D; true;</span><br><span class="line">	&#125;</span><br><span class="line">	else</span><br><span class="line">	&#123;</span><br><span class="line">		if ((textGenerationError &amp; TextGenerationError.CustomSizeOnNonDynamicFont) !&#x3D; TextGenerationError.None)</span><br><span class="line">		&#123;</span><br><span class="line">			Debug.LogErrorFormat(context, &quot;Font &#39;&#123;0&#125;&#39; is not dynamic, which is required to override its size&quot;, new object[]</span><br><span class="line">			&#123;</span><br><span class="line">				settings.font</span><br><span class="line">			&#125;);</span><br><span class="line">		&#125;</span><br><span class="line">		if ((textGenerationError &amp; TextGenerationError.CustomStyleOnNonDynamicFont) !&#x3D; TextGenerationError.None)</span><br><span class="line">		&#123;</span><br><span class="line">			Debug.LogErrorFormat(context, &quot;Font &#39;&#123;0&#125;&#39; is not dynamic, which is required to override its style&quot;, new object[]</span><br><span class="line">			&#123;</span><br><span class="line">				settings.font</span><br><span class="line">			&#125;);</span><br><span class="line">		&#125;</span><br><span class="line">		result &#x3D; false;</span><br><span class="line">	&#125;</span><br><span class="line">	return result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>里边层层判断和嵌套，最终会调用一个<code>extern</code>方法，其实现封装在动态库里：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[GeneratedByOldBindingsGenerator]</span><br><span class="line">[MethodImpl(MethodImplOptions.InternalCall)]</span><br><span class="line">private static extern bool INTERNAL_CALL_Populate_Internal_cpp(TextGenerator self, string str, Font font, ref Color color, int fontSize, float scaleFactor, float lineSpacing, FontStyle style, bool richText, bool resizeTextForBestFit, int resizeTextMinSize, int resizeTextMaxSize, int verticalOverFlow, int horizontalOverflow, bool updateBounds, TextAnchor anchor, float extentsX, float extentsY, float pivotX, float pivotY, bool generateOutOfBounds, bool alignByGeometry, out uint error);</span><br></pre></td></tr></table></figure>
+
+<p>获取<code>verts</code>时会调用<code>GetVertices()</code>方法，最终也会层层判断和嵌套调用到动态库里的C++方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public IList&lt;UIVertex&gt; verts</span><br><span class="line">&#123;</span><br><span class="line">	get</span><br><span class="line">	&#123;</span><br><span class="line">		if (!this.m_CachedVerts)</span><br><span class="line">		&#123;</span><br><span class="line">			this.GetVertices(this.m_Verts);</span><br><span class="line">			this.m_CachedVerts &#x3D; true;</span><br><span class="line">		&#125;</span><br><span class="line">		return this.m_Verts;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Font"><a href="#Font" class="headerlink" title="Font"></a>Font</h4><p><code>Font</code>类位于命名空间<code>UnityEngine</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">namespace UnityEngine</span><br><span class="line">&#123;</span><br><span class="line">	public sealed class Font : Object</span><br><span class="line">	&#123;</span><br><span class="line">		&#x2F;&#x2F; ...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在前边提到过<code>Font.textureRebuilt</code>事件，在<code>Font</code>的定义里可以看到对于<code>textureRebuilt</code>的增加和减少使用了<code>Interlocked.CompareExchange</code>的方法来确保操作的原子性（线程安全），非常巧妙：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">public static event Action&lt;Font&gt; textureRebuilt</span><br><span class="line">&#123;</span><br><span class="line">	add</span><br><span class="line">	&#123;</span><br><span class="line">		Action&lt;Font&gt; action &#x3D; Font.textureRebuilt;</span><br><span class="line">		Action&lt;Font&gt; action2;</span><br><span class="line">		do</span><br><span class="line">		&#123;</span><br><span class="line">			action2 &#x3D; action;</span><br><span class="line">			action &#x3D; Interlocked.CompareExchange&lt;Action&lt;Font&gt;&gt;(ref Font.textureRebuilt, (Action&lt;Font&gt;)Delegate.Combine(action2, value), action);</span><br><span class="line">		&#125;</span><br><span class="line">		while (action !&#x3D; action2);</span><br><span class="line">	&#125;</span><br><span class="line">	remove</span><br><span class="line">	&#123;</span><br><span class="line">		Action&lt;Font&gt; action &#x3D; Font.textureRebuilt;</span><br><span class="line">		Action&lt;Font&gt; action2;</span><br><span class="line">		do</span><br><span class="line">		&#123;</span><br><span class="line">			action2 &#x3D; action;</span><br><span class="line">			action &#x3D; Interlocked.CompareExchange&lt;Action&lt;Font&gt;&gt;(ref Font.textureRebuilt, (Action&lt;Font&gt;)Delegate.Remove(action2, value), action);</span><br><span class="line">		&#125;</span><br><span class="line">		while (action !&#x3D; action2);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Font</code>的<code>material</code>属性的实现也都是<code>extern</code>，由封装好的动态库来完成：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public extern Material material</span><br><span class="line">&#123;</span><br><span class="line">	[GeneratedByOldBindingsGenerator]</span><br><span class="line">	[MethodImpl(MethodImplOptions.InternalCall)]</span><br><span class="line">	get;</span><br><span class="line">	[GeneratedByOldBindingsGenerator]</span><br><span class="line">	[MethodImpl(MethodImplOptions.InternalCall)]</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="CharacterInfo"><a href="#CharacterInfo" class="headerlink" title="CharacterInfo"></a>CharacterInfo</h4><p>还有一个有关联的类，其内部存储的是字体的结点和字形信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">namespace UnityEngine</span><br><span class="line">&#123;</span><br><span class="line">	[UsedByNativeCode]</span><br><span class="line">	public struct CharacterInfo</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; ...    </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其包含的部分公有字段及属性如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">public int index;</span><br><span class="line"></span><br><span class="line">public int size;</span><br><span class="line"></span><br><span class="line">public FontStyle style;</span><br><span class="line"></span><br><span class="line">public int advance &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public int glyphWidth &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public int glyphHeight &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public int bearing &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public int minY &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public int maxY &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public int minX &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public int maxX &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">internal Vector2 uvBottomLeftUnFlipped &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">internal Vector2 uvBottomRightUnFlipped &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">internal Vector2 uvTopRightUnFlipped &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">internal Vector2 uvTopLeftUnFlipped &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public Vector2 uvBottomLeft &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public Vector2 uvBottomRight &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public Vector2 uvTopRight &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public Vector2 uvTopLeft &#123;</span><br><span class="line">	get;</span><br><span class="line">	set;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="自动布局"><a href="#自动布局" class="headerlink" title="自动布局"></a>自动布局</h2><p>除了绘制文本之外，<code>Text</code>还实现接口<code>ILayoutElement</code>，可作为自动布局元素，相比于基类主要是覆写了两个获取prefer的尺寸的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public virtual float preferredWidth</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        var settings &#x3D; GetGenerationSettings(Vector2.zero);</span><br><span class="line">        return cachedTextGeneratorForLayout.GetPreferredWidth(m_Text, settings) &#x2F; pixelsPerUnit;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public virtual float preferredHeight</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        var settings &#x3D; GetGenerationSettings(new Vector2(GetPixelAdjustedRect().size.x, 0.0f));</span><br><span class="line">        return cachedTextGeneratorForLayout.GetPreferredHeight(m_Text, settings) &#x2F; pixelsPerUnit;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>使用的是之前提到过的<code>GetGenerationSettings</code>方法，获取一个<code>TextGenerationSettings</code>，并根据<code>setting</code>计算尺寸，然后转化为<code>RectTransform</code>单位并返回。</p>
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/ScriptReference/TextGenerator.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/TextGenerator.html</a></p>
+<p><a href="https://msdn.microsoft.com/zh-cn/library/system.threading.interlocked.compareexchange.aspx" target="_blank" rel="noopener">https://msdn.microsoft.com/zh-cn/library/system.threading.interlocked.compareexchange.aspx</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/font/" rel="tag"># font</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-07-20-unity-3d-ugui-source-code-10/" rel="prev" title="Unity3D UGUI 源码学习 Image">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 Image
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-07-27-unity-3d-ugui-source-code-12/" rel="next" title="Unity3D UGUI 源码学习 Button">
+      Unity3D UGUI 源码学习 Button <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#绘制相关"><span class="nav-number">1.</span> <span class="nav-text">绘制相关</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#几何"><span class="nav-number">1.1.</span> <span class="nav-text">几何</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#材质"><span class="nav-number">1.2.</span> <span class="nav-text">材质</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其它相关类"><span class="nav-number">1.3.</span> <span class="nav-text">其它相关类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#FontData"><span class="nav-number">1.3.1.</span> <span class="nav-text">FontData</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FontUpdateTracker"><span class="nav-number">1.3.2.</span> <span class="nav-text">FontUpdateTracker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#TextGenerationSettings"><span class="nav-number">1.3.3.</span> <span class="nav-text">TextGenerationSettings</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#TextGenerator"><span class="nav-number">1.3.4.</span> <span class="nav-text">TextGenerator</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Font"><span class="nav-number">1.3.5.</span> <span class="nav-text">Font</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CharacterInfo"><span class="nav-number">1.3.6.</span> <span class="nav-text">CharacterInfo</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动布局"><span class="nav-number">2.</span> <span class="nav-text">自动布局</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">3.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '08573350d8f4ad05c0cb90a2f20b9ce5',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

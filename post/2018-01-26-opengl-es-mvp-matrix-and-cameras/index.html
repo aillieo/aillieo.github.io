@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文介绍了OpenGL中的MVP矩阵、摄像机等相关知识，翻译自Cameras on OpenGL ES 2.x - The ModelViewProjection Matrix。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenGL-ES摄像机和MVP矩阵">
+<meta property="og:url" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="本文介绍了OpenGL中的MVP矩阵、摄像机等相关知识，翻译自Cameras on OpenGL ES 2.x - The ModelViewProjection Matrix。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/convex_concave_example.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/camera_elements_example.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/matrix_quaternion_example.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/projection_example.gif">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/projection_simcity_example.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/projection_starcraft_high_example.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/vanish_point_example.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/camera_behavior_1_example.gif">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/camera_behavior_2_example.gif">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/rotations_example.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/multiplication_order.jpg">
+<meta property="og:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/local_vectors.jpg">
+<meta property="article:published_time" content="2018-01-26T14:43:11.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.052Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="opengl">
+<meta property="article:tag" content="opengl es">
+<meta property="article:tag" content="MVP">
+<meta property="article:tag" content="矩阵">
+<meta property="article:tag" content="matrix">
+<meta property="article:tag" content="投影">
+<meta property="article:tag" content="摄像机">
+<meta property="article:tag" content="camera">
+<meta property="article:tag" content="quaternion">
+<meta property="article:tag" content="四元数">
+<meta property="article:tag" content="变换">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/2018-01-26-opengl-es-mvp-matrix-and-cameras/convex_concave_example.jpg">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>OpenGL-ES摄像机和MVP矩阵 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-01-26-opengl-es-mvp-matrix-and-cameras/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OpenGL-ES摄像机和MVP矩阵
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-26 22:43:11" itemprop="dateCreated datePublished" datetime="2018-01-26T22:43:11+08:00">2018-01-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ComputerGraphics/" itemprop="url" rel="index"><span itemprop="name">ComputerGraphics</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ComputerGraphics/OpenGL-ES/" itemprop="url" rel="index"><span itemprop="name">OpenGL ES</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文介绍了OpenGL中的MVP矩阵、摄像机等相关知识，翻译自<a href="http://blog.db-in.com/cameras-on-opengl-es-2-x/" target="_blank" rel="noopener">Cameras on OpenGL ES 2.x - The ModelViewProjection Matrix</a>。</p>
+<a id="more"></a>
+
+<p>朋友们大家好！</p>
+<p>这边文章中，我将要讨论3D世界中非常非常重要的一部分。众所周知，我们设备屏幕背后的这个世界仅仅是在努力重现人眼的美丽和复杂性。为此我们要使用摄像机（cameras），它是真实世界中人眼的模拟。我们使用数学公式来构造摄像机。</p>
+<p>在本文中，我将讨论摄像机及其背后的公式，凸透镜和凹透镜的区别，什么是投影、矩阵、四元数，最后是著名的模型-视图-投影矩阵（Model View Projection Matrix）。你们知道的，如果有任何疑问尽管提问，我很乐意帮助。</p>
+<p>这里是一个小列表，可以帮助你找到教程中你想要的内容。</p>
+<ul>
+<li>教程内容列表</li>
+</ul>
+<p>{:toc}</p>
+<h2 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h2><p>我们先来看摄像机的基础，它在真实世界中如何工作，镜头的区别，缩放的原理，平移，旋转和一些相似的概念。在巩固了这些概念之后，我们会深入OpenGL并理解那些内容如何在我们的应用程序中配合。所以最后我们会有一些代码，我会提供公式并解释其如何工作。</p>
+<p>是否还记得在我的OpenGL系列教程中，我说了Khronos推卸了很多责任并且是致力于3D世界最重要部分的时候？（更准确地说是在第一部分，如果不记得了你可以<a href="http://blog.db-in.com/all-about-opengl-es-2-x-part-1" target="_blank" rel="noopener">看这里</a>）。好的，从OpenGL ES 1.x到2.x，摄像机就是Khronos所推卸的这些责任之一。所以我们必须自己创建摄像机。想知道吗？我爱这个！通过着色器我们可以很大程度地控制我们的应用程序以达到惊人的效果，除此之外，我们还可以自由地创建优秀的3D引擎。</p>
+<p>使用OpenGL来控制摄像机，我们只有两三种摄像机。但当我们开始自己编程实现摄像机，我们能够创建任何种类的摄像机。本文中我将会讨论最基本的摄像机：正交摄像机和透视摄像机。</p>
+<p>OK，我们现在开始！</p>
+<h2 id="真实世界的摄像机"><a href="#真实世界的摄像机" class="headerlink" title="真实世界的摄像机"></a>真实世界的摄像机</h2><p>人的眼睛是凸透镜，在视网膜上将图像转化为上下颠倒的。通常摄像机的镜头是由多个凸透镜和凹透镜组成，但最终的图像使其更像是一个凸透镜，与人的眼睛相似。</p>
+<p>最终图像取决于很多因素，不仅仅是镜头的类型，但是概括来说，以下的图片展示了图像在不同类型的透镜后呈现的样子。</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/convex_concave_example.jpg" alt="A picture behind each kind of lens."></p>
+<p>两种类型都可以产生与原始图像相同的图像。意思是，使用一个微小角度的扭曲，取决于物体与镜头的距离还有视角（angle of view）。下一个图片将展示一个摄像机最重要的属性。</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/camera_elements_example.jpg" alt="Camera attributes."></p>
+<p>图片中红色的区域对于摄像机来说是不可见的，所以这一区域内的所有片段（fragment）都会被剪切掉。“景深（Depth of Field）”是可见区域，它内部的所有片段都是可见的。通常，“景深”这一个词还可以用来描述一种特殊效果，镜头模糊效果（Lens Blur）。因为人的眼睛有焦点（focus），使得焦点以外的物体看起来很模糊，镜头模糊特效模拟这个焦点，让焦点以外的物体看起来模糊。那么我为什么不把属性“焦点”放在上边的图片里呢？因为焦点是某些摄像机仅有的特殊特性，基础的3D摄像机并没有实现焦点的行为。另一个重要的属性是“视角（Angle of View）”，代表的是摄像机可见的水平方向角度。这一角度以外的任何片段对摄像机来说都是不可见的。有些时候这个“视角”也可以用来代表垂直区域，但是通常我们更倾向于使用宽度和高度来定义最终图像的宽高比。</p>
+<p>现代摄像机非常精确，并可以使用摄像机属性并组合不同的镜头来实现很多很棒的特效。现在我们回到我们虚拟的世界，看看我们可以怎样从数学的角度转化这些属性和行为。但是在我们开始3D摄像机之前，我们需要再了解一些3D世界中的数学。</p>
+<h2 id="3D世界简史"><a href="#3D世界简史" class="headerlink" title="3D世界简史"></a>3D世界简史</h2><p>我们3D世界的祖父是欧几里得（Euclid），也就是大家知道的亚历山大的欧几里得（Euclid of Alexandria）。他生活在公元前323–283（哇，他还真有点老！）的希腊城市亚历山大。欧几里得创建了我们今天还在用的欧几里得空间（Euclidean Space）和欧几里得几何（Euclidean Geometry），我确定你之前听过这些名字。简单来讲欧几里得空间由3个平面构成，这三个平面提供了三个轴向X、Y和Z。每个平面使用的都是传统几何（traditional geometry），另一个希腊人毕达哥拉斯（Pythagoras，公元前570-公元前495）对传统几何有很大的贡献。欧几里得发展他们的概念的原因不难得出，你懂的，希腊人热爱建筑学，为了构建更完美的结构形式，他们需要在3D的假想空间中完成所有的微积分学工作，不用说他们的哲学和对科学的热情。</p>
+<p>在我们的时光机里向前很多年，我们到达17世纪初，一个叫笛卡尔（René Descartes）的伟人创建了笛卡尔坐标系的时候。这是惊人的创举！它把欧几里得的理论和线性代数联系在了一起，并向欧几里得变换（Euclidean Transformations，即平移，缩放和旋转）引入了矩阵。欧几里得变换是用传统的毕达哥拉斯方法创建的，所以你可以想象有多大的计算量，但是多亏了笛卡尔我们能够使用矩阵来实现欧几里得变换。简便，快速并且更漂亮！3D世界的矩阵真是棒极了！</p>
+<p>但是使用欧几里得变换的矩阵并不完美。它们出现了很多问题，最大的一个是关于旋转的，叫做万向节死锁（Gimbal Lock）。当你试图旋转一个平面并且很偶然另两个平面和它们自己接触，那么下一次旋转这两个平面之一时就会出现万向节死锁，这意味着它将被动地旋转两个被锁的轴。很多年之后，另一个伟人汉密尔顿（Sir William Rowan Hamilton）在1843年创造了一种处理欧几里得旋转并避免万向节死锁的方法，叫做四元数法（Quaternions）。四元数更快，更好并且是处理3D旋转最优雅的方式。四元数是由一个虚部（复数）和一个实部组成。正如在3D世界中我们总会用到单位矢量（矢量的大小/长度等于1）的计算，我们可以丢弃四元数的虚部只使用实数。准确地说，四元数是汉密尔顿的一篇论文，它包含了很多比3D旋转更多的东西，但对于我们和3D世界来说，最主要的应用就是处理旋转。</p>
+<p>OK，这些东西和摄像机到底有什么关系呢？很简单，基于这一切我们开始使用4x4的矩阵来处理欧几里得变换并使用一个4元素的矢量来描述空间中的点（<code>X</code>，<code>Y</code>，<code>Z</code>，<code>W</code>）。<code>W</code>是齐次坐标元素。这里我不会讨论它，只是告诉你齐次坐标是奥古斯特·费迪南德·莫比乌斯（August Ferdinand Möbius）于1827年创建的，用于处理笛卡尔坐标系中的无限这一概念。我们稍后会讨论莫比乌斯的贡献，但是简短地说，把无限的概念放在笛卡尔坐标系中非常复杂，为此我们可以使用一个复数虚部，但是这对于实数计算实在是不好。所以为了解决这一问题，莫比乌斯增加了一个实数变量<code>W</code>，把我们带回了实数的世界。无论如何，关键点在于4x4矩阵完美适用于4阶矢量，并且当我们在3D世界中使用单个矩阵来完成欧几里得变换时，我们认为使用相同的4x4矩阵来处理3D世界中的摄像机也是一个不错的想法。</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/matrix_quaternion_example.jpg" alt="Visual representation of a Matrix 4x4 and a Quaternion."></p>
+<p>上图展示的是4x4矩阵和四元数看起来的样子。如你所见，矩阵中有3个位置的值用来平移（位置<code>X</code>，<code>Y</code>，<code>Z</code>），但是其它的指令混杂在红色区域中。每个旋转（<code>X</code>，<code>Y</code>和<code>Z</code>）会影响4个位置的值，而每个缩放（<code>X</code>，<code>Y</code>和<code>Z</code>）会影响1个位置的值。四元数有4个实数值，其中三个（<code>X</code>，<code>Y</code>和<code>Z</code>）代表着一个矢量，这个矢量会形成一个方向。第四个值代表它围绕它的枢轴的旋转。我们稍后会讨论四元数，但是它最酷的特征是我们可以从中提取出一个旋转矩阵。我们可以通过构造一个4x4矩阵并且只填充黄色的元素来实现这一过程。</p>
+<p>现在你可能会想：“卧槽”！冷静一下，实践并不像理论那样复杂！在着手敲代码之前，我们还需要另一个概念：投影。</p>
+<h2 id="投影"><a href="#投影" class="headerlink" title="投影"></a>投影</h2><p>我不打算从技术上解释它，而仅仅是向你展示！我确信你已经知道两种投影类型的不同，或许是其它的名字，但我确信你知道那是什么意思：</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/projection_example.gif" alt="Differences between Orthographic and Perspective Projection."></p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/projection_simcity_example.jpg" alt="projection_simcity_example"></p>
+<p>看到了吗？很简单，正交投影（Orthographic projection）在2D游戏中很常用，像模拟城市（Sim City）或老版本的模拟人生（The Sims）或畅销的暗黑破坏神（Diablo），暗黑破坏神III除外，它使用了透视投影（Perspective projection）。正交投影在真实世界中并不存在，人的眼睛不可能接收到这样的图像，因为我们的眼睛形成的图像总会有一个消失点（vanish point）。所以真实的摄像机总是捕获透视视图的图像。</p>
+<p>很多人问我使用OpenGL来做2D图形，好吧，这是我的第一个提示，你将会使用正交投影来创建类似于模拟城市或模拟人生那样的游戏。星际争霸（Starcraft）那样的游戏使用透视投影来模拟正交投影。这可能吗？当然！因为一切都和镜头的行为关联，最终的图像会取决于很多因素，例如，视角很大的透视投影可以看起来更像是一个正交投影。我的意思是，那像是从空中的飞机上看地面。从那个距离之外，城市看起来像是模型而消失点也似乎不起作用。</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/projection_starcraft_high_example.jpg" alt="projection_starcraft_high_example"></p>
+<p>在继续下文之前，我们需要一点题外话来深入理解一下两种投影之间的差别。你还记得笛卡尔和他的笛卡尔坐标系对吧？在线性代数中两个平行线永不相交，即时是无限长。我们如何在线性代数中处理无限这个想法呢？使用∞（无限符号）来计算吗？没用的。为了创建透视投影，我们真的需要一个消失点，有了它两条平行线就一定会在无限远处接触。因此，我们该如何解决呢？我们不能！至少不会是使用线性代数知识。我们需要一些其它的东西。</p>
+<p>多亏莫比乌斯，我们可以处理这个小问题了。这个人创造了“齐次坐标（Homogeneous Coordinates）”。</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/vanish_point_example.jpg" alt="vanish_point_example"> </p>
+<p>这个方法简单到不可描述，简直难以置信（正合我意）。莫比乌斯仅仅是向任何的多维系统增加了一个最后的坐标值即坐标<code>w</code>。2D变成了2D+1（<code>x,y -&gt; x,y,w</code>），3D变成了3D+1（<code>x,y,z -&gt; x,y,z,w</code>）。在空间计算中我们仅仅是将原始值除以<code>w</code>，就这样。看这段伪代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; This is the original cartesian coordinates. </span><br><span class="line">x &#x3D; 3.0; y &#x3D; 1.5; </span><br><span class="line">&#x2F;&#x2F; This is new homogeneous coordinate. </span><br><span class="line">w &#x3D; 1.0; </span><br><span class="line">&#x2F;&#x2F; Space calculations. </span><br><span class="line">finalX &#x3D; x&#x2F;w; finalY &#x3D; y&#x2F;w;</span><br></pre></td></tr></table></figure>
+
+<p>在大多数情况下<code>w</code>会是<code>1.0</code>。只有在表示<code>∞</code>（无限）时它才会变，这时<code>w</code>将是<code>0.0</code>！“卧槽！！！除以0？”并不是这样。<code>w</code>常用来求解两方程的系统，因此如果是0，投影将会投向无限远。我知道似乎要被理论搞晕了，一个简单的实用例子是产生阴影。当我们在3D场景中有一个灯光时，一个无限远处并且不会衰减的灯光，像3D世界中的太阳光，我们可以很简单地使<code>w</code>等于0来构建由此灯光产生的阴影。此时阴影会被投射到墙上或地板上，和原始模型恰好相同。很明显真实世界中的灯光和阴影很傻瓜但远比此复杂，但是记住在我们虚拟的3D世界中我们只是复制真实的行为。使用更多的步骤我们就可以更真实地模拟阴影的行为，这对于专业3D软件实现的渲染来说会非常好，但是对于游戏来说并不是很好的解决方案，更真实的阴影需要CPU和GPU做大量的工作。对于游戏来说，使用莫比乌斯的方法来投射阴影很简单并且对于玩家来说也看起来很不错！</p>
+<p>OK，这些都是关于投影的，现在我们来到OpenGL来看看我们该如何用代码实现所有的这些概念。矩阵和四元数将会是我们的盟友。</p>
+<h2 id="3D世界中的摄像机"><a href="#3D世界中的摄像机" class="headerlink" title="3D世界中的摄像机"></a>3D世界中的摄像机</h2><p>我们要理解的第一件事就是3D世界中的变换是如何发生的。一旦我们定义了一个3D物体，它的结构会保持完整不变（结构指的是顶点、纹理坐标和法线）。在一帧与一帧之间变化的只是一些矩阵（通常只有一个矩阵）。那些矩阵会产生基于原始结构的临时变化。所以请记住，“原始的结构永远不会变”！</p>
+<p>因此，当我们在屏幕上旋转一个物体时，深入地想，我们做的事情是创建了一个矩阵，矩阵中包含了发生旋转的信息。然后在我们的着色器中，当我们用矩阵乘以我们物体的顶点，在屏幕上物体就看起来像是在旋转。这对于任何3D元素都适用，如灯光和摄像机。但是摄像机对象还有一些特殊的行为，作用于它的所有矩阵都必须反转。下边的例子可以帮助理解这个问题：</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/camera_behavior_1_example.gif" alt="Rotating the camera in CW around an object."> </p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/camera_behavior_2_example.gif" alt="Rotating the object in CCW around its own Y axis."></p>
+<p>注意上边的图中两种情况下设备屏幕上的结果图像是一样的。这种现象促使我们产生这样一个想法：摄像机的每个动作与物体空间内相比都是相反的。例如，如果摄像机向<code>+Z</code>移动，会产生与物体向<code>-Z</code>移动相同的效果。摄像机绕<code>+Y</code>方向转动会与物体绕它的局部<code>-Y</code>轴旋转产生同样效果。所以请记住，对摄像机的每个变换都会是相反的，我们很快会用到这一点。</p>
+<p>关于摄像机的下一个概念是如何让局部空间和世界空间交互。在上边的例子中，如果我们想在局部空间中沿<code>-Y</code>旋转物体，会产生与以摄像机为枢沿<code>+Y</code>方向旋转摄像机并且在<code>XZ</code>平面内绕物体移动摄像机相同的结果。使用矩阵来处理这样的操作会为我们节省大量时间。从局部空间旋转变为全局空间旋转我们所需要做的全部就是改变相乘时矩阵的顺序（<code>A x B</code> = 局部， <code>B x A</code> = 全局，记住矩阵乘法是不满足交换律的）。因此我们必须用摄像机的矩阵乘以物体的矩阵，按照这种顺序。</p>
+<p>OK，我知道谈论技术会让人迷惑，但是相信我，代码会比你想象中的要简单。我们再回顾一下这些概念然后开始进入代码。</p>
+<ul>
+<li>我们从不会改变物体的结构，改变的只是一些矩阵，这些矩阵会乘以原始物体的结构以得到我们想要的结果。</li>
+<li>对于摄像机，在我们构造矩阵之前，所有的变换都应当反转。</li>
+<li>摄像机将会是我们在3D世界中的眼睛，我们假设摄像机总是在局部空间，所以最终的矩阵将会是“摄像机矩阵x物体矩阵”的结果，严格按此顺序。</li>
+</ul>
+<h2 id="3D世界背后的代码"><a href="#3D世界背后的代码" class="headerlink" title="3D世界背后的代码"></a>3D世界背后的代码</h2><p>我将展示处理这些工作的所有公式，并解释它们的使用方法，但是我不会深入讲述这些公式背后的数学逻辑，也不会讲述这些共识是如何创建的，这不是我此处的目的。如果你很感兴趣想深入知道这些公式是如何创建的，我会向你推荐一本很棒的书，讲解了这些公式是怎么来的，还有一个很棒的数学网站：</p>
+<ul>
+<li>推荐的书： <a href="http://www.amazon.com/Mathematics-Programming-Computer-Graphics-Second/dp/1584502770/ref=sr_1_2?ie=UTF8&qid=1300892618&sr=8-2" target="_blank" rel="noopener">Mathematics for 3D Game Programming and Computer Graphics</a>.</li>
+<li>网站：<a href="http://www.euclideanspace.com/" target="_blank" rel="noopener">http://www.euclideanspace.com</a></li>
+</ul>
+<p>我知道EuclideanSpace这个网站的布局不太好，看起来有些业余，但是相信我那里的所有公式都非常可靠，所有的公式。导航通过顶部菜单来实现，初看可能会有些疑惑，但是很有组织，很有数学的思维。</p>
+<p>OK，我们开始矩阵。</p>
+<h3 id="矩阵"><a href="#矩阵" class="headerlink" title="矩阵"></a>矩阵</h3><p>一些人会把矩阵当作里边有魔法的黑盒。好的，它的效果确实像是有魔法，但是却不是一个黑盒。它更像是一个组织良好的包裹，并且我们可以理解魔法使如何工作的，它的“手段”是什么，理解了它如何组织我们可以使用矩阵来做很多事。记住矩阵所做的一切也是欧几里得使用毕达哥拉斯方法和角度的概念所做的。笛卡尔只是把所有的知识放在一个叫做矩阵的包裹里。在3D世界里我们使用4x4矩阵（4行4列），这种矩阵也被称为方阵（square matrix）。最快最简单的方法在编程语言中表达矩阵是通过数组。更确切地说是一个有16个元素的线性一维数组。<br>使用线性一维数组我们可以用两种方法来表达一个矩阵，行优先（row-major）或列优先（column-major）。这只是一种惯例，因为实际上左乘（pre-multiply）一个行优先矩阵和右乘（post-multiply）一个列优先矩阵会得到相同的结果。然而，OpenGL选择了列优先的记法，我们也跟随这种方法。<br>下边是把数组下标使用列优先记法来组织：</p>
+<ul>
+<li>列优先记法</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    |    0        4        8        12   |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    1        5        9        13   |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    2        6        10       14   |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    3        7        11       15   |</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>现在我将分别展示5种矩阵：平移矩阵，缩放矩阵，旋转矩阵<code>X</code>，旋转矩阵<code>Y</code>和旋转矩阵<code>Z</code>。稍后我们会研究如何把它们合成一个单个的矩阵。</p>
+<p>使用4x4矩阵完成的最简单的操作就是平移，即改变<code>X</code>，<code>Y</code>和<code>Z</code>的位置。非常非常简单，你甚至不需要公式。你需要做的是这个：</p>
+<ul>
+<li>平移矩阵</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    |    1        0        0        X    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        1        0        Y    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        1        Z    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        0        1    |</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+<p>第二简单的操作是缩放。正如你在3D专业软件中所看到的，你可以对于每个轴向单独地修改缩放。这一操作不需要公式。你要做的是这个：</p>
+<ul>
+<li>缩放矩阵</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    |    SX       0        0        0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        SY       0        0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        SZ       0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        0        1    |</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>现在我们来点复杂的。是时候使用矩阵来实现绕着指定轴的旋转了。我们可以使用右手法则（Right Hand Rule）来思考3D世界的旋转。右手法则定义了所有三个轴的正方向，除此之外还有旋转的顺序。将你的拇指和一个轴的正方向对齐，收起其他的手指，那么你的手指指向的方向就是围绕该轴的旋转正方向：</p>
+<p><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/rotations_example.jpg" alt="Rotations using the Right Hand Rule."></p>
+<p>我们可以只用一个角度值来创建一个围绕某轴的旋转矩阵。为实现这一目的，我们要用到正弦和余弦。如你所知，转角要用弧度值而不是角度值。使用<code>Angle * PI / 180</code>把角度值转为弧度值，使用<code>Angle \ 180 / PI</code>来把弧度值转为角度值。然而我的建议是，为提高性能“提前计算<code>PI / 180</code>和<code>180 / PI</code>的值”。使用C宏，我喜欢像这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Pre-calculated value of PI &#x2F; 180.</span><br><span class="line">#define kPI180     0.017453</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Pre-calculated value of 180 &#x2F; PI.</span><br><span class="line">#define k180PI    57.295780</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Converts degrees to radians.</span><br><span class="line">#define degreesToRadians(x) (x * kPI180)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Converts radians to degrees.</span><br><span class="line">#define radiansToDegrees(x) (x * k180PI)</span><br></pre></td></tr></table></figure>
+
+<p>OK，有了我们的旋转弧度值，是时候使用下边的方程了：</p>
+<ul>
+<li>Rotate X</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    |    1        0        0        0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0      cos(θ)   sin(θ)     0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0     -sin(θ)   cos(θ)     0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        0        1    |</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Rotate Y</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    |  cos(θ)     0    -sin(θ)      0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        1        0        0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |  sin(θ)     0     cos(θ)      0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        0        1    |</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Rotate Z</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    |  cos(θ)  -sin(θ)     0        0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |  sin(θ)   cos(θ)     0        0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        1        0    |</span><br><span class="line">    |                                    |</span><br><span class="line">    |    0        0        0        1    |</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>或许你在其它地方见过有同样的公式但是元素的负号不同，但是请记住，通常它们是使用传统方式来教学，即使用行优先记法，因此记住我们这里用的是列优先记法，列优先记法完美适用于OpenGL的处理过程。</p>
+<p>现在该把那些矩阵合到一起了。与字面数字一样，我们需要把它们相乘得到最终结果。但是矩阵的乘法会有些特殊的表现。你很可能还能从高中或大学的知识中记起一些。</p>
+<ul>
+<li>矩阵乘法不满足交换律。A x B 和 B x A是不同的。</li>
+<li>计算乘法A x B即是计算A的每行和B的每列的值相乘的结果。</li>
+<li>为计算乘法A x B，A矩阵必须有和B矩阵行数相等的列数。否则不能进行乘法计算。 </li>
+</ul>
+<p>然而3D世界中我们总是使用方阵，4x4或者有时候使用3x3，因此我们只能用4x4矩阵与4x4矩阵相乘。现在我们进入代码，使用16元素的数组来计算上边的方程：</p>
+<ul>
+<li>数组实现的矩阵公式</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">typedef float mat4[16];</span><br><span class="line"></span><br><span class="line">void matrixIdentity(mat4 m)  </span><br><span class="line">&#123;</span><br><span class="line">    m[0] &#x3D; m[5] &#x3D; m[10] &#x3D; m[15] &#x3D; 1.0;</span><br><span class="line">    m[1] &#x3D; m[2] &#x3D; m[3] &#x3D; m[4] &#x3D; 0.0;</span><br><span class="line">    m[6] &#x3D; m[7] &#x3D; m[8] &#x3D; m[9] &#x3D; 0.0;</span><br><span class="line">    m[11] &#x3D; m[12] &#x3D; m[13] &#x3D; m[14] &#x3D; 0.0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void matrixTranslate(float x, float y, float z, mat4 matrix)  </span><br><span class="line">&#123;</span><br><span class="line">    matrixIdentity(matrix);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Translate slots.</span><br><span class="line">    matrix[12] &#x3D; x;</span><br><span class="line">    matrix[13] &#x3D; y;</span><br><span class="line">    matrix[14] &#x3D; z;   </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void matrixScale(float sx, float sy, float sz, mat4 matrix)  </span><br><span class="line">&#123;</span><br><span class="line">    matrixIdentity(matrix);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Scale slots.</span><br><span class="line">    matrix[0] &#x3D; sx;</span><br><span class="line">    matrix[5] &#x3D; sy;</span><br><span class="line">    matrix[10] &#x3D; sz;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void matrixRotateX(float degrees, mat4 matrix)  </span><br><span class="line">&#123;</span><br><span class="line">    float radians &#x3D; degreesToRadians(degrees);</span><br><span class="line"></span><br><span class="line">    matrixIdentity(matrix);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Rotate X formula.</span><br><span class="line">    matrix[5] &#x3D; cosf(radians);</span><br><span class="line">    matrix[6] &#x3D; -sinf(radians);</span><br><span class="line">    matrix[9] &#x3D; -matrix[6];</span><br><span class="line">    matrix[10] &#x3D; matrix[5];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void matrixRotateY(float degrees, mat4 matrix)  </span><br><span class="line">&#123;</span><br><span class="line">    float radians &#x3D; degreesToRadians(degrees);</span><br><span class="line"></span><br><span class="line">    matrixIdentity(matrix);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Rotate Y formula.</span><br><span class="line">    matrix[0] &#x3D; cosf(radians);</span><br><span class="line">    matrix[2] &#x3D; sinf(radians);</span><br><span class="line">    matrix[8] &#x3D; -matrix[2];</span><br><span class="line">    matrix[10] &#x3D; matrix[0];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void matrixRotateZ(float degrees, mat4 matrix)  </span><br><span class="line">&#123;</span><br><span class="line">    float radians &#x3D; degreesToRadians(degrees);</span><br><span class="line"></span><br><span class="line">    matrixIdentity(matrix);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Rotate Z formula.</span><br><span class="line">    matrix[0] &#x3D; cosf(radians);</span><br><span class="line">    matrix[1] &#x3D; sinf(radians);</span><br><span class="line">    matrix[4] &#x3D; -matrix[1];</span><br><span class="line">    matrix[5] &#x3D; matrix[0];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下边是两个代表4x4矩阵的16元素数组相乘的代码。</p>
+<ul>
+<li>矩阵乘法</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">void matrixMultiply(mat4 m1, mat4 m2, mat4 result)  </span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; Fisrt Column</span><br><span class="line">    result[0] &#x3D; m1[0]*m2[0] + m1[4]*m2[1] + m1[8]*m2[2] + m1[12]*m2[3];</span><br><span class="line">    result[1] &#x3D; m1[1]*m2[0] + m1[5]*m2[1] + m1[9]*m2[2] + m1[13]*m2[3];</span><br><span class="line">    result[2] &#x3D; m1[2]*m2[0] + m1[6]*m2[1] + m1[10]*m2[2] + m1[14]*m2[3];</span><br><span class="line">    result[3] &#x3D; m1[3]*m2[0] + m1[7]*m2[1] + m1[11]*m2[2] + m1[15]*m2[3];</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Second Column</span><br><span class="line">    result[4] &#x3D; m1[0]*m2[4] + m1[4]*m2[5] + m1[8]*m2[6] + m1[12]*m2[7];</span><br><span class="line">    result[5] &#x3D; m1[1]*m2[4] + m1[5]*m2[5] + m1[9]*m2[6] + m1[13]*m2[7];</span><br><span class="line">    result[6] &#x3D; m1[2]*m2[4] + m1[6]*m2[5] + m1[10]*m2[6] + m1[14]*m2[7];</span><br><span class="line">    result[7] &#x3D; m1[3]*m2[4] + m1[7]*m2[5] + m1[11]*m2[6] + m1[15]*m2[7];</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Third Column</span><br><span class="line">    result[8] &#x3D; m1[0]*m2[8] + m1[4]*m2[9] + m1[8]*m2[10] + m1[12]*m2[11];</span><br><span class="line">    result[9] &#x3D; m1[1]*m2[8] + m1[5]*m2[9] + m1[9]*m2[10] + m1[13]*m2[11];</span><br><span class="line">    result[10] &#x3D; m1[2]*m2[8] + m1[6]*m2[9] + m1[10]*m2[10] + m1[14]*m2[11];</span><br><span class="line">    result[11] &#x3D; m1[3]*m2[8] + m1[7]*m2[9] + m1[11]*m2[10] + m1[15]*m2[11];</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Fourth Column</span><br><span class="line">    result[12] &#x3D; m1[0]*m2[12] + m1[4]*m2[13] + m1[8]*m2[14] + m1[12]*m2[15];</span><br><span class="line">    result[13] &#x3D; m1[1]*m2[12] + m1[5]*m2[13] + m1[9]*m2[14] + m1[13]*m2[15];</span><br><span class="line">    result[14] &#x3D; m1[2]*m2[12] + m1[6]*m2[13] + m1[10]*m2[14] + m1[14]*m2[15];</span><br><span class="line">    result[15] &#x3D; m1[3]*m2[12] + m1[7]*m2[13] + m1[11]*m2[14] + m1[15]*m2[15];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如你所知，标准C不能通过函数来返回数组，因此我们必须传入一个指向结果数组的指针。如果你使用的语言支持返回一个数组，如JavaScript或ActionScript，你可以选择返回数组字面量而不用操作指针。</p>
+<p>那么有一点非常重要：“你不能直接组合矩阵，例如对一个矩阵作用旋转矩阵<code>X</code>再作用另外一个旋转矩阵<code>Z</code>。你必须将它们分别创建并将它们两个两个相乘，直到得到最终的结果！”</p>
+<p>举个例子，为了平移、旋转和缩放一个对象，你必须分别创建每个矩阵，并进行乘法计算<code>((Scale \* Rotation) * Translation)</code>来得到最终的变换矩阵。</p>
+<p>现在我们来谈谈矩阵的一些提示和技巧。</p>
+<h3 id="深入矩阵"><a href="#深入矩阵" class="headerlink" title="深入矩阵"></a>深入矩阵</h3><p>是时候打开矩阵的“黑盒”来理解它内部到底发生什么了。之前我使用矩阵但并不知道发生了什么，什么是左乘或右乘一个矩阵，如果所有的矩阵都是列优先矩阵，为什么要对矩阵转置，为什么要使用逆矩阵，然而在我看了一些MIT的矩阵课程之后，我必须说一切都变了。我希望和你们分享这些知识：</p>
+<ol>
+<li>左乘或右乘矩阵的意义是什么？这代表着事情发生的顺序。在乘法计算中的第二个矩阵将会首先产生作用！如果我们有乘法<code>A x B</code>这表示<code>B</code>会首先生效其次是<code>A</code>。因此如果计算<code>旋转矩阵</code>x<code>平移矩阵</code>，表示这个物体先平移后旋转。对缩放矩阵也是这样。</li>
+<li><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/multiplication_order.jpg" alt="The order in Matrices Multiplication indicates what happens first."></li>
+<li>使用上述逻辑，我们可以理解为什么局部旋转（local rotations）和全局旋转（global rotations）的差别就在于将旋转矩阵左乘还是右乘另一个矩阵。如果你总是右乘一个新的旋转矩阵，这表示该物体将先进行这个新的旋转再旋转旧的角度，这就是一个局部旋转。如果你总是左乘左乘一个新的旋转矩阵，这表示该物体先旋转旧的角度再旋转新的，这是全局旋转。</li>
+<li>任意3D物体都拥有三个局部矢量：右矢量、上矢量和前矢量。这些矢量对于对其作用的欧几里得变换（缩放、旋转和平移）非常重要。特别是做局部变换时。好消息是：是否还记得旋转公式？旋转公示所做的就是将旋转角度转化为这些矢量并将其放入矩阵。所以你可以直接从一个旋转矩阵中提取出这些矢量，更棒的是矩阵中的这些矢量己经是正交化的了。</li>
+<li><img src="2018-01-26-opengl-es-mvp-matrix-and-cameras/local_vectors.jpg" alt="The local vectors in a matrix with column-major notation."></li>
+<li>另一件很酷的事是关于正交矩阵（orthogonal matrices）的，注意不要与标准正交（orthonormal）搞混，后者指的是两个正交矢量（orthogonal vectors）。理论上讲，正交矩阵中的行矢量和列矢量都是单位正交矢量，简单而言，我们可以认为正交矢量是不带任何缩放的旋转矩阵！我再重复一下，这一点非常重要，正交矩阵是旋转矩阵，纯粹的旋转不带任何的缩放。通过旋转矩阵我们得到的是单位矩阵并且它们总是正交的！单位矢量和正交矢量到底是什么？很简单，单位矢量是指长度/大小为1的矢量，所以称之为“单位”矢量。正交矢量是指两个或两个以上的矢量，两两夹角为90度。再看上边的图片，注意右矢量（Right），上矢量（Up）和前矢量（Look）在3D世界中总是正交的。</li>
+<li>依然是正交矩阵，正交矩阵的逆矩阵等于它的转置矩阵。喔！棒极了！因为计算逆矩阵我们需要至少100次乘法计算以及至少40次的加法计算，但是计算转置我们不需要任何的计算，只需要改变一些值的顺序。这对于我们的性能来说是一个极大的提升。但是为什么我们需要矩阵的逆矩阵？在着色器中计算光照！记住实际上的物体并没有改变，我们仅仅是通过将它们与矩阵相乘来改变对它们的顶点的计算。因此为了计算在全局坐标系下的光照，我们需要对旋转矩阵求逆。当然，很明显我们还需要在其它的很多地方用到逆矩阵，比如摄像机，因此可以用转置来代替逆矩阵真的很棒！不要怀疑，从技术角度来看，逆矩阵表示的就是与原始矩阵相乘（左乘或右乘皆可）可以得到单位矩阵的矩阵。简言之，逆矩阵将原始矩阵中各变换都逆转过来。</li>
+</ol>
+<p>你可以从一个矩阵中提取出旋转、缩放和平移的值。但不幸的是不存在从矩阵中提取出负的缩放的精确方法。你可以从《3D Game Programming》或者EuclideanSpace的网站上找到用来提取这些值的公式。这里我不会讨论这些公式因为我有一些更好的建议：“不要从矩阵中提取值，更好的做法是存储对用户友好的值。如存储全局旋转值（<code>X</code>、<code>Y</code>和<code>Z</code>），局部缩放值（<code>X</code>、<code>Y</code>和<code>Z</code>）以及全局位置值（<code>X</code>、<code>Y</code>和<code>Z</code>）。”</p>
+<p>现在该认识一下汉密尔顿的贡献，即四元数了！</p>
+<h3 id="四元数"><a href="#四元数" class="headerlink" title="四元数"></a>四元数</h3><p>对我来说，四元数是最3D计算中最伟大的发明了。如果矩阵对一些人来说非常严密且是“魔法”，那么对这些人来说四元数就是“奇迹”。四元数简单得难以置信。简言之就是：“取一个矢量作为方向，并且将它围绕自己的轴旋转”。</p>
+<p>如果你简单研究一下，你就会发现很多关于它的讨论。四元数是很有争议的！有人喜欢它，也有人讨厌它。有人说它仅仅是流行而已，也有人说它棒极了。为什么会有这些关于四元数的评价？好，这是因为使用旋转矩阵时我们发现了围绕任意轴旋转的公式，可以直接避免全局死锁（Gimbal Lock），或者换句话说，这个公式可以和四元数产生相同的效果（实际上确实是很相似）。这里我不会展示这一公式，因为我觉得这不是一个好的方案。</p>
+<p>关于四元数和围绕任意轴的旋转矩阵之间的战争你会看到人们讨论说这个会花费27次乘法，外加一些求和、正弦、余弦矢量长度计算而四元数只需要21或24次乘法计算，等等一些其它的令人反感的讨论！无论如何，在实际的硬件环境下，你可以在你的应用程序中减少1千万次乘法计算而得到的是0.04秒（在iPhone4上1千万次乘法计算是0.12秒）！这并不算显著。为提高应用程序的性能，有一些远比乘法计算更重要的东西。实际上二者之间的这一数字每帧是小于1000的。</p>
+<p>那么对于四元数和旋转矩阵最关键的点是什么呢？我对四元数的喜爱源自它的简单！非常有组织，非常清晰，在连续的旋转变换时会难以置信的精确。我将会演示如何使用四元数，而你们可以自己判断。</p>
+<p>我们从简单的概念开始。四元数正如它的名字要表达的，是一个4阶的矢量<code>(x,y,z,w)</code>。我们常使用四元数的符号<code>w,x,y,z</code>并将<code>w</code>放在第一个，这仅仅是惯例。这并不重要，因为所有的四元数操作总是会使用字母<code>x,y,z</code>或<code>w</code>。有一个需要注意，不要混淆了四元数的w和齐次坐标的w，这是两个完全不同的东西。</p>
+<p>四元数是4维矢量，因此很多矢量操作对它都适用。但是仅仅有几个公式比较重要：乘法计算、归一化（identity）和取反（inverse）。在这三个公式之前，我向你介绍从四元数中提取出一个矩阵的公式。这是最重要的：</p>
+<ul>
+<li>四元数到矩阵</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    &#x2F;&#x2F; This is the arithmetical formula optimized to work with unit quaternions.</span><br><span class="line">    &#x2F;&#x2F; |1-2y²-2z²        2xy-2zw         2xz+2yw       0|</span><br><span class="line">    &#x2F;&#x2F; | 2xy+2zw        1-2x²-2z²        2yz-2xw       0|</span><br><span class="line">    &#x2F;&#x2F; | 2xz-2yw         2yz+2xw        1-2x²-2y²      0|</span><br><span class="line">    &#x2F;&#x2F; |    0               0               0          1|</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; And this is the code.</span><br><span class="line">    &#x2F;&#x2F; First Column</span><br><span class="line">    matrix[0] &#x3D; 1 - 2 * (q.y * q.y + q.z * q.z);</span><br><span class="line">    matrix[1] &#x3D; 2 * (q.x * q.y + q.z * q.w);</span><br><span class="line">    matrix[2] &#x3D; 2 * (q.x * q.z - q.y * q.w);</span><br><span class="line">    matrix[3] &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Second Column</span><br><span class="line">    matrix[4] &#x3D; 2 * (q.x * q.y - q.z * q.w);</span><br><span class="line">    matrix[5] &#x3D; 1 - 2 * (q.x * q.x + q.z * q.z);</span><br><span class="line">    matrix[6] &#x3D; 2 * (q.z * q.y + q.x * q.w);</span><br><span class="line">    matrix[7] &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Third Column</span><br><span class="line">    matrix[8] &#x3D; 2 * (q.x * q.z + q.y * q.w);</span><br><span class="line">    matrix[9] &#x3D; 2 * (q.y * q.z - q.x * q.w);</span><br><span class="line">    matrix[10] &#x3D; 1 - 2 * (q.x * q.x + q.y * q.y);</span><br><span class="line">    matrix[11] &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Fourth Column</span><br><span class="line">    matrix[12] &#x3D; 0;</span><br><span class="line">    matrix[13] &#x3D; 0;</span><br><span class="line">    matrix[14] &#x3D; 0;</span><br><span class="line">    matrix[15] &#x3D; 1;</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>就像矩阵公式一样，这一转换也会产生一个由单位矢量组成的正交矩阵。有些地方你会看到算法公式使用<code>w²+x²-y²-z²</code>而不是<code>1-2y²-2z²</code>，不必惊慌，这是因为汉密尔顿最初的四元数更复杂一些。它们有一个虚部（<code>i</code>，<code>j</code> 和<code>k</code>）并且不仅仅是单位四元数。但是在3D世界中我们总是使用单位矢量，所以我们可以抛弃四元数的虚部并假设它们总是单位四元数。正是由于这一优化，我们可以使用公式<code>1-2y²-2z²</code>。</p>
+<p>现在我们来谈谈其它公式。首先是乘法公式：</p>
+<ul>
+<li>四元数乘法计算</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">     &#x2F;&#x2F; Assume that this multiplies q1 x q2, in this order, resulting in &quot;newQ&quot;.</span><br><span class="line">    newQ.w &#x3D; q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;</span><br><span class="line">    newQ.x &#x3D; q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;</span><br><span class="line">    newQ.y &#x3D; q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;</span><br><span class="line">    newQ.z &#x3D; q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>四元数乘法公式与旋转矩阵的相乘有相同的效果，举例说明。与矩阵相乘相同，四元数的乘法不满足交换律。因此<code>q1 x q2</code>不等于<code>q2 x q1</code>。这里我不会展示具体的算法公式，这是因为两个4维矢量的乘法（original multiplication）远比3维矢量的叉乘要复杂，并且它需要一次令人迷惑的矩阵乘法计算（实际上算数计算的结果就是上边的代码）。我们来关注重点。如果你有兴趣想了解4维矢量乘法计算更多内容可以尝试这个：<a href="http://www.mathpages.com/home/kmath069.htm" target="_blank" rel="noopener">http://www.mathpages.com/home/kmath069.htm</a>。</p>
+<p>归一化。归一化四元数会产生归一化的矩阵，以下是公式：</p>
+<ul>
+<li>四元数归一化</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    q.x &#x3D; 0;</span><br><span class="line">    q.y &#x3D; 0;</span><br><span class="line">    q.z &#x3D; 0;</span><br><span class="line">    q.w &#x3D; 1;</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>好的，现在是四元数取反的公式，也就是“共轭四元数”：</p>
+<ul>
+<li>四元数取反</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    q.x *&#x3D; -1;</span><br><span class="line">    q.y *&#x3D; -1;</span><br><span class="line">    q.z *&#x3D; -1;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; At this point is a good idea normalize the quaternion again.</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>我喜欢这个取反公式。因为它很简单！它太简单了！并且这三行代码和取矩阵的逆有着相同的效果！是的兄弟，如果你使用四元数来旋转，那么你将不必求矩阵的逆，那样需要100多次乘法和求和计算，你只需以上三行代码。正如我所说，并不是因为处理过程的简化，而是简单！四元数真是太简单了！</p>
+<p>到现在一切都OK吗？如果有疑问记得提问。现在我们来看这两个被称为“四元数之战”的原因的公式。我们在其中加入一些旋转角度。为达到这一目的，我们有两种方法：第一种方法使用四元数的概念，提供一个表示旋转方向的矢量和围绕此方向旋转的角度，第二种方法使用欧拉角（X，Y和Z）直接提供三个角度值。后者需要更多的乘法计算，但是却对用户更友好，因为它就像是给旋转矩阵设置角度。</p>
+<p>首先来通过一个方向和一个角度来设置四元数：</p>
+<ul>
+<li>四元数的转轴</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    &#x2F;&#x2F; The new quaternion variable.</span><br><span class="line">    vec4 q;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Converts the angle in degrees to radians.</span><br><span class="line">    float radians &#x3D; degreesToRadians(degrees);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Finds the Sin and Cosin for the half angle.</span><br><span class="line">    float sin &#x3D; sinf(radians * 0.5);</span><br><span class="line">    float cos &#x3D; cosf(radians * 0.5);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Formula to construct a new Quaternion based on direction and angle.</span><br><span class="line">    q.w &#x3D; cos;</span><br><span class="line">    q.x &#x3D; vec.x * sin;</span><br><span class="line">    q.y &#x3D; vec.y * sin;</span><br><span class="line">    q.z &#x3D; vec.z * sin;</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>为了实现连续的旋转你可以构建多个四元数。与矩阵方法相似，通过改变乘法计算的顺序（q1 x q2 或 q2 x q1）来产生局部或全局旋转。记住，与矩阵相似，当你使用乘法计算q1 x q2时这表示：“先旋转q2再q1”。</p>
+<p>下边是将欧拉角转为四元数的公式：</p>
+<ul>
+<li>欧拉角到四元数</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    &#x2F;&#x2F; The new quaternion variable.</span><br><span class="line">    vec4 q;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Converts all degrees angles to radians.</span><br><span class="line">    float radiansY &#x3D; degreesToRadians(degreesY);</span><br><span class="line">    float radiansZ &#x3D; degreesToRadians(degreesZ);</span><br><span class="line">    float radiansX &#x3D; degreesToRadians(degreesX);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Finds the Sin and Cosin for each half angles.</span><br><span class="line">    float sY &#x3D; sinf(radiansY * 0.5);</span><br><span class="line">    float cY &#x3D; cosf(radiansY * 0.5);</span><br><span class="line">    float sZ &#x3D; sinf(radiansZ * 0.5);</span><br><span class="line">    float cZ &#x3D; cosf(radiansZ * 0.5);</span><br><span class="line">    float sX &#x3D; sinf(radiansX * 0.5);</span><br><span class="line">    float cX &#x3D; cosf(radiansX * 0.5);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Formula to construct a new Quaternion based on Euler Angles.</span><br><span class="line">    q.w &#x3D; cY * cZ * cX - sY * sZ * sX;</span><br><span class="line">    q.x &#x3D; sY * sZ * cX + cY * cZ * sX;</span><br><span class="line">    q.y &#x3D; sY * cZ * cX + cY * sZ * sX;</span><br><span class="line">    q.z &#x3D; cY * sZ * cX - sY * cZ * sX;</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>如你所见，我组织代码使角度的顺序为Y，Z最后X。为什么这样？因为这是将要由四元数产生的旋转的顺序。使用此公式时我们可以调整顺序吗？不，不能。这一公式是为了产生<code>(Y,Z,X)</code>这样的旋转。顺便提一下这是我们所说的“欧拉旋转顺序（Euler Rotation Order）”。如果你想了解更多关于旋转顺序或者说它表示什么，请看这个很棒的视频<a href="http://www.youtube.com/watch?v=zc8b2Jo7mno" target="_blank" rel="noopener">http://www.youtube.com/watch?v=zc8b2Jo7mno</a>。</p>
+<p>这就是四元数的基础。很明显我们有从四元数中取回参数的公式，取出欧拉角，取出矢量方向等。对你来说这些都很不错因为你可以查看四元数内部发生了什么。对此我的建议和对于矩阵的一样：“总是存储用户友好的变量来控制你的旋转”。</p>
+<p>现在我们回到矩阵，来最终了解如何创建相机镜头。</p>
+<h2 id="3D摄像机背后的代码"><a href="#3D摄像机背后的代码" class="headerlink" title="3D摄像机背后的代码"></a>3D摄像机背后的代码</h2><p>终于！我们已经准备好要理解如何创建相机镜头了。现在很容易就明确我们需要做什么。我们需要创建一个矩阵，这个矩阵可以通过顶点的深度来调整顶点的位置。使用我们一开始（景深、近平面、远平面、视角等）看到的一些概念，我们可以计算出一个矩阵来完成优雅且平滑的变化以模拟真实的镜头，这个镜头已经是对人眼的一种模拟了。</p>
+<p>如早先所述，我们可以创建两种投影：透视和正交。我不会在这里深入讲解每种投影的数学公式，如果你对投影矩阵背后的概念感兴趣可以在这里找到一个很好的讲解<a href="http://www.songho.ca/opengl/gl_projectionmatrix.html" target="_blank" rel="noopener">http://www.songho.ca/opengl/gl_projectionmatrix.html</a>。好的，我们来看代码。首先是最基础的一种，正交投影：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    &#x2F;&#x2F; These paramaters are lens properties.</span><br><span class="line">    &#x2F;&#x2F; The &quot;near&quot; and &quot;far&quot; create the Depth of Field.</span><br><span class="line">    &#x2F;&#x2F; The &quot;left&quot;, &quot;right&quot;, &quot;bottom&quot; and &quot;top&quot; represent the rectangle formed</span><br><span class="line">    &#x2F;&#x2F; by the near area, this rectangle will also be the size of the visible area.</span><br><span class="line">    float near &#x3D; 0.001, far &#x3D; 100.0;</span><br><span class="line">    float left &#x3D; 0.0, right &#x3D; 320.0, bottom &#x3D; 480.0, top &#x3D; 0.0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; First Column</span><br><span class="line">    matrix[0] &#x3D; 2.0 &#x2F; (right - left);</span><br><span class="line">    matrix[1] &#x3D; 0.0;</span><br><span class="line">    matrix[2] &#x3D; 0.0;</span><br><span class="line">    matrix[3] &#x3D; 0.0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Second Column</span><br><span class="line">    matrix[4] &#x3D; 0.0;</span><br><span class="line">    matrix[5] &#x3D; 2.0 &#x2F; (top - bottom);</span><br><span class="line">    matrix[6] &#x3D; 0.0;</span><br><span class="line">    matrix[7] &#x3D; 0.0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Third Column</span><br><span class="line">    matrix[8] &#x3D; 0.0;</span><br><span class="line">    matrix[9] &#x3D; 0.0;</span><br><span class="line">    matrix[10] &#x3D; -2.0 &#x2F; (far - near);</span><br><span class="line">    matrix[11] &#x3D; 0.0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Fourth Column</span><br><span class="line">    matrix[12] &#x3D; -(right + left) &#x2F; (right - left);</span><br><span class="line">    matrix[13] &#x3D; -(top + bottom) &#x2F; (top - bottom);</span><br><span class="line">    matrix[14] &#x3D; -(far + near) &#x2F; (far - near);</span><br><span class="line">    matrix[15] &#x3D; 1;</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>如你所见，正交矩阵没有“视角”，因为它不需要。你应该还记得正交投影中一切看起来都相等的，单元总是正方形的，换句话说，正交投影是一个线性投影。</p>
+<p>上边的代码展示的就是之前我们想象的。投影矩阵会轻微影响旋转（<code>X</code>、 <code>Y</code> 和 <code>Z</code>），直接影响缩放（主对角线），而对顶点位置影响更深刻。</p>
+<p>现在来看透视投影，一个有点复杂的情况。</p>
+<ul>
+<li>透视投影</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">    &#x2F;&#x2F; These paramaters are about lens properties.</span><br><span class="line">    &#x2F;&#x2F; The &quot;near&quot; and &quot;far&quot; create the Depth of Field.</span><br><span class="line">    &#x2F;&#x2F; The &quot;angleOfView&quot;, as the name suggests, is the angle of view.</span><br><span class="line">    &#x2F;&#x2F; The &quot;aspectRatio&quot; is the cool thing about this matrix. OpenGL doesn&#39;t</span><br><span class="line">    &#x2F;&#x2F; has any information about the screen you are rendering for. So the</span><br><span class="line">    &#x2F;&#x2F; results could seem stretched. But this variable puts the thing into the</span><br><span class="line">    &#x2F;&#x2F; right path. The aspect ratio is your device screen (or desired area) width divided</span><br><span class="line">    &#x2F;&#x2F; by its height. This will give you a number &lt; 1.0 the the area has more vertical</span><br><span class="line">    &#x2F;&#x2F; space and a number &gt; 1.0 is the area has more horizontal space.</span><br><span class="line">    &#x2F;&#x2F; Aspect Ratio of 1.0 represents a square area.</span><br><span class="line">    float near &#x3D; 0.001, far &#x3D; 100.0;</span><br><span class="line">    float angleOfView &#x3D; 45.0;</span><br><span class="line">    float aspectRatio &#x3D; 0.75;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Some calculus before the formula.</span><br><span class="line">    float size &#x3D; near * tanf(degreesToRadians(angleOfView) &#x2F; 2.0); </span><br><span class="line">    float left &#x3D; -size, right &#x3D; size, bottom &#x3D; -size &#x2F; aspectRatio, top &#x3D; size &#x2F; aspectRatio;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; First Column</span><br><span class="line">    matrix[0] &#x3D; 2 * near &#x2F; (right - left);</span><br><span class="line">    matrix[1] &#x3D; 0.0;</span><br><span class="line">    matrix[2] &#x3D; 0.0;</span><br><span class="line">    matrix[3] &#x3D; 0.0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Second Column</span><br><span class="line">    matrix[4] &#x3D; 0.0;</span><br><span class="line">    matrix[5] &#x3D; 2 * near &#x2F; (top - bottom);</span><br><span class="line">    matrix[6] &#x3D; 0.0;</span><br><span class="line">    matrix[7] &#x3D; 0.0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Third Column</span><br><span class="line">    matrix[8] &#x3D; (right + left) &#x2F; (right - left);</span><br><span class="line">    matrix[9] &#x3D; (top + bottom) &#x2F; (top - bottom);</span><br><span class="line">    matrix[10] &#x3D; -(far + near) &#x2F; (far - near);</span><br><span class="line">    matrix[11] &#x3D; -1;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Fourth Column</span><br><span class="line">    matrix[12] &#x3D; 0.0;</span><br><span class="line">    matrix[13] &#x3D; 0.0;</span><br><span class="line">    matrix[14] &#x3D; -(2 * far * near) &#x2F; (far - near);</span><br><span class="line">    matrix[15] &#x3D; 0.0;</span><br><span class="line">.</span><br></pre></td></tr></table></figure>
+
+<p>理解：哇喔，公式只是轻微的改变，但是现在不再影响<code>X</code>和<code>Y</code>位置，只改变<code>Z</code>位置（深度）。它继续影响旋转<code>X</code>、<code>Y</code>和<code>Z</code>，但对第三列有极大的干扰，那是什么呢？那正是对透视改变和调整宽高比的因子的计算。注意第三列最后一个元素是负的。这会在生成最终矩阵（相乘）时反转宽高比。</p>
+<p>现在谈谈最终矩阵。这是很重要的一步。不像其它的矩阵乘法，这一次你不能改变顺序，否则你无法得到期望的结果。这是你需要做的：</p>
+<p>取摄像机的View矩阵（一个包含有摄像机的旋转和平移的反转矩阵），将其右乘投影矩阵Projection：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PROJECTION MATRIX x VIEW MATRIX</span><br></pre></td></tr></table></figure>
+
+<p>请记住，这么做产生的效果会像是“先作用VIEW MATRIX再作用PROJECTION MATRIX”。</p>
+<p>现在你有了我们所谓的<code>VIEW*PROJECTION</code>矩阵。使用这个新矩阵要把<code>MODEL</code>矩阵（<code>MODEL</code>矩阵包含了物体的所有旋转、缩放和平移）右乘<code>VIEW*PROJECTION</code>矩阵：<code>VIEW PROJECTION x MODEL</code>。再强调一遍，这表示“先作用MODEL矩阵然后作用VIEW<em>PROJECTION矩阵。”最终你得到了所谓的`MODEL</em>VIEW*PROJECTION`矩阵！</p>
+<p>祝贺你！</p>
+<p>好的，我知道你现在在想什么…“卧槽！这么多就只是产生了一个简单的矩阵！”是的，我也这么想。对此有没有更简单更快速的方法？</p>
+<p>好，我觉得这个问题的答案就是这篇文章的结论。来吧！</p>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>自此以后，所有的东西都会比这复杂。矩阵和四元数仅仅是构建3D引擎或者个人框架之旅的第一步。所以如果你还没有决定的话，或许现在是时候做一个了。我觉得你会有两个选择：</p>
+<ol>
+<li>你可以自己创建一个框架/引擎。</li>
+<li>你可以拿一个现有的框架/引擎并学习如何使用。</li>
+</ol>
+<p>正如所有的“选择”一样，两个都有好处和坏处。你应该考虑并决定哪个更有助于你的目标。我想到了第三个选择，在你的项目中创建一些小的模板并使用，这不是一个好主意，所以我个人放弃了这个选择的选项。3D世界中有太多东西要处理，以至于很可能在试图把所有的东西匹配到我们一个或几个模板时会变得疯狂或非常失败。所以我的最后一个建议是“做一个选择”。</p>
+<p>无论如何，我的下一个教程会更进阶一些。现在我们来一起回顾本教程：</p>
+<ul>
+<li>摄像机有凸透镜或凹透镜。摄像机还有一些属性如景深、视角、近平面和远平面。</li>
+<li>在3D世界我们可以使用透视这种真正的投影，也可以使用不真实的投影正交投影。</li>
+<li>摄像机的运作与普通3D物体相反。</li>
+<li>我们从来不会改变3D物体的结构，我们只使用临时变化的结果。</li>
+<li>这些变化可以通过矩阵实现。我们有旋转、缩放和平移一个矩阵的公式。我们还可以用四元数来处理旋转。</li>
+<li>我们还用矩阵来创建透视投影或正交投影摄像机的镜头。</li>
+</ul>
+<p>就这些了。<br>感谢阅读，下一篇教程见！</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="http://blog.db-in.com/cameras-on-opengl-es-2-x/" target="_blank" rel="noopener">http://blog.db-in.com/cameras-on-opengl-es-2-x/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenGL/" rel="tag"># OpenGL</a>
+              <a href="/tags/OpenGL-ES/" rel="tag"># OpenGL ES</a>
+              <a href="/tags/matrix/" rel="tag"># matrix</a>
+              <a href="/tags/transformation/" rel="tag"># transformation</a>
+              <a href="/tags/TRANSLATION/" rel="tag"># TRANSLATION</a>
+              <a href="/tags/projection/" rel="tag"># projection</a>
+              <a href="/tags/quaternion/" rel="tag"># quaternion</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-01-16-c-sharp-notes-01/" rel="prev" title="c#笔记（一）">
+      <i class="fa fa-chevron-left"></i> c#笔记（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-01-31-lua-notes-01/" rel="next" title="lua实现简单的栈和队列">
+      lua实现简单的栈和队列 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概览"><span class="nav-number">1.</span> <span class="nav-text">概览</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#真实世界的摄像机"><span class="nav-number">2.</span> <span class="nav-text">真实世界的摄像机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3D世界简史"><span class="nav-number">3.</span> <span class="nav-text">3D世界简史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#投影"><span class="nav-number">4.</span> <span class="nav-text">投影</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3D世界中的摄像机"><span class="nav-number">5.</span> <span class="nav-text">3D世界中的摄像机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3D世界背后的代码"><span class="nav-number">6.</span> <span class="nav-text">3D世界背后的代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#矩阵"><span class="nav-number">6.1.</span> <span class="nav-text">矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#深入矩阵"><span class="nav-number">6.2.</span> <span class="nav-text">深入矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四元数"><span class="nav-number">6.3.</span> <span class="nav-text">四元数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3D摄像机背后的代码"><span class="nav-number">7.</span> <span class="nav-text">3D摄像机背后的代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number">8.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">9.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '356ac814dd65e8b7f8840795e9087230',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

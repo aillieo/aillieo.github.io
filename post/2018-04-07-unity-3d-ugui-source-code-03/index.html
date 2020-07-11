@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="MaskableGraphic用于实现绘制相关的功能，并且相比于Graphic它支持被裁剪（clip）和被遮罩（mask）。是Graphic的衍生类，是Image、Text等类的父类。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 MaskableGraphic">
+<meta property="og:url" content="http://aillieo.cn/post/2018-04-07-unity-3d-ugui-source-code-03/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="MaskableGraphic用于实现绘制相关的功能，并且相比于Graphic它支持被裁剪（clip）和被遮罩（mask）。是Graphic的衍生类，是Image、Text等类的父类。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-04-07T09:40:12.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.062Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="Graphic">
+<meta property="article:tag" content="unity3d">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="MaskableGraphic">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-04-07-unity-3d-ugui-source-code-03/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 MaskableGraphic | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-04-07-unity-3d-ugui-source-code-03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 MaskableGraphic
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-07 17:40:12" itemprop="dateCreated datePublished" datetime="2018-04-07T17:40:12+08:00">2018-04-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>MaskableGraphic</code>用于实现绘制相关的功能，并且相比于<code>Graphic</code>它支持被裁剪（clip）和被遮罩（mask）。是<code>Graphic</code>的衍生类，是<code>Image</code>、<code>Text</code>等类的父类。</p>
+<a id="more"></a>
+
+<h3 id="基类和实现的接口"><a href="#基类和实现的接口" class="headerlink" title="基类和实现的接口"></a>基类和实现的接口</h3><p>衍生自<code>Graphic</code>，实现了<code>IClippable</code>，<code>IMaskable</code>，<code>IMaterialModifier</code>接口，逐一分析：</p>
+<h4 id="Graphic"><a href="#Graphic" class="headerlink" title="Graphic"></a>Graphic</h4><p>承担基本的绘制相关的功能，如生成网格、使用材质等，并由Canvas控制绘制。相比Graphic，MaskableGraphic重写了一些方法，当被激活（active）或发生变化时，除了会将材质和结点的脏标（<code>m_MaterialDirty</code>和<code>m_VertsDirty</code>）记置为<code>true</code>之外，还会将成员变量<code>m_ShouldRecalculateStencil</code>设为<code>true</code>，即需要重新计算模板，并且会根据情况在一定时机调用<code>UpdateClipParent()</code>更新用于对其实施裁剪的父结点信息。</p>
+<h4 id="IClippable"><a href="#IClippable" class="headerlink" title="IClippable"></a>IClippable</h4><p>实现此接口的类可以被Clipper（如<code>RectMask2D</code>）裁减。此接口包括以下需要实现的方法：</p>
+<ul>
+<li><code>RecalculateClipping()</code> 当父级可裁剪对象发生变化时会调用，用于更新裁剪信息</li>
+<li><code>SetClipRect()</code> 设置可裁剪对象的裁剪区域</li>
+<li><code>Cull()</code> 对可裁剪的对象裁剪和剔除</li>
+</ul>
+<h4 id="IMaskable"><a href="#IMaskable" class="headerlink" title="IMaskable"></a>IMaskable</h4><p>实现此接口的类可以被<code>Mask</code>遮罩。此接口包含的需要实现的方法：</p>
+<ul>
+<li><code>RecalculateMasking()</code> 更新对当前对象和所有子结点对象的遮罩信息</li>
+</ul>
+<h4 id="IMaterialModifier"><a href="#IMaterialModifier" class="headerlink" title="IMaterialModifier"></a>IMaterialModifier</h4><p>修改材质的接口，在被<code>CanvasRenderer</code>绘制之前，可以接受材质的修改。需要实现方法：</p>
+<ul>
+<li><code>Material GetModifiedMaterial(Material baseMaterial)</code> 传入修改前的材质，返回修改后的材质</li>
+</ul>
+<h3 id="用于裁剪的成员和方法"><a href="#用于裁剪的成员和方法" class="headerlink" title="用于裁剪的成员和方法"></a>用于裁剪的成员和方法</h3><h4 id="m-ParentMask"><a href="#m-ParentMask" class="headerlink" title="m_ParentMask"></a>m_ParentMask</h4><p>此成员是一个<code>RectMask2D</code>（实现了<code>IClipper</code>，是裁剪动作的实施者，后边会说这个类）。在调用<code>UpdateClipParent()</code>时（详见下个小标题），会调用静态的工具方法<code>MaskUtilities.GetRectMaskForClippable</code> 重新计算<code>m_ParentMask</code>，并且会将自身（<code>IClippable</code>）添加到实施裁减的父对象中（<code>AddClippable</code>），以接受其裁剪的动作。</p>
+<h4 id="UpdateClipParent"><a href="#UpdateClipParent" class="headerlink" title="UpdateClipParent()"></a>UpdateClipParent()</h4><p>获取并更新<code>m_ParentMask</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">private void UpdateClipParent()</span><br><span class="line">&#123;</span><br><span class="line">	var newParent &#x3D; (maskable &amp;&amp; IsActive()) ? MaskUtilities.GetRectMaskForClippable(this) : null;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; if the new parent is different OR is now inactive</span><br><span class="line">	if (m_ParentMask !&#x3D; null &amp;&amp; (newParent !&#x3D; m_ParentMask || !newParent.IsActive()))</span><br><span class="line">	&#123;</span><br><span class="line">		m_ParentMask.RemoveClippable(this);</span><br><span class="line">		UpdateCull(false);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; don&#39;t re-add it if the newparent is inactive</span><br><span class="line">	if (newParent !&#x3D; null &amp;&amp; newParent.IsActive())</span><br><span class="line">		newParent.AddClippable(this);</span><br><span class="line"></span><br><span class="line">	m_ParentMask &#x3D; newParent;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="UpdateCull"><a href="#UpdateCull" class="headerlink" title="UpdateCull()"></a>UpdateCull()</h4><p>更新裁剪信息，告诉<code>canvasRenderer</code>是否要裁剪并且如果裁剪状态发生了变化会<code>SetVerticesDirty()</code>。代码如下：传入一个<code>bool</code>参数表示是否需要裁剪。在<code>UpdateClipParent</code>中如果判断出来不需要裁剪，会调用此方法并传入<code>false</code>，在<code>Cull</code>被调用时也会判断并调用此方法更新裁剪状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">private void UpdateCull(bool cull)</span><br><span class="line">&#123;</span><br><span class="line">	var cullingChanged &#x3D; canvasRenderer.cull !&#x3D; cull;</span><br><span class="line">	canvasRenderer.cull &#x3D; cull;</span><br><span class="line"></span><br><span class="line">	if (cullingChanged)</span><br><span class="line">	&#123;</span><br><span class="line">		m_OnCullStateChanged.Invoke(cull);</span><br><span class="line">		SetVerticesDirty();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="裁剪相关的其它类"><a href="#裁剪相关的其它类" class="headerlink" title="裁剪相关的其它类"></a>裁剪相关的其它类</h3><h4 id="RectMask2D"><a href="#RectMask2D" class="headerlink" title="RectMask2D"></a>RectMask2D</h4><p>继承<code>UIBehaviour</code>，实现了<code>IClipper</code>用于裁剪图像，实现了<code>ICanvasRaycastFilter</code>用于过滤UI的事件（这里先不做讨论）。主要的成员有：</p>
+<ul>
+<li><code>m_ClipTargets</code> 裁剪的目标，是一个<code>IClippable</code>的集合<code>HashSet&lt;IClippable&gt;</code></li>
+<li><code>m_Clippers</code> 包括自身在内的所有的作用于该<code>RectMask2D</code>的裁剪者的列表，是一个<code>List&lt;RectMask2D&gt;</code></li>
+<li><code>m_ShouldRecalculateClipRects</code> 是否需要重新计算裁剪矩形的状态值</li>
+<li><code>m_ForceClip</code> 强制执行裁剪。在执行裁剪时，即使当前裁剪矩形与旧的裁剪矩形相等也会为每个裁剪目标更新裁剪矩形。当增加或减少了裁减目标时，会将此值设为<code>true</code></li>
+</ul>
+<p>主要的方法有：</p>
+<ul>
+<li><p><code>AddClippable(...)</code> 用于向<code>m_ClipTargets</code>中增加要裁剪的对象</p>
+</li>
+<li><p><code>RemoveClippable(...)</code> 移除要裁剪的目标对象</p>
+</li>
+<li><p><code>PerformClipping()</code>执行裁减的动作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public virtual void PerformClipping()</span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; if the parents are changed</span><br><span class="line">	&#x2F;&#x2F; or something similar we</span><br><span class="line">	&#x2F;&#x2F; do a recalculate here</span><br><span class="line">	if (m_ShouldRecalculateClipRects)</span><br><span class="line">	&#123;</span><br><span class="line">		MaskUtilities.GetRectMasksForClip(this, m_Clippers);</span><br><span class="line">		m_ShouldRecalculateClipRects &#x3D; false;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; get the compound rects from</span><br><span class="line">	&#x2F;&#x2F; the clippers that are valid</span><br><span class="line">	bool validRect &#x3D; true;</span><br><span class="line">	Rect clipRect &#x3D; Clipping.FindCullAndClipWorldRect(m_Clippers, out validRect);</span><br><span class="line">	if (clipRect !&#x3D; m_LastClipRectCanvasSpace || m_ForceClip)</span><br><span class="line">	&#123;</span><br><span class="line">		foreach (IClippable clipTarget in m_ClipTargets)</span><br><span class="line">			clipTarget.SetClipRect(clipRect, validRect);</span><br><span class="line"></span><br><span class="line">		m_LastClipRectCanvasSpace &#x3D; clipRect;</span><br><span class="line">		m_LastValidClipRect &#x3D; validRect;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	foreach (IClippable clipTarget in m_ClipTargets)</span><br><span class="line">		clipTarget.Cull(m_LastClipRectCanvasSpace, m_LastValidClipRect);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为<code>m_ClipTargets</code>中的各个裁剪目标对象，设置裁剪矩形，并执行<code>Cull</code>方法。</p>
+</li>
+</ul>
+<h4 id="MaskUtilities"><a href="#MaskUtilities" class="headerlink" title="MaskUtilities"></a>MaskUtilities</h4><p>裁剪和遮罩相关的工具类，包含了一系列的静态方法，其中部分与裁剪相关的方法：</p>
+<ul>
+<li><code>IsDescendantOrSelf</code> 判断传入的两个<code>Transform</code>对象，是否后者是前者的子节点（后代结点）或者两个节点是同一个节点 </li>
+<li><code>Notify2DMaskStateChanged</code> 告知指定组件之下的所有<code>IClippable</code>需要重新计算裁剪，即调用其<code>RecalculateClipping()</code>方法 </li>
+<li><code>GetRectMaskForClippable</code> 获取传入的<code>IClippable</code>所对应的<code>RectMask2D</code>对象，首先会获取所有的父节点上的<code>RectMask2D</code>对象，然后根据一些条件进行判断，直到获取到正确的<code>RectMask2D</code>对象并将其返回 </li>
+<li><code>GetRectMasksForClip</code> 获取对传入的<code>RectMask2D</code>应用裁剪的所有<code>RectMask2D</code>对象（包括其自身），存入<code>RectMask2D</code>的<code>m_Clippers</code>中，与<code>GetRectMaskForClippable</code>类似，也是首先获取所有父节点上的<code>RectMask2D</code>然后再逐个判断筛选</li>
+</ul>
+<h4 id="Clipping"><a href="#Clipping" class="headerlink" title="Clipping"></a>Clipping</h4><ul>
+<li><code>FindCullAndClipWorldRect</code> 获取用于裁剪的矩形，并通过一个<code>out</code>参数指明当前裁剪是否有效，当相交区域不存在时该值为false</li>
+<li><code>RectIntersect</code> 私有方法，得到两个矩形相交部分的矩形</li>
+</ul>
+<h3 id="用于遮罩的成员和方法"><a href="#用于遮罩的成员和方法" class="headerlink" title="用于遮罩的成员和方法"></a>用于遮罩的成员和方法</h3><h4 id="m-ShouldRecalculateStencil"><a href="#m-ShouldRecalculateStencil" class="headerlink" title="m_ShouldRecalculateStencil"></a>m_ShouldRecalculateStencil</h4><p>标记是否需要重新计算模板值（<code>m_StencilValue</code>）。当被标记为<code>true</code>时，会在<code>GetModifiedMaterial</code>时重新计算模板值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if (m_ShouldRecalculateStencil)</span><br><span class="line">&#123;</span><br><span class="line">	var rootCanvas &#x3D; MaskUtilities.FindRootSortOverrideCanvas(transform);</span><br><span class="line">	m_StencilValue &#x3D; maskable ? MaskUtilities.GetStencilDepth(transform, rootCanvas) : 0;</span><br><span class="line">	m_ShouldRecalculateStencil &#x3D; false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里涉及到<code>MaskUtilities</code>中的这两个静态的工具方法：</p>
+<ul>
+<li><code>FindRootSortOverrideCanvas</code> 获取顶层Canvas或<code>overrideSorting</code>的Canvas</li>
+<li><code>GetStencilDepth</code> 获取传入的元素的模板深度值</li>
+</ul>
+<h4 id="m-StencilValue"><a href="#m-StencilValue" class="headerlink" title="m_StencilValue"></a>m_StencilValue</h4><p>一个整数成员变量，字面意思是模板值，前边说到了更新计算它的方法，即<code>MaskUtilities.GetStencilDepth(...)</code>，其实是计算了从该结点到其对应的顶部Canvas或<code>overrideSorting</code>的Canvas之间处于激活状态的Mask的数量，就是<code>m_StencilValue</code>的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public static int GetStencilDepth(Transform transform, Transform stopAfter)</span><br><span class="line">&#123;</span><br><span class="line">	var depth &#x3D; 0;</span><br><span class="line">	if (transform &#x3D;&#x3D; stopAfter)</span><br><span class="line">		return depth;</span><br><span class="line"></span><br><span class="line">	var t &#x3D; transform.parent;</span><br><span class="line">	var components &#x3D; ListPool&lt;Mask&gt;.Get();</span><br><span class="line">	while (t !&#x3D; null)</span><br><span class="line">	&#123;</span><br><span class="line">		t.GetComponents&lt;Mask&gt;(components);</span><br><span class="line">		for (var i &#x3D; 0; i &lt; components.Count; ++i)</span><br><span class="line">		&#123;</span><br><span class="line">			if (components[i] !&#x3D; null &amp;&amp; components[i].MaskEnabled() &amp;&amp; components[i].graphic.IsActive())</span><br><span class="line">			&#123;</span><br><span class="line">				++depth;</span><br><span class="line">				break;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		if (t &#x3D;&#x3D; stopAfter)</span><br><span class="line">			break;</span><br><span class="line"></span><br><span class="line">		t &#x3D; t.parent;</span><br><span class="line">	&#125;</span><br><span class="line">	ListPool&lt;Mask&gt;.Release(components);</span><br><span class="line">	return depth;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>m_StencilValue</code>的地方是要根据一个传入的材质生成新的材质：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; ...</span><br><span class="line">var maskMat &#x3D; StencilMaterial.Add(toUse, (1 &lt;&lt; m_StencilValue) - 1, StencilOp.Keep, CompareFunction.Equal, ColorWriteMask.All, (1 &lt;&lt; m_StencilValue) - 1, 0);</span><br><span class="line">&#x2F;&#x2F; ...</span><br></pre></td></tr></table></figure>
+
+<p>上边这个是<code>GetModifiedMaterial()</code>中的部分代码，也就是获取修改后的材质，调用的是下边这个方法，可以对照一下每个参数都是干什么的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static Material Add(Material baseMat, int stencilID, StencilOp operation, CompareFunction compareFunction, ColorWriteMask colorWriteMask, int readMask, int writeMask)&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>StencilMaterial.Add(...)</code>方法向传入的材质添加了一些模板信息（即后边的一长串参数），返回设置好了模板参数的新的材质（<code>StencilMaterial</code>内部做了一些优化，对于相同的模板参数会共用同一个材质对象）这个<code>m_StencilValue</code>通过一个简单的变换<code>1 &lt;&lt; m_StencilValue) - 1</code>得到一个新的整数值，这个值在后续的使用中称为<code>stencilID</code>，在<code>StencilMaterial.Add(...)</code>中我们看到有以下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; ...</span><br><span class="line">newEnt.customMat.SetInt(&quot;_Stencil&quot;, stencilID);</span><br><span class="line">newEnt.customMat.SetInt(&quot;_StencilOp&quot;, (int)operation);</span><br><span class="line">newEnt.customMat.SetInt(&quot;_StencilComp&quot;, (int)compareFunction);</span><br><span class="line">newEnt.customMat.SetInt(&quot;_StencilReadMask&quot;, readMask);</span><br><span class="line">newEnt.customMat.SetInt(&quot;_StencilWriteMask&quot;, writeMask);</span><br><span class="line">newEnt.customMat.SetInt(&quot;_ColorMask&quot;, (int)colorWriteMask);</span><br><span class="line">&#x2F;&#x2F; ...</span><br></pre></td></tr></table></figure>
+
+<p>对应的，在UI默认的shader中有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; ...</span><br><span class="line">Stencil</span><br><span class="line">&#123;</span><br><span class="line">	Ref [_Stencil]</span><br><span class="line">	Comp [_StencilComp]</span><br><span class="line">	Pass [_StencilOp] </span><br><span class="line">	ReadMask [_StencilReadMask]</span><br><span class="line">	WriteMask [_StencilWriteMask]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ColorMask [_ColorMask]</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; ...</span><br></pre></td></tr></table></figure>
+
+<h4 id="m-MaskMaterial"><a href="#m-MaskMaterial" class="headerlink" title="m_MaskMaterial"></a>m_MaskMaterial</h4><p>保存了一个修改后的材质的引用，在生成新的材质时可以方便地将旧的材质移除，详见下一个标题。</p>
+<h4 id="GetModifiedMaterial"><a href="#GetModifiedMaterial" class="headerlink" title="GetModifiedMaterial()"></a>GetModifiedMaterial()</h4><p>实现IMaterialModifier接口的方法，在绘制之前对修改材质：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public virtual Material GetModifiedMaterial(Material baseMaterial)</span><br><span class="line">&#123;</span><br><span class="line">	var toUse &#x3D; baseMaterial;</span><br><span class="line"></span><br><span class="line">	if (m_ShouldRecalculateStencil)</span><br><span class="line">	&#123;</span><br><span class="line">		var rootCanvas &#x3D; MaskUtilities.FindRootSortOverrideCanvas(transform);</span><br><span class="line">		m_StencilValue &#x3D; maskable ? MaskUtilities.GetStencilDepth(transform, rootCanvas) : 0;</span><br><span class="line">		m_ShouldRecalculateStencil &#x3D; false;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; if we have a enabled Mask component then it will</span><br><span class="line">	&#x2F;&#x2F; generate the mask material. This is an optimisation</span><br><span class="line">	&#x2F;&#x2F; it adds some coupling between components though :(</span><br><span class="line">	Mask maskComponent &#x3D; GetComponent&lt;Mask&gt;();</span><br><span class="line">	if (m_StencilValue &gt; 0 &amp;&amp; (maskComponent &#x3D;&#x3D; null || !maskComponent.IsActive()))</span><br><span class="line">	&#123;</span><br><span class="line">		var maskMat &#x3D; StencilMaterial.Add(toUse, (1 &lt;&lt; m_StencilValue) - 1, StencilOp.Keep, CompareFunction.Equal, ColorWriteMask.All, (1 &lt;&lt; m_StencilValue) - 1, 0);</span><br><span class="line">		StencilMaterial.Remove(m_MaskMaterial);</span><br><span class="line">		m_MaskMaterial &#x3D; maskMat;</span><br><span class="line">		toUse &#x3D; m_MaskMaterial;</span><br><span class="line">	&#125;</span><br><span class="line">	return toUse;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>遮罩的实现还涉及到一些其它的类。被遮罩的图像如何绘制，除了之前修改的stencil参数之外，还要取决于模板缓冲区中的值。刚才的代码中可以看到，<code>MaskableGraphic</code>对模板值的写入操作是<code>keep</code>，那我们来看<code>Mask</code>。</p>
+<h3 id="Mask"><a href="#Mask" class="headerlink" title="Mask"></a>Mask</h3><p>Mask也实现了IMaterialModifier接口，直击要害，我们来看<code>GetModifiedMaterial</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;&#x2F; Stencil calculation time!</span><br><span class="line">public virtual Material GetModifiedMaterial(Material baseMaterial)</span><br><span class="line">&#123;</span><br><span class="line">	if (!MaskEnabled())</span><br><span class="line">		return baseMaterial;</span><br><span class="line"></span><br><span class="line">	var rootSortCanvas &#x3D; MaskUtilities.FindRootSortOverrideCanvas(transform);</span><br><span class="line">	var stencilDepth &#x3D; MaskUtilities.GetStencilDepth(transform, rootSortCanvas);</span><br><span class="line">	if (stencilDepth &gt;&#x3D; 8)</span><br><span class="line">	&#123;</span><br><span class="line">		Debug.LogError(&quot;Attempting to use a stencil mask with depth &gt; 8&quot;, gameObject);</span><br><span class="line">		return baseMaterial;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	int desiredStencilBit &#x3D; 1 &lt;&lt; stencilDepth;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; if we are at the first level...</span><br><span class="line">	&#x2F;&#x2F; we want to destroy what is there</span><br><span class="line">	if (desiredStencilBit &#x3D;&#x3D; 1)</span><br><span class="line">	&#123;</span><br><span class="line">		var maskMaterial &#x3D; StencilMaterial.Add(baseMaterial, 1, StencilOp.Replace, CompareFunction.Always, m_ShowMaskGraphic ? ColorWriteMask.All : 0);</span><br><span class="line">		StencilMaterial.Remove(m_MaskMaterial);</span><br><span class="line">		m_MaskMaterial &#x3D; maskMaterial;</span><br><span class="line"></span><br><span class="line">		var unmaskMaterial &#x3D; StencilMaterial.Add(baseMaterial, 1, StencilOp.Zero, CompareFunction.Always, 0);</span><br><span class="line">		StencilMaterial.Remove(m_UnmaskMaterial);</span><br><span class="line">		m_UnmaskMaterial &#x3D; unmaskMaterial;</span><br><span class="line">		graphic.canvasRenderer.popMaterialCount &#x3D; 1;</span><br><span class="line">		graphic.canvasRenderer.SetPopMaterial(m_UnmaskMaterial, 0);</span><br><span class="line"></span><br><span class="line">		return m_MaskMaterial;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F;otherwise we need to be a bit smarter and set some read &#x2F; write masks</span><br><span class="line">	var maskMaterial2 &#x3D; StencilMaterial.Add(baseMaterial, desiredStencilBit | (desiredStencilBit - 1), StencilOp.Replace, CompareFunction.Equal, m_ShowMaskGraphic ? ColorWriteMask.All : 0, desiredStencilBit - 1, desiredStencilBit | (desiredStencilBit - 1));</span><br><span class="line">	StencilMaterial.Remove(m_MaskMaterial);</span><br><span class="line">	m_MaskMaterial &#x3D; maskMaterial2;</span><br><span class="line"></span><br><span class="line">	graphic.canvasRenderer.hasPopInstruction &#x3D; true;</span><br><span class="line">	var unmaskMaterial2 &#x3D; StencilMaterial.Add(baseMaterial, desiredStencilBit - 1, StencilOp.Replace, CompareFunction.Equal, 0, desiredStencilBit - 1, desiredStencilBit | (desiredStencilBit - 1));</span><br><span class="line">	StencilMaterial.Remove(m_UnmaskMaterial);</span><br><span class="line">	m_UnmaskMaterial &#x3D; unmaskMaterial2;</span><br><span class="line">	graphic.canvasRenderer.popMaterialCount &#x3D; 1;</span><br><span class="line">	graphic.canvasRenderer.SetPopMaterial(m_UnmaskMaterial, 0);</span><br><span class="line"></span><br><span class="line">	return m_MaskMaterial;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里进行的操作与<code>MaskableGraphic</code>很相似，获取<code>stencilDepth</code>（不同之处在于<code>Mask</code>如果有超过8层的<code>Mask</code>遮罩会抛出错误并返回原始的材质）。在获取到深度之后有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int desiredStencilBit &#x3D; 1 &lt;&lt; stencilDepth;</span><br></pre></td></tr></table></figure>
+
+<p>接下来处理遮罩材质和非遮罩材质，会产生两种材质，<code>Mask</code>自身使用<code>maskMaterial</code>，而非遮罩的材质会交给<code>canvasRenderer</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; ...</span><br><span class="line">var maskMaterial2 &#x3D; StencilMaterial.Add(baseMaterial, desiredStencilBit | (desiredStencilBit - 1), StencilOp.Replace, CompareFunction.Equal, m_ShowMaskGraphic ? ColorWriteMask.All : 0, desiredStencilBit - 1, desiredStencilBit | (desiredStencilBit - 1));</span><br><span class="line">&#x2F;&#x2F; ...</span><br><span class="line">var unmaskMaterial2 &#x3D; StencilMaterial.Add(baseMaterial, desiredStencilBit - 1, StencilOp.Replace, CompareFunction.Equal, 0, desiredStencilBit - 1, desiredStencilBit | (desiredStencilBit - 1));</span><br><span class="line">&#x2F;&#x2F; ...</span><br></pre></td></tr></table></figure>
+
+<p>再对照一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static Material Add(Material baseMat, int stencilID, StencilOp operation, CompareFunction compareFunction, ColorWriteMask colorWriteMask, int readMask, int writeMask)&#123;...&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Mask</code>用于遮罩的材质的模板值计算方法为<code>desiredStencilBit | (desiredStencilBit - 1)</code>，这意味着模板深度为x的<code>MaskableGraphic</code>，与模板深度为x-1的<code>Mask</code>，有相同的模板值。绘制<code>Mask</code>时会将模板值以<code>replace</code>的操作形式写入模板缓冲区，从而实现被遮罩图像的绘制。</p>
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://bitbucket.org/Unity-Technologies/ui" target="_blank" rel="noopener">https://bitbucket.org/Unity-Technologies/ui</a></p>
+<p><a href="https://docs.unity3d.com/ScriptReference/UI.MaskableGraphic.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/UI.MaskableGraphic.html</a></p>
+<p><a href="https://blog.csdn.net/ecidevilin/article/details/52555253" target="_blank" rel="noopener">https://blog.csdn.net/ecidevilin/article/details/52555253</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-03-18-c-sharp-notes-02/" rel="prev" title="c#笔记（二）">
+      <i class="fa fa-chevron-left"></i> c#笔记（二）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-04-18-unity-3d-ugui-source-code-04/" rel="next" title="Unity3D UGUI 源码学习 EventSystem">
+      Unity3D UGUI 源码学习 EventSystem <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#基类和实现的接口"><span class="nav-number">1.</span> <span class="nav-text">基类和实现的接口</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Graphic"><span class="nav-number">1.1.</span> <span class="nav-text">Graphic</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IClippable"><span class="nav-number">1.2.</span> <span class="nav-text">IClippable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IMaskable"><span class="nav-number">1.3.</span> <span class="nav-text">IMaskable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IMaterialModifier"><span class="nav-number">1.4.</span> <span class="nav-text">IMaterialModifier</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用于裁剪的成员和方法"><span class="nav-number">2.</span> <span class="nav-text">用于裁剪的成员和方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#m-ParentMask"><span class="nav-number">2.1.</span> <span class="nav-text">m_ParentMask</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UpdateClipParent"><span class="nav-number">2.2.</span> <span class="nav-text">UpdateClipParent()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UpdateCull"><span class="nav-number">2.3.</span> <span class="nav-text">UpdateCull()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#裁剪相关的其它类"><span class="nav-number">3.</span> <span class="nav-text">裁剪相关的其它类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RectMask2D"><span class="nav-number">3.1.</span> <span class="nav-text">RectMask2D</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MaskUtilities"><span class="nav-number">3.2.</span> <span class="nav-text">MaskUtilities</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Clipping"><span class="nav-number">3.3.</span> <span class="nav-text">Clipping</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用于遮罩的成员和方法"><span class="nav-number">4.</span> <span class="nav-text">用于遮罩的成员和方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#m-ShouldRecalculateStencil"><span class="nav-number">4.1.</span> <span class="nav-text">m_ShouldRecalculateStencil</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#m-StencilValue"><span class="nav-number">4.2.</span> <span class="nav-text">m_StencilValue</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#m-MaskMaterial"><span class="nav-number">4.3.</span> <span class="nav-text">m_MaskMaterial</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GetModifiedMaterial"><span class="nav-number">4.4.</span> <span class="nav-text">GetModifiedMaterial()</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mask"><span class="nav-number">5.</span> <span class="nav-text">Mask</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number"></span> <span class="nav-text">REFERENCE</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '49899be5c46513ee95062be2b9e330ac',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

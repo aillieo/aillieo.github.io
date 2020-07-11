@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="BaseMeshEffect是用于修改生成的网格的特效类的抽象基类，Outline和Shadow等都是其衍生类或衍生类的衍生类。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 BaseMeshEffect">
+<meta property="og:url" content="http://aillieo.cn/post/2018-08-08-unity-3d-ugui-source-code-14/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="BaseMeshEffect是用于修改生成的网格的特效类的抽象基类，Outline和Shadow等都是其衍生类或衍生类的衍生类。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2018-08-08-unity-3d-ugui-source-code-14/2018-08-08-unity-3d-ugui-source-code-14/pic_01.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-08-08-unity-3d-ugui-source-code-14/2018-08-08-unity-3d-ugui-source-code-14/pic_02.gif">
+<meta property="article:published_time" content="2018-08-08T14:31:20.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.071Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="shadow">
+<meta property="article:tag" content="outline">
+<meta property="article:tag" content="positionasuv1">
+<meta property="article:tag" content="BaseMeshEffect">
+<meta property="article:tag" content="IMeshModifier">
+<meta property="article:tag" content="mesh">
+<meta property="article:tag" content="ModifyMesh">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2018-08-08-unity-3d-ugui-source-code-14/2018-08-08-unity-3d-ugui-source-code-14/pic_01.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-08-08-unity-3d-ugui-source-code-14/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 BaseMeshEffect | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-08-08-unity-3d-ugui-source-code-14/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 BaseMeshEffect
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-08 22:31:20" itemprop="dateCreated datePublished" datetime="2018-08-08T22:31:20+08:00">2018-08-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>BaseMeshEffect</code>是用于修改生成的网格的特效类的抽象基类，<code>Outline</code>和<code>Shadow</code>等都是其衍生类或衍生类的衍生类。</p>
+<a id="more"></a>
+
+<h2 id="BaseMeshEffect"><a href="#BaseMeshEffect" class="headerlink" title="BaseMeshEffect"></a>BaseMeshEffect</h2><p>其定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public abstract class BaseMeshEffect : UIBehaviour, IMeshModifier</span><br></pre></td></tr></table></figure>
+
+<p><code>BaseMeshEffect</code>实现了接口<code>IMeshModifier</code>，所以其内部实现了方法<code>ModifyMesh(VertexHelper verts)</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public interface IMeshModifier</span><br><span class="line">&#123;</span><br><span class="line">    [Obsolete(&quot;use IMeshModifier.ModifyMesh (VertexHelper verts) instead&quot;, false)]</span><br><span class="line">    void ModifyMesh(Mesh mesh);</span><br><span class="line">    void ModifyMesh(VertexHelper verts);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>IMeshModifier</code>核心功能是对网格的修改，在<code>Graphic</code>的<code>DoMeshGeneration()</code>中会遍历所有实现了<code>IMeshModifier</code>接口的组件并调用其<code>ModifyMesh(VertexHelper verts)</code>方法，以达到修改网格的目的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">private void DoMeshGeneration()</span><br><span class="line">&#123;</span><br><span class="line">    if (rectTransform !&#x3D; null &amp;&amp; rectTransform.rect.width &gt;&#x3D; 0 &amp;&amp; rectTransform.rect.height &gt;&#x3D; 0)</span><br><span class="line">        OnPopulateMesh(s_VertexHelper);</span><br><span class="line">    else</span><br><span class="line">        s_VertexHelper.Clear(); &#x2F;&#x2F; clear the vertex helper so invalid graphics dont draw.</span><br><span class="line"></span><br><span class="line">    var components &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line">    GetComponents(typeof(IMeshModifier), components);</span><br><span class="line"></span><br><span class="line">    for (var i &#x3D; 0; i &lt; components.Count; i++)</span><br><span class="line">        ((IMeshModifier)components[i]).ModifyMesh(s_VertexHelper);</span><br><span class="line"></span><br><span class="line">    ListPool&lt;Component&gt;.Release(components);</span><br><span class="line"></span><br><span class="line">    s_VertexHelper.FillMesh(workerMesh);</span><br><span class="line">    canvasRenderer.SetMesh(workerMesh);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>BaseMeshEffect</code>中，<code>ModifyMesh(VertexHelper verts)</code>是抽象虚方法，因此，继承<code>BaseMeshEffect</code>的类必须覆写<code>ModifyMesh(VertexHelper vh)</code>。以下是UGUI中<code>BaseMeshEffect</code>的各个衍生类及继承关系：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public class PositionAsUV1 : BaseMeshEffect</span><br><span class="line">public class Shadow : BaseMeshEffect</span><br><span class="line">public class Outline : Shadow</span><br></pre></td></tr></table></figure>
+
+<p>接下来逐个分析这三个类：</p>
+<h2 id="PositionAsUV1"><a href="#PositionAsUV1" class="headerlink" title="PositionAsUV1"></a>PositionAsUV1</h2><p><code>PositionAsUV1</code>对于网格的修改在于将顶点坐标存入了UV1中:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public override void ModifyMesh(VertexHelper vh)</span><br><span class="line">&#123;</span><br><span class="line">    UIVertex vert &#x3D; new UIVertex();</span><br><span class="line">    for (int i &#x3D; 0; i &lt; vh.currentVertCount; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        vh.PopulateUIVertex(ref vert, i);</span><br><span class="line">        vert.uv1 &#x3D;  new Vector2(vert.position.x, vert.position.y);</span><br><span class="line">        vh.SetUIVertex(vert, i);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于接触Unity时间尚短，没有用过此组件，为测试效果这里强行使用一波。为了在Image中使用，需要修改Image的shader如下（注意标注了叹号的行）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line">Shader <span class="string">"TestShader/ShaderPosAsUV1"</span>     </span><br><span class="line">&#123;     </span><br><span class="line">    Properties     </span><br><span class="line">    &#123;     </span><br><span class="line">        [PerRendererData] _MainTex (<span class="string">"Sprite Texture"</span>, <span class="number">2</span>D) = <span class="string">"white"</span> &#123;&#125;</span><br><span class="line">        [PerRendererData] _AlphaTex(<span class="string">"Sprite Alpha Texture"</span>, <span class="number">2</span>D) = <span class="string">"white"</span> &#123;&#125;</span><br><span class="line">        _ExtraTex (<span class="string">"Extra Texture"</span>, <span class="number">2</span>D) = <span class="string">"white"</span> &#123;&#125;                    <span class="comment">/* ! */</span></span><br><span class="line">        _ExtraTexSize (<span class="string">"Extra Texture Size"</span>, Vector) = (<span class="number">100</span>,<span class="number">100</span>,<span class="number">0</span>,<span class="number">0</span>)    <span class="comment">/* ! */</span></span><br><span class="line">        _Color (<span class="string">"Tint"</span>, Color) = (<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// required for UI.Mask</span></span><br><span class="line">        _StencilComp (<span class="string">"Stencil Comparison"</span>, Float) = <span class="number">8</span></span><br><span class="line">        _Stencil (<span class="string">"Stencil ID"</span>, Float) = <span class="number">0</span></span><br><span class="line">        _StencilOp (<span class="string">"Stencil Operation"</span>, Float) = <span class="number">0</span></span><br><span class="line">        _StencilWriteMask (<span class="string">"Stencil Write Mask"</span>, Float) = <span class="number">255</span></span><br><span class="line">        _StencilReadMask (<span class="string">"Stencil Read Mask"</span>, Float) = <span class="number">255</span></span><br><span class="line">        _ColorMask (<span class="string">"Color Mask"</span>, Float) = <span class="number">15</span></span><br><span class="line"></span><br><span class="line">    &#125;     </span><br><span class="line">     </span><br><span class="line">    SubShader     </span><br><span class="line">    &#123;     </span><br><span class="line">        Tags     </span><br><span class="line">        &#123;      </span><br><span class="line">            <span class="string">"Queue"</span>=<span class="string">"Transparent"</span>      </span><br><span class="line">            <span class="string">"IgnoreProjector"</span>=<span class="string">"True"</span>      </span><br><span class="line">            <span class="string">"RenderType"</span>=<span class="string">"Transparent"</span>      </span><br><span class="line">            <span class="string">"PreviewType"</span>=<span class="string">"Plane"</span>     </span><br><span class="line">            <span class="string">"CanUseSpriteAtlas"</span>=<span class="string">"True"</span>     </span><br><span class="line">        &#125;     </span><br><span class="line"></span><br><span class="line">        Blend SrcAlpha OneMinusSrcAlpha  </span><br><span class="line">        ZWrite Off</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// required for UI.Mask</span></span><br><span class="line">        Stencil</span><br><span class="line">        &#123;</span><br><span class="line">             Ref [_Stencil]</span><br><span class="line">             Comp [_StencilComp]</span><br><span class="line">             Pass [_StencilOp] </span><br><span class="line">             ReadMask [_StencilReadMask]</span><br><span class="line">             WriteMask [_StencilWriteMask]</span><br><span class="line">        &#125;</span><br><span class="line">        ColorMask [_ColorMask]</span><br><span class="line"></span><br><span class="line">        Pass     </span><br><span class="line">        &#123;     </span><br><span class="line">            CGPROGRAM     </span><br><span class="line">            #pragma vertex vert     </span><br><span class="line">            #pragma fragment frag     </span><br><span class="line">            #include <span class="string">"UnityCG.cginc"</span>     </span><br><span class="line">                 </span><br><span class="line">            struct <span class="keyword">appdata_t</span>     </span><br><span class="line">            &#123;     </span><br><span class="line">                float4 vertex   : POSITION;     </span><br><span class="line">                float4 color    : COLOR;     </span><br><span class="line">                float2 texcoord : TEXCOORD0;     </span><br><span class="line">                float2 texcoord_uv1 : TEXCOORD1;    <span class="comment">/* ! */</span></span><br><span class="line">            &#125;;     </span><br><span class="line">     </span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">v2f</span>     </span></span><br><span class="line"><span class="class">            &#123;</span>     </span><br><span class="line">                float4 vertex   : SV_POSITION;     </span><br><span class="line">                fixed4 color    : COLOR;     </span><br><span class="line">                half2 texcoord  : TEXCOORD0;</span><br><span class="line">                half2 texcoord_uv1  : TEXCOORD1;    <span class="comment">/* ! */</span></span><br><span class="line">            &#125;;     </span><br><span class="line">               </span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            sampler2D _AlphaTex;</span><br><span class="line">            fixed4 _Color;     </span><br><span class="line">            sampler2D _ExtraTex;    <span class="comment">/* ! */</span></span><br><span class="line">            fixed4 _ExtraTexSize;   <span class="comment">/* ! */</span></span><br><span class="line">                </span><br><span class="line">            <span class="function">v2f <span class="title">vert</span><span class="params">(<span class="keyword">appdata_t</span> IN)</span>     </span></span><br><span class="line"><span class="function">            </span>&#123;</span><br><span class="line">                v2f OUT;     </span><br><span class="line">                OUT.vertex = UnityObjectToClipPos(IN.vertex);     </span><br><span class="line">                OUT.texcoord = IN.texcoord;   </span><br><span class="line">                OUT.texcoord_uv1 = IN.texcoord_uv1;     <span class="comment">/* ! */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> UNITY_HALF_TEXEL_OFFSET     </span></span><br><span class="line">                OUT.vertex.xy -= (_ScreenParams.zw<span class="number">-1.0</span>);     </span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span>     </span></span><br><span class="line">                OUT.color = IN.color * _Color;     </span><br><span class="line">                <span class="keyword">return</span> OUT;  </span><br><span class="line">            &#125;  </span><br><span class="line">     </span><br><span class="line">            <span class="function">fixed4 <span class="title">frag</span><span class="params">(v2f IN)</span> : SV_Target     </span></span><br><span class="line"><span class="function">            </span>&#123;     </span><br><span class="line">                <span class="comment">//fixed4 alphaTex = tex2D(_AlphaTex, IN.texcoord);</span></span><br><span class="line">                <span class="comment">//fixed4 finalTex = tex2D(_MainTex, IN.texcoord);</span></span><br><span class="line"></span><br><span class="line">                IN.texcoord_uv1.x /= _ExtraTexSize.x;   <span class="comment">/* ! */</span></span><br><span class="line">                IN.texcoord_uv1.y /= _ExtraTexSize.y;   <span class="comment">/* ! */</span></span><br><span class="line"></span><br><span class="line">                fixed4 extraTex = tex2D(_ExtraTex,IN.texcoord_uv1);     <span class="comment">/* ! */</span></span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> extraTex;</span><br><span class="line"></span><br><span class="line">            &#125;     </span><br><span class="line">            ENDCG     </span><br><span class="line">        &#125;     </span><br><span class="line">    &#125;     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>除此之外在Image所在的Canvas需要开启额外的通道TexCoord1 ：</p>
+<p><img src="2018-08-08-unity-3d-ugui-source-code-14/pic_01.png" alt="alt text"></p>
+<p>Image使用上边的shader，选择一个sprite/UI图片作为<code>_ExtraTex</code>，同时把<code>_ExtraTex</code>纹理的尺寸填到<code>_ExtraTexSize</code>的前两个分量。完成上边的操作之后，拖动Image的pivot，应该可以看到类似下边的效果：</p>
+<p><img src="2018-08-08-unity-3d-ugui-source-code-14/pic_02.gif" alt="alt text"></p>
+<p>Image的顶点坐标使用的是相对于pivot的值，在shader中以<code>texcoord_uv1</code>获取，通过除以纹理的尺寸<code>_ExtraTexSize</code>，得到位于0~1范围内的纹理坐标，最终绘制在屏幕上。拖动pivot时，Image的顶点坐标会发生变化，也就观察看到了纹理的变化。</p>
+<h2 id="Shadow"><a href="#Shadow" class="headerlink" title="Shadow"></a>Shadow</h2><p>为组件增加阴影效果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public override void ModifyMesh(VertexHelper vh)</span><br><span class="line">&#123;</span><br><span class="line">    if (!IsActive())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var output &#x3D; ListPool&lt;UIVertex&gt;.Get();</span><br><span class="line">    vh.GetUIVertexStream(output);</span><br><span class="line"></span><br><span class="line">    ApplyShadow(output, effectColor, 0, output.Count, effectDistance.x, effectDistance.y);</span><br><span class="line">    vh.Clear();</span><br><span class="line">    vh.AddUIVertexTriangleStream(output);</span><br><span class="line">    ListPool&lt;UIVertex&gt;.Release(output);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>vh.GetUIVertexStream(output)</code>把当前的顶点信息取到一个<code>List&lt;UIVertex&gt;</code>中，接下来修改取出的这个列表，最终使用<code>vh.AddUIVertexTriangleStream(output)</code>保存回去。以下是<code>ApplyShadow</code>对<code>List&lt;UIVertex&gt; output</code>的修改：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">protected void ApplyShadowZeroAlloc(List&lt;UIVertex&gt; verts, Color32 color, int start, int end, float x, float y)</span><br><span class="line">&#123;</span><br><span class="line">    UIVertex vt;</span><br><span class="line"></span><br><span class="line">    var neededCapacity &#x3D; verts.Count + end - start;</span><br><span class="line">    if (verts.Capacity &lt; neededCapacity)</span><br><span class="line">        verts.Capacity &#x3D; neededCapacity;</span><br><span class="line"></span><br><span class="line">    for (int i &#x3D; start; i &lt; end; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        vt &#x3D; verts[i];</span><br><span class="line">        verts.Add(vt);</span><br><span class="line"></span><br><span class="line">        Vector3 v &#x3D; vt.position;</span><br><span class="line">        v.x +&#x3D; x;</span><br><span class="line">        v.y +&#x3D; y;</span><br><span class="line">        vt.position &#x3D; v;</span><br><span class="line">        var newColor &#x3D; color;</span><br><span class="line">        if (m_UseGraphicAlpha)</span><br><span class="line">            newColor.a &#x3D; (byte)((newColor.a * verts[i].color.a) &#x2F; 255);</span><br><span class="line">        vt.color &#x3D; newColor;</span><br><span class="line">        verts[i] &#x3D; vt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected void ApplyShadow(List&lt;UIVertex&gt; verts, Color32 color, int start, int end, float x, float y)</span><br><span class="line">&#123;</span><br><span class="line">    ApplyShadowZeroAlloc(verts, color, start, end, x, y);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>按照原顶点的顺序，从前至后，先追加一个相同的顶点，然后修改原顶点的值，以保证shadow绘制在原对象的下边。修改顶点值的之后，根据参数偏移顶点坐标、设置颜色等。</p>
+<h2 id="Outline"><a href="#Outline" class="headerlink" title="Outline"></a>Outline</h2><p><code>Outline</code>会增加轮廓效果。基于<code>Shadow</code>实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public override void ModifyMesh(VertexHelper vh)</span><br><span class="line">&#123;</span><br><span class="line">    if (!IsActive())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var verts &#x3D; ListPool&lt;UIVertex&gt;.Get();</span><br><span class="line">    vh.GetUIVertexStream(verts);</span><br><span class="line"></span><br><span class="line">    var neededCpacity &#x3D; verts.Count * 5;</span><br><span class="line">    if (verts.Capacity &lt; neededCpacity)</span><br><span class="line">        verts.Capacity &#x3D; neededCpacity;</span><br><span class="line"></span><br><span class="line">    var start &#x3D; 0;</span><br><span class="line">    var end &#x3D; verts.Count;</span><br><span class="line">    ApplyShadowZeroAlloc(verts, effectColor, start, verts.Count, effectDistance.x, effectDistance.y);</span><br><span class="line"></span><br><span class="line">    start &#x3D; end;</span><br><span class="line">    end &#x3D; verts.Count;</span><br><span class="line">    ApplyShadowZeroAlloc(verts, effectColor, start, verts.Count, effectDistance.x, -effectDistance.y);</span><br><span class="line"></span><br><span class="line">    start &#x3D; end;</span><br><span class="line">    end &#x3D; verts.Count;</span><br><span class="line">    ApplyShadowZeroAlloc(verts, effectColor, start, verts.Count, -effectDistance.x, effectDistance.y);</span><br><span class="line"></span><br><span class="line">    start &#x3D; end;</span><br><span class="line">    end &#x3D; verts.Count;</span><br><span class="line">    ApplyShadowZeroAlloc(verts, effectColor, start, verts.Count, -effectDistance.x, -effectDistance.y);</span><br><span class="line"></span><br><span class="line">    vh.Clear();</span><br><span class="line">    vh.AddUIVertexTriangleStream(verts);</span><br><span class="line">    ListPool&lt;UIVertex&gt;.Release(verts);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Outline</code>的本质是绘制了四份<code>Shadow</code>，虽然带来了较高的overdraw但是也都是同一批次绘制。</p>
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-08-02-unity-3d-ugui-source-code-13/" rel="prev" title="Unity3D UGUI 源码学习 Mask">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 Mask
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-09-07-unity-3d-ugui-source-code-15/" rel="next" title="Unity3D UGUI 源码学习 其它">
+      Unity3D UGUI 源码学习 其它 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#BaseMeshEffect"><span class="nav-number">1.</span> <span class="nav-text">BaseMeshEffect</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PositionAsUV1"><span class="nav-number">2.</span> <span class="nav-text">PositionAsUV1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shadow"><span class="nav-number">3.</span> <span class="nav-text">Shadow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Outline"><span class="nav-number">4.</span> <span class="nav-text">Outline</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'b49a1f9f5806dadbf0c10f34369658c8',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

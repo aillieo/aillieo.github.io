@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近做了性能优化相关的工作，其中一些是关于战斗模块的渲染的。主要是对场景中使用的基于SkinnedMeshRenderer的网格进行了一些合批优化（降DC），记录如下。项目使用的Unity版本为5.6.4p1。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D SkinnedMeshRenderer合批优化">
+<meta property="og:url" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="最近做了性能优化相关的工作，其中一些是关于战斗模块的渲染的。主要是对场景中使用的基于SkinnedMeshRenderer的网格进行了一些合批优化（降DC），记录如下。项目使用的Unity版本为5.6.4p1。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_a_01.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_a_02.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_a_03.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_a_04.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_b_01.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_b_02.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_b_03.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_b_04.png">
+<meta property="article:published_time" content="2018-06-30T15:07:19.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.064Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Unity">
+<meta property="article:tag" content="合批">
+<meta property="article:tag" content="batching">
+<meta property="article:tag" content="batch">
+<meta property="article:tag" content="dc">
+<meta property="article:tag" content="draw call">
+<meta property="article:tag" content="骨骼动画">
+<meta property="article:tag" content="skinned mesh">
+<meta property="article:tag" content="u3d">
+<meta property="article:tag" content="SkinnedMeshRenderer">
+<meta property="article:tag" content="性能">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/2018-06-30-unity-3d-notes-02/fig_a_01.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D SkinnedMeshRenderer合批优化 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-06-30-unity-3d-notes-02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D SkinnedMeshRenderer合批优化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-06-30 23:07:19" itemprop="dateCreated datePublished" datetime="2018-06-30T23:07:19+08:00">2018-06-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近做了性能优化相关的工作，其中一些是关于战斗模块的渲染的。主要是对场景中使用的基于SkinnedMeshRenderer的网格进行了一些合批优化（降DC），记录如下。项目使用的Unity版本为5.6.4p1。</p>
+<a id="more"></a>
+
+<p>游戏中的战斗模块是这样的：</p>
+<ul>
+<li>战斗逻辑由服务器承担，战斗瞬间完成，将战斗过程发给客户端，客户端负责播放；</li>
+<li>场景中有敌我双方最多12个方阵（双方各2排3列），每个方阵由12个小兵组成（3排4列）；</li>
+<li>战斗基于回合制，敌我各个方阵依次攻击，攻击时会出列，冲到目标方阵前，攻击完成后返回；</li>
+<li>小兵使用的是带动画的3D模型，使用AnimationController控制动作；</li>
+<li>每个方阵的小兵是完全一致的（含模型、贴图、动作）</li>
+</ul>
+<p>综上，使用战场管理器根据后端发来的战斗数据，改变各个方阵的position以及控制AnimationController来实现战斗过程的播放。</p>
+<p>战斗模块中的渲染部分，从最初的版本到目前的一个可接受的版本，总共经历了多次迭代，以下详细记录，本文中使用的截图非项目截图（单个模型面数小于项目中使用的面数，此处使用的模型来自<a href="https://assetstore.unity.com/packages/3d/characters/toon-rts-units-demo-69687" target="_blank" rel="noopener">AssetStore</a>，仅供演示使用）。本文的工程可以在<a href="https://github.com/aillieo/SkinnedMeshBatching" target="_blank" rel="noopener">github</a>上看到所有源码。</p>
+<h2 id="原始版本"><a href="#原始版本" class="headerlink" title="原始版本"></a>原始版本</h2><p>每个方阵12个小兵，实实在在地放了12个SkinnedMeshRenderer（后边简称为SMR），在方阵的脚本中保存了所有的AnimationController（后边简称AC），当方阵要移动时则移动所有的SMR，播放动画时同时为所有AC设置状态。</p>
+<p>此方案每方阵共计12个SMR和12个AC。</p>
+<h2 id="两轮迭代"><a href="#两轮迭代" class="headerlink" title="两轮迭代"></a>两轮迭代</h2><h3 id="迭代一：共享网格"><a href="#迭代一：共享网格" class="headerlink" title="迭代一：共享网格"></a>迭代一：共享网格</h3><p>每个方阵放1个带SMR的小兵模型，每帧Bake网格，同时有12个MeshRenderer，其MeshFilter指向的Mesh即SMR每帧Bake出的Mesh。考虑到SMR的AC会控制SMR及父节点的运动，保留了所有的AC，仅仅把实际用来展示的SMR换成了普通的MeshRenderer。</p>
+<p>此方案每方阵共计1个SMR和12（或13）个AC，节省了一些骨骼动画的计算。所有的MeshRenderer使用相同的网格和材质，但是由于单个模型顶点数的原因无法合批绘制。</p>
+<h3 id="迭代二：GPU-Instancing"><a href="#迭代二：GPU-Instancing" class="headerlink" title="迭代二：GPU Instancing"></a>迭代二：GPU Instancing</h3><p>每个方阵1个带SMR的小兵模型，每帧需要Bake，并将Bake的Mesh使用<code>Graphics.DrawMeshInstanced</code>在指定的位置绘制12份。这一操作需要系统支持GPU Instancing并且材质（shader）也要支持。大概是在shader中增加以下的代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#pragma multi_compile_instancing</span><br></pre></td></tr></table></figure>
+
+<p>在顶点着色器的输入的结构体中增加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UNITY_VERTEX_INPUT_INSTANCE_ID</span><br></pre></td></tr></table></figure>
+
+<p>在顶点着色器函数中增加：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UNITY_SETUP_INSTANCE_ID(v);</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>v</code>是顶点着色器的输入。<a href="https://github.com/aillieo/SkinnedMeshBatching/blob/master/Assets/SkinnedMeshBatching/UnlitInstancing.shader" target="_blank" rel="noopener">这里</a>是本文中使用的支持Instancing的shader。</p>
+<p>最后不要忘了将材质是否支持GPU Instancing属性设置为true。</p>
+<p>此方案每方阵共计1个SMR和1个AC，但需要系统和材质支持GPU Instancing。12个小兵只需一个DrawCall即可绘制出来。当整个方阵移动时，需要手动更新这些Instancing的变换矩阵。</p>
+<p>目前项目中使用了结合了迭代一和迭代二的方案，首先会根据系统和材质是否支持GPU Instancing做出判断，如果支持则使用迭代二的方案，否则使用迭代一的方案。</p>
+<h3 id="备选方案：GPU-Instancing的共享网格"><a href="#备选方案：GPU-Instancing的共享网格" class="headerlink" title="备选方案：GPU Instancing的共享网格"></a>备选方案：GPU Instancing的共享网格</h3><p>如果系统支持GPU Instancing且使用迭代二中支持GPU Instancing的材质，在使用迭代一共享网格方案时也可以合批（按照GPU Instancing处理，可以突破最大顶点数对合批的限制）。</p>
+<p>与迭代二相比，这种备选方案不需要计算Instance绘制时的变换矩阵，但是却依赖AC来控制各小兵中SMR及其父级节点的变换。</p>
+<h3 id="方案汇总"><a href="#方案汇总" class="headerlink" title="方案汇总"></a>方案汇总</h3><p>在一台支持GPU Instancing的机器上对比四种方案如下：</p>
+<table>
+<thead>
+<tr>
+<th>方案A</th>
+<th>方案B</th>
+<th>方案C</th>
+<th>方案D</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>原始版本</td>
+<td>迭代一</td>
+<td>迭代二</td>
+<td>备选方案</td>
+</tr>
+</tbody></table>
+<p>以下依次是方案ABCD场景statistics：</p>
+<p>方案A：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_a_01.png" alt="alt text"></p>
+<p>方案B：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_a_02.png" alt="alt text"></p>
+<p>方案C：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_a_03.png" alt="alt text"></p>
+<p>方案D：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_a_04.png" alt="alt text"></p>
+<p>可以看到基本上方案A和方案B是同一个level的，方案C和方案D是同一个level，FPS由于一直波动所以截取到的数值只能表现出大概的趋势。</p>
+<p>下边依次是方案ABCD绘制Frame截图（使用FrameDebugger截取）：</p>
+<p>方案A：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_b_01.png" alt="alt text"></p>
+<p>方案B：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_b_02.png" alt="alt text"></p>
+<p>方案C：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_b_03.png" alt="alt text"></p>
+<p>方案D：</p>
+<p><img src="2018-06-30-unity-3d-notes-02/fig_b_04.png" alt="alt text"></p>
+<p>可以看到，方案B中因为超出300顶点这一限制所以无法合批，但是修改材质之后（方案D），支持GPU Instancing，不再受此限制的约束。</p>
+<p>包含以上四个方案的项目工程都放在<a href="https://github.com/aillieo/SkinnedMeshBatching" target="_blank" rel="noopener">github</a>。</p>
+<h2 id="一些弯路"><a href="#一些弯路" class="headerlink" title="一些弯路"></a>一些弯路</h2><p>除了前边的一些方案之外，还曾经走过一些弯路。在使用基于共享网格的迭代一方案时，发现会因为顶点数量超出限制而导致网格和材质都相同的多次绘制无法合批。就想到使用<code>Mesh.Combine</code>来合并网格，初始化时合并一次并在每帧更新顶点和变换矩阵，或者每帧合并。</p>
+<p>使用这种方案，确实可以合批降低DC，但是大大增加了CPU的计算负荷，相比之下整体性能降低，在移动平台上FPS不升反降。于是抛弃了此方案。</p>
+<h2 id="其它思路"><a href="#其它思路" class="headerlink" title="其它思路"></a>其它思路</h2><p>另外有一些思路，做了一些简单尝试，但是未落实成具体方案：</p>
+<h3 id="实时三渲二"><a href="#实时三渲二" class="headerlink" title="实时三渲二"></a>实时三渲二</h3><p>使用另外的相机将小兵模型绘制到RenderTexture，然后将此RT作为纹理，在场景中使用12个2D的Sprite来显示。</p>
+<p>目前项目中使用的是正交相机且固定相机位置，此方案是可行的。但是后期需求变化可能会替换为透视相机且相机允许转动，每个小兵呈现出的2D图像不同，这一方案将失效。</p>
+<p>抛开无法满足未来需求这一点，还有其它的一些因素需要考虑，这种绘制方式可能增加额外的性能开销，如多了一个相机和RT，各个Sprite的空间位置关系、绘制层级控制，小兵与HUD的绘制层级控制等。</p>
+<h3 id="几何着色器"><a href="#几何着色器" class="headerlink" title="几何着色器"></a>几何着色器</h3><p>在shader中增加几何着色器（Geometry shader），以控制将一个模型的顶点（三角形）绘制出更多份。由于项目最终是部署到Android和iOS平台，所以很快放弃了这一思路。</p>
+<p>如果将来会有PC或者主机平台的项目，或许可以尝试。将原来的坐标转换（MVP矩阵变换）的工作从顶点着色器中移出，放入几何着色器。并且几何着色器中将输入的顶点（三角形）绘制多份，最终送达片段着色器一并绘制。由于对于Unity及图形学的研究尚浅，不知这种方案是否可以实现，如果真的可以实现，也不了解这种方法是否会带来更大的性能开销，待后续有时间再研究研究这个。</p>
+<h3 id="Animation-Instancing"><a href="#Animation-Instancing" class="headerlink" title="Animation Instancing"></a>Animation Instancing</h3><p>最后一个方案是Animation Instancing，这种方法是在网上看到的（<a href="https://blogs.unity3d.com/cn/2018/04/16/animation-instancing-instancing-for-skinnedmeshrenderer/" target="_blank" rel="noopener">链接</a>），由于与项目中的需求有些差异，并且时间关系也没有去做更多的探索。这种方案可以针对更高要求的SMR合批绘制，不限制各个SMR必须有相同的动作。预先生成动画保存到纹理中，然后运行时读取纹理来播放动画，大幅降低了CPU的负载（提升了少量GPU的负荷和内存占用），整体的渲染性能大大提升。但是目前无法支持动画状态切换，不过作者表示很快会支持这一功能。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/ScriptReference/SkinnedMeshRenderer.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/SkinnedMeshRenderer.html</a><br><a href="https://docs.unity3d.com/ScriptReference/Graphics.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/Graphics.html</a><br><a href="https://blogs.unity3d.com/cn/2018/04/16/animation-instancing-instancing-for-skinnedmeshrenderer/" target="_blank" rel="noopener">https://blogs.unity3d.com/cn/2018/04/16/animation-instancing-instancing-for-skinnedmeshrenderer/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/render/" rel="tag"># render</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-06-24-lua-notes-02/" rel="prev" title="Lua笔记">
+      <i class="fa fa-chevron-left"></i> Lua笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-07-02-osx-sed-remove-bom/" rel="next" title="OSX使用sed移除UTF-8中的BOM">
+      OSX使用sed移除UTF-8中的BOM <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#原始版本"><span class="nav-number">1.</span> <span class="nav-text">原始版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#两轮迭代"><span class="nav-number">2.</span> <span class="nav-text">两轮迭代</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代一：共享网格"><span class="nav-number">2.1.</span> <span class="nav-text">迭代一：共享网格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代二：GPU-Instancing"><span class="nav-number">2.2.</span> <span class="nav-text">迭代二：GPU Instancing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#备选方案：GPU-Instancing的共享网格"><span class="nav-number">2.3.</span> <span class="nav-text">备选方案：GPU Instancing的共享网格</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#方案汇总"><span class="nav-number">2.4.</span> <span class="nav-text">方案汇总</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些弯路"><span class="nav-number">3.</span> <span class="nav-text">一些弯路</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其它思路"><span class="nav-number">4.</span> <span class="nav-text">其它思路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实时三渲二"><span class="nav-number">4.1.</span> <span class="nav-text">实时三渲二</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#几何着色器"><span class="nav-number">4.2.</span> <span class="nav-text">几何着色器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Animation-Instancing"><span class="nav-number">4.3.</span> <span class="nav-text">Animation Instancing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'c63bef540a6c2f05118ed5c420e3a6af',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

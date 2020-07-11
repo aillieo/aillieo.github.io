@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="第二篇C#源码学习的记录，这次是Hashtable类，同样是.NET 4.8的源码。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C# Hashtable源码学习">
+<meta property="og:url" content="http://aillieo.cn/post/2019-06-13-c-sharp-source-code-hashtable/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="第二篇C#源码学习的记录，这次是Hashtable类，同样是.NET 4.8的源码。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-06-13T12:59:21.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.081Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="哈希表">
+<meta property="article:tag" content="哈希">
+<meta property="article:tag" content="Dictionary">
+<meta property="article:tag" content="Hashtable">
+<meta property="article:tag" content="遍历">
+<meta property="article:tag" content="bucket">
+<meta property="article:tag" content="bucket">
+<meta property="article:tag" content="碰撞">
+<meta property="article:tag" content="开放寻址">
+<meta property="article:tag" content="双重哈希">
+<meta property="article:tag" content="IEnumerator">
+<meta property="article:tag" content="IEnumerable">
+<meta property="article:tag" content="hashcode">
+<meta property="article:tag" content="索引">
+<meta property="article:tag" content="loadFactor">
+<meta property="article:tag" content="seed">
+<meta property="article:tag" content="sync">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2019-06-13-c-sharp-source-code-hashtable/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>C# Hashtable源码学习 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2019-06-13-c-sharp-source-code-hashtable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C# Hashtable源码学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-06-13 20:59:21" itemprop="dateCreated datePublished" datetime="2019-06-13T20:59:21+08:00">2019-06-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/" itemprop="url" rel="index"><span itemprop="name">C&#35;</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/C-35-Source-Code/" itemprop="url" rel="index"><span itemprop="name">C&#35; Source Code</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>第二篇C#源码学习的记录，这次是<code>Hashtable</code>类，同样是.NET 4.8的源码。</p>
+<a id="more"></a>
+
+<h2 id="Hashtable"><a href="#Hashtable" class="headerlink" title="Hashtable"></a>Hashtable</h2><p><code>Hashtable</code>可以认为是非泛型版本的<code>Dictionary</code>，但是除了这一点差别之外，<code>Hashtable</code>使用双重哈希来处理哈希碰撞，也和<code>Dictionary</code>不同。在<code>Hashtable</code>的源代码中有大量的注释，并且命名风格也和其它的很多文件不同，看起来它和<code>Dictionary</code>更像是出自两个不同时期（或不同团队）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[DebuggerTypeProxy(typeof(System.Collections.Hashtable.HashtableDebugView))]</span><br><span class="line">[DebuggerDisplay(&quot;Count &#x3D; &#123;Count&#125;&quot;)]</span><br><span class="line">[System.Runtime.InteropServices.ComVisible(true)]</span><br><span class="line">[Serializable]</span><br><span class="line">public class Hashtable : IDictionary, ISerializable, IDeserializationCallback, ICloneable &#123;</span><br><span class="line">	&#x2F;&#x2F; ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Hashtable</code>实现的接口<code>IDictionary</code>，会对数据增删改查，除此之外还有序列化相关的接口和深拷贝的接口。</p>
+<h3 id="内嵌类和结构"><a href="#内嵌类和结构" class="headerlink" title="内嵌类和结构"></a>内嵌类和结构</h3><h4 id="bucket"><a href="#bucket" class="headerlink" title="bucket"></a>bucket</h4><p>数据存储的载体，其结构定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">private struct bucket &#123;</span><br><span class="line">    public Object key;</span><br><span class="line">    public Object val;</span><br><span class="line">    public int hash_coll;   &#x2F;&#x2F; Store hash code; sign bit means there was a collision.</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>hash_coll</code>是一个整数，低31位存储key的哈希值，符号位表示是否发生过碰撞。在<code>Hashtable</code>中使用数组<code>buckets</code>的下标作为开放寻址的空间，后边会详细说到哈希的原理。</p>
+<h4 id="HashtableEnumerator"><a href="#HashtableEnumerator" class="headerlink" title="HashtableEnumerator"></a>HashtableEnumerator</h4><p>遍历<code>Hashtable</code>的辅助类，实现了<code>IEnumerator</code>接口。</p>
+<h4 id="SyncHashtable"><a href="#SyncHashtable" class="headerlink" title="SyncHashtable"></a>SyncHashtable</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">private class SyncHashtable : Hashtable, IEnumerable</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>SyncHashtable</code>是线程安全版本的<code>Hashtable</code>，后边会展开解读。</p>
+<h3 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h3><h4 id="尺寸和数量参数"><a href="#尺寸和数量参数" class="headerlink" title="尺寸和数量参数"></a>尺寸和数量参数</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; The total number of entries in the hash table.</span><br><span class="line">private  int count;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; The total number of collision bits set in the hashtable</span><br><span class="line">private int occupancy;</span><br><span class="line"></span><br><span class="line">private  int loadsize;</span><br><span class="line">private  float loadFactor;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>Hashtable</code>中有这么几个记录尺寸或数量的参数，它们的具体含义如下：</p>
+<p><code>count</code>：记录<code>Hashtable</code>中存储的键值对的数量，增加新数据时会加1，移除数据时会减1，公有的属性<code>Count</code>返回的也是它；</p>
+<p><code>occupancy</code>：记录标记为碰撞的个数，也就是<code>buckets</code>中<code>hash_coll</code>的最高位为1的<code>bucket</code>的个数。每当产生新的碰撞时，就会把<code>occupancy</code>加1，当到达一定阈值（<code>loadsize</code>）时就会触发<code>rehash()</code>；</p>
+<p><code>loadFactor</code>：负载因子，它的含义是<code>Hashtable</code>中实际存储的数据（键值对）数量和总的<code>bucket</code>的数量的最大比值。构造函数中可以指定，合法范围为0.1到1，默认参数传入的是1，构造时<code>loadFactor</code>会被乘以<code>0.72</code>（这个值是一个最优值）；</p>
+<p><code>loadsize</code>：使用<code>loadFactor</code>和<code>hashsize</code>（即<code>buckets</code>的长度）计算出来的负载尺寸，是扩张临界值；</p>
+<p>从构造函数中可以看到这些参数的定义方式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public Hashtable(int capacity, float loadFactor) &#123;</span><br><span class="line">    if (capacity &lt; 0)</span><br><span class="line">        throw new ArgumentOutOfRangeException(&quot;capacity&quot;, Environment.GetResourceString(&quot;ArgumentOutOfRange_NeedNonNegNum&quot;));</span><br><span class="line">    if (!(loadFactor &gt;&#x3D; 0.1f &amp;&amp; loadFactor &lt;&#x3D; 1.0f))</span><br><span class="line">        throw new ArgumentOutOfRangeException(&quot;loadFactor&quot;, Environment.GetResourceString(&quot;ArgumentOutOfRange_HashtableLoadFactor&quot;, .1, 1.0));</span><br><span class="line">    Contract.EndContractBlock();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Based on perf work, .72 is the optimal load factor for this table.  </span><br><span class="line">    this.loadFactor &#x3D; 0.72f * loadFactor;</span><br><span class="line"></span><br><span class="line">    double rawsize &#x3D; capacity &#x2F; this.loadFactor;</span><br><span class="line">    if (rawsize &gt; Int32.MaxValue)</span><br><span class="line">        throw new ArgumentException(Environment.GetResourceString(&quot;Arg_HTCapacityOverflow&quot;));</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Avoid awfully small sizes</span><br><span class="line">    int hashsize &#x3D; (rawsize &gt; InitialSize) ? HashHelpers.GetPrime((int)rawsize) : InitialSize;</span><br><span class="line">    buckets &#x3D; new bucket[hashsize];</span><br><span class="line"></span><br><span class="line">    loadsize &#x3D; (int)(this.loadFactor * hashsize);</span><br><span class="line">    isWriterInProgress &#x3D; false;</span><br><span class="line">    &#x2F;&#x2F; Based on the current algorithm, loadsize must be less than hashsize.</span><br><span class="line">    Contract.Assert( loadsize &lt; hashsize, &quot;Invalid hashtable loadsize!&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="哈希函数和碰撞处理"><a href="#哈希函数和碰撞处理" class="headerlink" title="哈希函数和碰撞处理"></a>哈希函数和碰撞处理</h4><p>下边这一段逻辑在<code>Hashtable</code>类中反复出现，代码是查找的逻辑：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">uint seed;</span><br><span class="line">uint incr;</span><br><span class="line">&#x2F;&#x2F; Take a snapshot of buckets, in case another thread resizes table</span><br><span class="line">bucket[] lbuckets &#x3D; buckets;</span><br><span class="line">uint hashcode &#x3D; InitHash(key, lbuckets.Length, out seed, out incr);</span><br><span class="line">int  ntry &#x3D; 0;</span><br><span class="line"></span><br><span class="line">bucket b;</span><br><span class="line">int bucketNumber &#x3D; (int) (seed % (uint)lbuckets.Length);            </span><br><span class="line">do &#123;</span><br><span class="line">    b &#x3D; lbuckets[bucketNumber];</span><br><span class="line">    if (b.key &#x3D;&#x3D; null) &#123;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line">    if (((b.hash_coll &amp;  0x7FFFFFFF) &#x3D;&#x3D; hashcode) &amp;&amp; </span><br><span class="line">        KeyEquals (b.key, key))</span><br><span class="line">        return true;</span><br><span class="line">    bucketNumber &#x3D; (int) (((long)bucketNumber + incr)% (uint)lbuckets.Length);                              </span><br><span class="line">&#125; while (b.hash_coll &lt; 0 &amp;&amp; ++ntry &lt; lbuckets.Length);</span><br><span class="line">return false;</span><br></pre></td></tr></table></figure>
+
+<p>首先是使用<code>InitHash</code>初始化一个<code>seed</code>和<code>incr</code>，<code>InitHash</code>函数如下，注释写得非常清晰，使用的是经典的双重哈希方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; ‘InitHash’ is basically an implementation of classic DoubleHashing (see http:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Double_hashing)  </span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; 1) The only ‘correctness’ requirement is that the ‘increment’ used to probe </span><br><span class="line">&#x2F;&#x2F;    a. Be non-zero</span><br><span class="line">&#x2F;&#x2F;    b. Be relatively prime to the table size ‘hashSize’. (This is needed to insure you probe all entries in the table before you ‘wrap’ and visit entries already probed)</span><br><span class="line">&#x2F;&#x2F; 2) Because we choose table sizes to be primes, we just need to insure that the increment is 0 &lt; incr &lt; hashSize</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; Thus this function would work: Incr &#x3D; 1 + (seed % (hashSize-1))</span><br><span class="line">&#x2F;&#x2F; </span><br><span class="line">&#x2F;&#x2F; While this works well for ‘uniformly distributed’ keys, in practice, non-uniformity is common. </span><br><span class="line">&#x2F;&#x2F; In particular in practice we can see ‘mostly sequential’ where you get long clusters of keys that ‘pack’. </span><br><span class="line">&#x2F;&#x2F; To avoid bad behavior you want it to be the case that the increment is ‘large’ even for ‘small’ values (because small </span><br><span class="line">&#x2F;&#x2F; values tend to happen more in practice). Thus we multiply ‘seed’ by a number that will make these small values</span><br><span class="line">&#x2F;&#x2F; bigger (and not hurt large values). We picked HashPrime (101) because it was prime, and if ‘hashSize-1’ is not a multiple of HashPrime</span><br><span class="line">&#x2F;&#x2F; (enforced in GetPrime), then incr has the potential of being every value from 1 to hashSize-1. The choice was largely arbitrary.</span><br><span class="line">&#x2F;&#x2F; </span><br><span class="line">&#x2F;&#x2F; Computes the hash function:  H(key, i) &#x3D; h1(key) + i*h2(key, hashSize).</span><br><span class="line">&#x2F;&#x2F; The out parameter seed is h1(key), while the out parameter </span><br><span class="line">&#x2F;&#x2F; incr is h2(key, hashSize).  Callers of this function should </span><br><span class="line">&#x2F;&#x2F; add incr each time through a loop.</span><br><span class="line">private uint InitHash(Object key, int hashsize, out uint seed, out uint incr) &#123;</span><br><span class="line">    &#x2F;&#x2F; Hashcode must be positive.  Also, we must not use the sign bit, since</span><br><span class="line">    &#x2F;&#x2F; that is used for the collision bit.</span><br><span class="line">    uint hashcode &#x3D; (uint) GetHash(key) &amp; 0x7FFFFFFF;</span><br><span class="line">    seed &#x3D; (uint) hashcode;</span><br><span class="line">    &#x2F;&#x2F; Restriction: incr MUST be between 1 and hashsize - 1, inclusive for</span><br><span class="line">    &#x2F;&#x2F; the modular arithmetic to work correctly.  This guarantees you&#39;ll</span><br><span class="line">    &#x2F;&#x2F; visit every bucket in the table exactly once within hashsize </span><br><span class="line">    &#x2F;&#x2F; iterations.  Violate this and it&#39;ll cause obscure bugs forever.</span><br><span class="line">    &#x2F;&#x2F; If you change this calculation for h2(key), update putEntry too!</span><br><span class="line">    incr &#x3D; (uint)(1 + ((seed * HashPrime) % ((uint)hashsize - 1)));</span><br><span class="line">    return hashcode;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据<code>key</code>和<code>hashsize</code>（<code>buckets</code>数组的尺寸）得出初始哈希值<code>hashcode</code>，<code>hasecode</code>会和<code>0x7FFFFFFF</code>按位与，以确保只使用低31位。然后计算出<code>incr</code>：使用<code>hashcode</code>乘以一个质数（这里是101）然后对<code>(hashsize-1)</code>取余，确保<code>incr</code>在1和<code>(hashsize-1)</code>之间。</p>
+<p>初始化得到<code>seed</code>和<code>incr</code>之后，开始查找：</p>
+<ol>
+<li>使用初始化得到的<code>seed</code>对数组长度取余，进行第一次哈希，找到第一个<code>bucketNumber</code>；</li>
+<li>如果<code>bucketNumber</code>所对应的<code>bucket</code>是空的，返回<code>false</code>，没找到；</li>
+<li>如果<code>bucketNumber</code>所对应的<code>bucket</code>中，<code>hash_coll</code>和<code>key</code>都匹配，返回<code>true</code>，找到了；</li>
+<li>进行第二重哈希，得到新的<code>bucketNumber</code>；</li>
+<li>此时，如果上次循环中找到的<code>bucket</code>是发生过哈希碰撞的（<code>hash_coll</code>小于0即最高位是1），并且查询的次数小于<code>buckets</code>数组的长度，回到步骤2，继续查找，直到不满足循环的条件，返回<code>false</code>；</li>
+</ol>
+<h3 id="增删改查"><a href="#增删改查" class="headerlink" title="增删改查"></a>增删改查</h3><p>基于哈希的基本原理，我们来看增删改查的过程：</p>
+<h4 id="Add"><a href="#Add" class="headerlink" title="Add"></a>Add</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public virtual void Add(Object key, Object value) &#123;</span><br><span class="line">    Insert(key, value, true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br></pre></td><td class="code"><pre><span class="line">private void Insert (Object key, Object nvalue, bool add) &#123;</span><br><span class="line">&#x2F;&#x2F; @</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if (key &#x3D;&#x3D; null) &#123;</span><br><span class="line">    throw new ArgumentNullException(&quot;key&quot;, Environment.GetResourceString(&quot;ArgumentNull_Key&quot;));</span><br><span class="line">&#125;</span><br><span class="line">Contract.EndContractBlock();</span><br><span class="line">if (count &gt;&#x3D; loadsize) &#123;</span><br><span class="line">    expand();</span><br><span class="line">&#125;</span><br><span class="line">else if(occupancy &gt; loadsize &amp;&amp; count &gt; 100) &#123;</span><br><span class="line">    rehash();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">uint seed;</span><br><span class="line">uint incr;</span><br><span class="line">&#x2F;&#x2F; Assume we only have one thread writing concurrently.  Modify</span><br><span class="line">&#x2F;&#x2F; buckets to contain new data, as long as we insert in the right order.</span><br><span class="line">uint hashcode &#x3D; InitHash(key, buckets.Length, out seed, out incr);</span><br><span class="line">int  ntry &#x3D; 0;</span><br><span class="line">int emptySlotNumber &#x3D; -1; &#x2F;&#x2F; We use the empty slot number to cache the first empty slot. We chose to reuse slots</span><br><span class="line">&#x2F;&#x2F; create by remove that have the collision bit set over using up new slots.</span><br><span class="line">int bucketNumber &#x3D; (int) (seed % (uint)buckets.Length);</span><br><span class="line">do &#123;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Set emptySlot number to current bucket if it is the first available bucket that we have seen</span><br><span class="line">    &#x2F;&#x2F; that once contained an entry and also has had a collision.</span><br><span class="line">    &#x2F;&#x2F; We need to search this entire collision chain because we have to ensure that there are no </span><br><span class="line">    &#x2F;&#x2F; duplicate entries in the table.</span><br><span class="line">    if (emptySlotNumber &#x3D;&#x3D; -1 &amp;&amp; (buckets[bucketNumber].key &#x3D;&#x3D; buckets) &amp;&amp; (buckets[bucketNumber].hash_coll &lt; 0))&#x2F;&#x2F;(((buckets[bucketNumber].hash_coll &amp; unchecked(0x80000000))!&#x3D;0)))</span><br><span class="line">        emptySlotNumber &#x3D; bucketNumber;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Insert the key&#x2F;value pair into this bucket if this bucket is empty and has never contained an entry</span><br><span class="line">    &#x2F;&#x2F; OR</span><br><span class="line">    &#x2F;&#x2F; This bucket once contained an entry but there has never been a collision</span><br><span class="line">    if ((buckets[bucketNumber].key &#x3D;&#x3D; null) || </span><br><span class="line">        (buckets[bucketNumber].key &#x3D;&#x3D; buckets &amp;&amp; ((buckets[bucketNumber].hash_coll &amp; unchecked(0x80000000))&#x3D;&#x3D;0))) &#123;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; If we have found an available bucket that has never had a collision, but we&#39;ve seen an available</span><br><span class="line">        &#x2F;&#x2F; bucket in the past that has the collision bit set, use the previous bucket instead</span><br><span class="line">        if (emptySlotNumber !&#x3D; -1) &#x2F;&#x2F; Reuse slot</span><br><span class="line">            bucketNumber &#x3D; emptySlotNumber;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; We pretty much have to insert in this order.  Don&#39;t set hash</span><br><span class="line">        &#x2F;&#x2F; code until the value &amp; key are set appropriately.</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">        Thread.BeginCriticalRegion(); </span><br><span class="line">#endif           </span><br><span class="line">        isWriterInProgress &#x3D; true;                    </span><br><span class="line">        buckets[bucketNumber].val &#x3D; nvalue;</span><br><span class="line">        buckets[bucketNumber].key  &#x3D; key;</span><br><span class="line">        buckets[bucketNumber].hash_coll |&#x3D; (int) hashcode;</span><br><span class="line">        count++;</span><br><span class="line">        UpdateVersion();</span><br><span class="line">        isWriterInProgress &#x3D; false;   </span><br><span class="line">#if !FEATURE_CORECLR                                     </span><br><span class="line">        Thread.EndCriticalRegion();</span><br><span class="line">#endif                    </span><br><span class="line"></span><br><span class="line">#if FEATURE_RANDOMIZED_STRING_HASHING</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">        &#x2F;&#x2F; coreclr has the randomized string hashing on by default so we don&#39;t need to resize at this point</span><br><span class="line"></span><br><span class="line">        if(ntry &gt; HashHelpers.HashCollisionThreshold &amp;&amp; HashHelpers.IsWellKnownEqualityComparer(_keycomparer)) </span><br><span class="line">        &#123;</span><br><span class="line">            &#x2F;&#x2F; PERF: We don&#39;t want to rehash if _keycomparer is already a RandomizedObjectEqualityComparer since in some</span><br><span class="line">            &#x2F;&#x2F; cases there may not be any strings in the hashtable and we wouldn&#39;t get any mixing.</span><br><span class="line">            if(_keycomparer &#x3D;&#x3D; null || !(_keycomparer is System.Collections.Generic.RandomizedObjectEqualityComparer))</span><br><span class="line">            &#123;</span><br><span class="line">                _keycomparer &#x3D; HashHelpers.GetRandomizedEqualityComparer(_keycomparer);</span><br><span class="line">                rehash(buckets.Length, true);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">#endif &#x2F;&#x2F; !FEATURE_CORECLR</span><br><span class="line">#endif &#x2F;&#x2F; FEATURE_RANDOMIZED_STRING_HASHING</span><br><span class="line"></span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; The current bucket is in use</span><br><span class="line">    &#x2F;&#x2F; OR</span><br><span class="line">    &#x2F;&#x2F; it is available, but has had the collision bit set and we have already found an available bucket</span><br><span class="line">    if (((buckets[bucketNumber].hash_coll &amp; 0x7FFFFFFF) &#x3D;&#x3D; hashcode) &amp;&amp; </span><br><span class="line">        KeyEquals (buckets[bucketNumber].key, key)) &#123;</span><br><span class="line">        if (add) &#123;</span><br><span class="line">            throw new ArgumentException(Environment.GetResourceString(&quot;Argument_AddingDuplicate__&quot;, buckets[bucketNumber].key, key));</span><br><span class="line">        &#125;</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">        Thread.BeginCriticalRegion();</span><br><span class="line">#endif          </span><br><span class="line">        isWriterInProgress &#x3D; true;                    </span><br><span class="line">        buckets[bucketNumber].val &#x3D; nvalue;</span><br><span class="line">        UpdateVersion();                    </span><br><span class="line">        isWriterInProgress &#x3D; false; </span><br><span class="line">#if !FEATURE_CORECLR       </span><br><span class="line">        Thread.EndCriticalRegion();   </span><br><span class="line">#endif                 </span><br><span class="line"></span><br><span class="line">#if FEATURE_RANDOMIZED_STRING_HASHING</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">        if(ntry &gt; HashHelpers.HashCollisionThreshold &amp;&amp; HashHelpers.IsWellKnownEqualityComparer(_keycomparer)) </span><br><span class="line">        &#123;</span><br><span class="line">            &#x2F;&#x2F; PERF: We don&#39;t want to rehash if _keycomparer is already a RandomizedObjectEqualityComparer since in some</span><br><span class="line">            &#x2F;&#x2F; cases there may not be any strings in the hashtable and we wouldn&#39;t get any mixing.</span><br><span class="line">            if(_keycomparer &#x3D;&#x3D; null || !(_keycomparer is System.Collections.Generic.RandomizedObjectEqualityComparer))</span><br><span class="line">            &#123;</span><br><span class="line">                _keycomparer &#x3D; HashHelpers.GetRandomizedEqualityComparer(_keycomparer);</span><br><span class="line">                rehash(buckets.Length, true);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">#endif &#x2F;&#x2F; !FEATURE_CORECLR</span><br><span class="line">#endif</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; The current bucket is full, and we have therefore collided.  We need to set the collision bit</span><br><span class="line">    &#x2F;&#x2F; UNLESS</span><br><span class="line">    &#x2F;&#x2F; we have remembered an available slot previously.</span><br><span class="line">    if (emptySlotNumber &#x3D;&#x3D; -1) &#123;&#x2F;&#x2F; We don&#39;t need to set the collision bit here since we already have an empty slot</span><br><span class="line">        if( buckets[bucketNumber].hash_coll &gt;&#x3D; 0 ) &#123;</span><br><span class="line">            buckets[bucketNumber].hash_coll |&#x3D; unchecked((int)0x80000000);</span><br><span class="line">            occupancy++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    bucketNumber &#x3D; (int) (((long)bucketNumber + incr)% (uint)buckets.Length);               </span><br><span class="line">&#125; while (++ntry &lt; buckets.Length);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; This code is here if and only if there were no buckets without a collision bit set in the entire table</span><br><span class="line">if (emptySlotNumber !&#x3D; -1)</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; We pretty much have to insert in this order.  Don&#39;t set hash</span><br><span class="line">    &#x2F;&#x2F; code until the value &amp; key are set appropriately.</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">    Thread.BeginCriticalRegion();  </span><br><span class="line">#endif         </span><br><span class="line">    isWriterInProgress &#x3D; true;                    </span><br><span class="line">    buckets[emptySlotNumber].val &#x3D; nvalue;</span><br><span class="line">    buckets[emptySlotNumber].key  &#x3D; key;</span><br><span class="line">    buckets[emptySlotNumber].hash_coll |&#x3D; (int) hashcode;</span><br><span class="line">    count++;</span><br><span class="line">    UpdateVersion();                </span><br><span class="line">    isWriterInProgress &#x3D; false;     </span><br><span class="line">#if !FEATURE_CORECLR                </span><br><span class="line">    Thread.EndCriticalRegion(); </span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">#if FEATURE_RANDOMIZED_STRING_HASHING</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">    if(buckets.Length &gt; HashHelpers.HashCollisionThreshold &amp;&amp; HashHelpers.IsWellKnownEqualityComparer(_keycomparer)) </span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; PERF: We don&#39;t want to rehash if _keycomparer is already a RandomizedObjectEqualityComparer since in some</span><br><span class="line">        &#x2F;&#x2F; cases there may not be any strings in the hashtable and we wouldn&#39;t get any mixing.</span><br><span class="line">        if(_keycomparer &#x3D;&#x3D; null || !(_keycomparer is System.Collections.Generic.RandomizedObjectEqualityComparer))</span><br><span class="line">        &#123;</span><br><span class="line">            _keycomparer &#x3D; HashHelpers.GetRandomizedEqualityComparer(_keycomparer);</span><br><span class="line">            rehash(buckets.Length, true);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">#endif &#x2F;&#x2F; !FEATURE_CORECLR</span><br><span class="line">#endif</span><br><span class="line">    return;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; If you see this assert, make sure load factor &amp; count are reasonable.</span><br><span class="line">&#x2F;&#x2F; Then verify that our double hash function (h2, described at top of file)</span><br><span class="line">&#x2F;&#x2F; meets the requirements described above. You should never see this assert.</span><br><span class="line">Contract.Assert(false, &quot;hash table insert failed!  Load factor too high, or our double hashing function is incorrect.&quot;);</span><br><span class="line">throw new InvalidOperationException(Environment.GetResourceString(&quot;InvalidOperation_HashInsertFailed&quot;));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Add</code>会在内部调用<code>Insert</code>方法，这个函数的有点长，在开始之前先注意两个要点：</p>
+<ol>
+<li><p>这里有一个判断<code>buckets[bucketNumber].key == buckets</code>，应该是一种取巧的处理，当这个<code>bucket</code>数据被清除时，它仍要保留碰撞位以确保可以继续向后查找，后边<code>Remove</code>的代码可以看到，这种情况下会把<code>buckets</code>赋值给<code>key</code>，用于做特殊标记；</p>
+</li>
+<li><p>插入过程中需要一边寻找<code>emptySlotNumber</code>，一边寻找目标<code>bucket</code>，前者是找到潜在的可使用的<code>bucket</code>。即便是找到了<code>emptySlotNumber</code>，还是需要继续查找，直到找到一个没有发生过碰撞的<code>bucket</code>以确保当前的<code>Hashtable</code>中不存在将要插入的<code>key</code>；</p>
+</li>
+</ol>
+<p>这个插入的过程可以抽取出以下的主要步骤：</p>
+<ol>
+<li><p>如果<code>count &gt;= loadsize</code>，说明<code>buckets</code>的使用率已经达到阈值，为保证哈希的性能，需要扩张<code>expand()</code>；</p>
+</li>
+<li><p>如果没有达到扩张的阈值，判断如果<code>occupancy &gt; loadsize &amp;&amp; count &gt; 100</code>即碰撞的数量大于阈值，并且存储的键值对数量超过100，则需要重新哈希<code>rehash()</code>。注意碰撞位的数量可能会比键值对的数量更多，后边会看到，当删除<code>bucket</code>中的数据之后，<code>b.hash_coll</code>的碰撞位会保留；</p>
+</li>
+<li><p>开始进入循环，查找<code>key</code>，并将可能使用的空<code>bucket</code>的下标保存到<code>emptySlotNumber</code>，循环的条件是<code>(++ntry &lt; buckets.Length)</code>，即循环的次数会小于数组的长度；</p>
+</li>
+<li><p>在循环中判断主要有以下逻辑：</p>
+<ol>
+<li>如果尚未找到<code>emptySlotNumber</code>，且当前的<code>bucket</code>是空的且发生过碰撞（碰撞位是1），那么将<code>bucketNumber</code>赋给<code>emptySlotNumber</code>；</li>
+<li>如果当前<code>bucket</code>是空的（满足key为null，或者满足key为buckets但碰撞位是0），那么就在<code>emptySlotNumber</code>的位置插入新的数据，并将此<code>bucket</code>的<code>hash_coll</code>低31位写为哈希值，结束循环，返回；</li>
+<li>如果当前<code>bucket</code>的哈希值和key均和查找的目标匹配，那么说明已存在这组键值，对于<code>Add</code>这种情况，会抛出异常；如果是单纯的修改数据，那么直接改<code>value</code>的值；</li>
+<li>此时如果我们还没有合适的<code>emptySlotNumber</code>（说明至少之前的<code>bucket</code>都是发生过碰撞的）且当前的<code>bucket</code>没有发生过碰撞，那么将当前<code>bucket</code>的碰撞为置位1（下一次遍循环时应该就会找到合适的空的<code>bucket</code>了）；</li>
+<li>将<code>bucketNumber</code>增加<code>incr</code>，取模，继续下一轮循环；</li>
+</ol>
+</li>
+<li><p>循环结束后，如果找到了<code>emptySlotNumber</code>，那么直接将数据存储在对应的<code>bucket</code>里；如果仍然没找到，会抛出异常。</p>
+</li>
+</ol>
+<p>接下来是<code>expand</code>和<code>rehash</code>的逻辑：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">private void expand()  &#123;</span><br><span class="line">    int rawsize &#x3D; HashHelpers.ExpandPrime(buckets.Length);</span><br><span class="line">    rehash(rawsize, false);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">private void rehash() &#123;</span><br><span class="line">    rehash( buckets.Length, false );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">private void rehash( int newsize, bool forceNewHashCode ) &#123;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; reset occupancy</span><br><span class="line">    occupancy&#x3D;0;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Don&#39;t replace any internal state until we&#39;ve finished adding to the </span><br><span class="line">    &#x2F;&#x2F; new bucket[].  This serves two purposes: </span><br><span class="line">    &#x2F;&#x2F;   1) Allow concurrent readers to see valid hashtable contents </span><br><span class="line">    &#x2F;&#x2F;      at all times</span><br><span class="line">    &#x2F;&#x2F;   2) Protect against an OutOfMemoryException while allocating this </span><br><span class="line">    &#x2F;&#x2F;      new bucket[].</span><br><span class="line">    bucket[] newBuckets &#x3D; new bucket[newsize];</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; rehash table into new buckets</span><br><span class="line">    int nb;</span><br><span class="line">    for (nb &#x3D; 0; nb &lt; buckets.Length; nb++)&#123;</span><br><span class="line">        bucket oldb &#x3D; buckets[nb];</span><br><span class="line">        if ((oldb.key !&#x3D; null) &amp;&amp; (oldb.key !&#x3D; buckets)) &#123;</span><br><span class="line">            int hashcode &#x3D; ((forceNewHashCode ? GetHash(oldb.key) : oldb.hash_coll) &amp; 0x7FFFFFFF);                              </span><br><span class="line">            putEntry(newBuckets, oldb.key, oldb.val, hashcode);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; New bucket[] is good to go - replace buckets and other internal state.</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">    Thread.BeginCriticalRegion();            </span><br><span class="line">#endif</span><br><span class="line">    isWriterInProgress &#x3D; true;</span><br><span class="line">    buckets &#x3D; newBuckets;</span><br><span class="line">    loadsize &#x3D; (int)(loadFactor * newsize);</span><br><span class="line">    UpdateVersion();</span><br><span class="line">    isWriterInProgress &#x3D; false;</span><br><span class="line">#if !FEATURE_CORECLR            </span><br><span class="line">    Thread.EndCriticalRegion();   </span><br><span class="line">#endif         </span><br><span class="line">    &#x2F;&#x2F; minimun size of hashtable is 3 now and maximum loadFactor is 0.72 now.</span><br><span class="line">    Contract.Assert(loadsize &lt; newsize, &quot;Our current implementaion means this is not possible.&quot;);</span><br><span class="line">    return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>rehash</code>的时候，会先使用<code>ExpandPrime</code>计算出新的<code>buckets</code>的长度，然后创建新数组，将数据拷贝至新数组，然后再用新数组取代原来的数组。向新的数组中插入数据时又封装了一个函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">private void putEntry (bucket[] newBuckets, Object key, Object nvalue, int hashcode)</span><br><span class="line">&#123;</span><br><span class="line">    Contract.Assert(hashcode &gt;&#x3D; 0, &quot;hashcode &gt;&#x3D; 0&quot;);  &#x2F;&#x2F; make sure collision bit (sign bit) wasn&#39;t set.</span><br><span class="line"></span><br><span class="line">    uint seed &#x3D; (uint) hashcode;</span><br><span class="line">    uint incr &#x3D; (uint)(1 + ((seed * HashPrime) % ((uint)newBuckets.Length - 1)));</span><br><span class="line">    int bucketNumber &#x3D; (int) (seed % (uint)newBuckets.Length);            </span><br><span class="line">    do &#123;</span><br><span class="line"></span><br><span class="line">        if ((newBuckets[bucketNumber].key &#x3D;&#x3D; null) || (newBuckets[bucketNumber].key &#x3D;&#x3D; buckets)) &#123;</span><br><span class="line">            newBuckets[bucketNumber].val &#x3D; nvalue;</span><br><span class="line">            newBuckets[bucketNumber].key &#x3D; key;</span><br><span class="line">            newBuckets[bucketNumber].hash_coll |&#x3D; hashcode;</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        if( newBuckets[bucketNumber].hash_coll &gt;&#x3D; 0 ) &#123;</span><br><span class="line">        newBuckets[bucketNumber].hash_coll |&#x3D; unchecked((int)0x80000000);</span><br><span class="line">            occupancy++;</span><br><span class="line">        &#125;</span><br><span class="line">        bucketNumber &#x3D; (int) (((long)bucketNumber + incr)% (uint)newBuckets.Length);                </span><br><span class="line">    &#125; while (true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次插入数据时都会根据key的哈希值，寻找可用的<code>bucket</code>，同时会把发生碰撞的<code>bucket</code>的碰撞为标记为1。由于是新创建的数组，相比于<code>Insert</code>方法，这个循环中不需要考虑有碰撞标记但是数据已被清除的情况。</p>
+<h4 id="Remove"><a href="#Remove" class="headerlink" title="Remove"></a>Remove</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">public virtual void Remove(Object key) &#123;</span><br><span class="line">    if (key &#x3D;&#x3D; null) &#123;</span><br><span class="line">        throw new ArgumentNullException(&quot;key&quot;, Environment.GetResourceString(&quot;ArgumentNull_Key&quot;));</span><br><span class="line">    &#125;</span><br><span class="line">    Contract.EndContractBlock();</span><br><span class="line">    Contract.Assert(!isWriterInProgress, &quot;Race condition detected in usages of Hashtable - multiple threads appear to be writing to a Hashtable instance simultaneously!  Don&#39;t do that - use Hashtable.Synchronized.&quot;);</span><br><span class="line"></span><br><span class="line">    uint seed;</span><br><span class="line">    uint incr;</span><br><span class="line">    &#x2F;&#x2F; Assuming only one concurrent writer, write directly into buckets.</span><br><span class="line">    uint hashcode &#x3D; InitHash(key, buckets.Length, out seed, out incr);</span><br><span class="line">    int ntry &#x3D; 0;</span><br><span class="line">    </span><br><span class="line">    bucket b;</span><br><span class="line">    int bn &#x3D; (int) (seed % (uint)buckets.Length);  &#x2F;&#x2F; bucketNumber</span><br><span class="line">    do &#123;</span><br><span class="line">        b &#x3D; buckets[bn];</span><br><span class="line">        if (((b.hash_coll &amp; 0x7FFFFFFF) &#x3D;&#x3D; hashcode) &amp;&amp; </span><br><span class="line">            KeyEquals (b.key, key)) &#123;</span><br><span class="line">#if !FEATURE_CORECLR</span><br><span class="line">            Thread.BeginCriticalRegion();    </span><br><span class="line">#endif                </span><br><span class="line">            isWriterInProgress &#x3D; true;</span><br><span class="line">            &#x2F;&#x2F; Clear hash_coll field, then key, then value</span><br><span class="line">            buckets[bn].hash_coll &amp;&#x3D; unchecked((int)0x80000000);</span><br><span class="line">            if (buckets[bn].hash_coll !&#x3D; 0) &#123;</span><br><span class="line">                buckets[bn].key &#x3D; buckets;</span><br><span class="line">            &#125; </span><br><span class="line">            else &#123;</span><br><span class="line">                buckets[bn].key &#x3D; null;</span><br><span class="line">            &#125;</span><br><span class="line">            buckets[bn].val &#x3D; null;  &#x2F;&#x2F; Free object references sooner &amp; simplify ContainsValue.</span><br><span class="line">            count--;</span><br><span class="line">            UpdateVersion();</span><br><span class="line">            isWriterInProgress &#x3D; false; </span><br><span class="line">#if !FEATURE_CORECLR                   </span><br><span class="line">            Thread.EndCriticalRegion();   </span><br><span class="line">#endif                 </span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        bn &#x3D; (int) (((long)bn + incr)% (uint)buckets.Length);                               </span><br><span class="line">    &#125; while (b.hash_coll &lt; 0 &amp;&amp; ++ntry &lt; buckets.Length);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;throw new ArgumentException(Environment.GetResourceString(&quot;Arg_RemoveArgNotFound&quot;));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Remove</code>时，也是查找对应的<code>bucket</code>。如果找到了目标，会将目标<code>bucket</code>的<code>value</code>置为<code>null</code>，如果有碰撞标记，那么把它的<code>key</code>设为<code>buckets</code>，否则把<code>key</code>设为<code>null</code>。如果找到了没有发生过碰撞的<code>bucket</code>或者查找次数已经到达整个数组的长度，那么结束循环，没找到，什么也不会发生。</p>
+<p><code>Hashtable</code>中定义有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private volatile bool isWriterInProgress;</span><br></pre></td></tr></table></figure>
+
+<p>每当进行写操作时，会在写操作之前将其置为<code>true</code>，并在写操作完成之后置为<code>false</code>。而在删除操作时，会在一开始有一个<code>isWriterInProgress</code>的断言判断（<code>Clear</code>时也有），即不允许一边写入一边删除。为避免出现这样的问题，可以使用同步版本的<code>SyncHashtable</code>。</p>
+<h4 id="set"><a href="#set" class="headerlink" title="set"></a>set</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">set &#123;</span><br><span class="line">    Insert(key, value, false);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改数据的过程，参见<code>Insert</code>，当数据已存在，直接替换<code>value</code>。如果不存在，寻找可用的空的<code>bucket</code>，写入值。</p>
+<h4 id="get"><a href="#get" class="headerlink" title="get"></a>get</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">get &#123;</span><br><span class="line">    if (key &#x3D;&#x3D; null) &#123;</span><br><span class="line">        throw new ArgumentNullException(&quot;key&quot;, Environment.GetResourceString(&quot;ArgumentNull_Key&quot;));</span><br><span class="line">    &#125;</span><br><span class="line">    Contract.EndContractBlock();</span><br><span class="line"></span><br><span class="line">    uint seed;</span><br><span class="line">    uint incr;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; Take a snapshot of buckets, in case another thread does a resize</span><br><span class="line">    bucket[] lbuckets &#x3D; buckets;</span><br><span class="line">    uint hashcode &#x3D; InitHash(key, lbuckets.Length, out seed, out incr);</span><br><span class="line">    int  ntry &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    bucket b;</span><br><span class="line">    int bucketNumber &#x3D; (int) (seed % (uint)lbuckets.Length);                </span><br><span class="line">    do</span><br><span class="line">    &#123;</span><br><span class="line">        int currentversion;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F;     A read operation on hashtable has three steps:</span><br><span class="line">        &#x2F;&#x2F;        (1) calculate the hash and find the slot number.</span><br><span class="line">        &#x2F;&#x2F;        (2) compare the hashcode, if equal, go to step 3. Otherwise end.</span><br><span class="line">        &#x2F;&#x2F;        (3) compare the key, if equal, go to step 4. Otherwise end.</span><br><span class="line">        &#x2F;&#x2F;        (4) return the value contained in the bucket.</span><br><span class="line">        &#x2F;&#x2F;     After step 3 and before step 4. A writer can kick in a remove the old item and add a new one </span><br><span class="line">        &#x2F;&#x2F;     in the same bukcet. So in the reader we need to check if the hash table is modified during above steps.</span><br><span class="line">        &#x2F;&#x2F;</span><br><span class="line">        &#x2F;&#x2F; Writers (Insert, Remove, Clear) will set &#39;isWriterInProgress&#39; flag before it starts modifying </span><br><span class="line">        &#x2F;&#x2F; the hashtable and will ckear the flag when it is done.  When the flag is cleared, the &#39;version&#39;</span><br><span class="line">        &#x2F;&#x2F; will be increased.  We will repeat the reading if a writer is in progress or done with the modification </span><br><span class="line">        &#x2F;&#x2F; during the read.</span><br><span class="line">        &#x2F;&#x2F;</span><br><span class="line">        &#x2F;&#x2F; Our memory model guarantee if we pick up the change in bucket from another processor, </span><br><span class="line">        &#x2F;&#x2F; we will see the &#39;isWriterProgress&#39; flag to be true or &#39;version&#39; is changed in the reader.</span><br><span class="line">        &#x2F;&#x2F;                    </span><br><span class="line">        int spinCount &#x3D; 0;</span><br><span class="line">        do &#123;</span><br><span class="line">            &#x2F;&#x2F; this is violate read, following memory accesses can not be moved ahead of it.</span><br><span class="line">            currentversion &#x3D; version;</span><br><span class="line">            b &#x3D; lbuckets[bucketNumber];                        </span><br><span class="line"></span><br><span class="line">            &#x2F;&#x2F; The contention between reader and writer shouldn&#39;t happen frequently.</span><br><span class="line">            &#x2F;&#x2F; But just in case this will burn CPU, yield the control of CPU if we spinned a few times.</span><br><span class="line">            &#x2F;&#x2F; 8 is just a random number I pick. </span><br><span class="line">            if( (++spinCount) % 8 &#x3D;&#x3D; 0 ) &#123;   </span><br><span class="line">                Thread.Sleep(1);   &#x2F;&#x2F; 1 means we are yeilding control to all threads, including low-priority ones.</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; while ( isWriterInProgress || (currentversion !&#x3D; version) );</span><br><span class="line"></span><br><span class="line">        if (b.key &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return null;</span><br><span class="line">        &#125;</span><br><span class="line">        if (((b.hash_coll &amp; 0x7FFFFFFF) &#x3D;&#x3D; hashcode) &amp;&amp; </span><br><span class="line">            KeyEquals (b.key, key))</span><br><span class="line">            return b.val;</span><br><span class="line">        bucketNumber &#x3D; (int) (((long)bucketNumber + incr)% (uint)lbuckets.Length);                                  </span><br><span class="line">    &#125; while (b.hash_coll &lt; 0 &amp;&amp; ++ntry &lt; lbuckets.Length);</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>取值的之后，除了简单的查找逻辑之外，还额外做了一些并发的处理。如果在取到<code>bucket</code>之后，发现<code>isWriterInProgress || (currentversion != version)</code>，那么需要重新取一次（<code>bucket</code>是值类型赋值时会发生拷贝），并且在循环内会以一定频率让出CPU。</p>
+<h3 id="遍历"><a href="#遍历" class="headerlink" title="遍历"></a>遍历</h3><p>使用实现了<code>IEnumerator</code>的辅助类<code>HashtableEnumerator</code>来遍历，并且在遍历的过程中也会对<code>version</code>判断，禁止遍历过程中修改数据。</p>
+<h3 id="线程安全"><a href="#线程安全" class="headerlink" title="线程安全"></a>线程安全</h3><p><code>Hashtable</code>本身不是线程安全的，但是它提供了一个静态方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Returns a thread-safe wrapper for a Hashtable.</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">[HostProtection(Synchronization&#x3D;true)]</span><br><span class="line">public static Hashtable Synchronized(Hashtable table) &#123;</span><br><span class="line">    if (table&#x3D;&#x3D;null)</span><br><span class="line">        throw new ArgumentNullException(&quot;table&quot;);</span><br><span class="line">    Contract.EndContractBlock();</span><br><span class="line">    return new SyncHashtable(table);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>会得到一个<code>SyncHashtable</code>对象，它是线程安全的。<code>SyncHashtable</code>是<code>Hashtable</code>的内嵌类，并且衍生自<code>Hashtable</code>，它覆写了<code>Hashtable</code>的一些接口，以实现多线程的读写安全。</p>
+<p><code>SyncHashtable</code>的内部持有了一个<code>Hashtable</code>对象，在写操作时，会先加锁再对数据进行操作，详见一下的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public override void Add(Object key, Object value)</span><br><span class="line">&#123;</span><br><span class="line">    lock (_table.SyncRoot)</span><br><span class="line">    &#123;</span><br><span class="line">        _table.Add(key, value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public override void Clear()</span><br><span class="line">&#123;</span><br><span class="line">    lock (_table.SyncRoot)</span><br><span class="line">    &#123;</span><br><span class="line">        _table.Clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public override void Remove(Object key)</span><br><span class="line">&#123;</span><br><span class="line">    lock (_table.SyncRoot)</span><br><span class="line">    &#123;</span><br><span class="line">        _table.Remove(key);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public override Object this[Object key] &#123;</span><br><span class="line">    get &#123;</span><br><span class="line">            return _table[key];</span><br><span class="line">    &#125;</span><br><span class="line">    set &#123;</span><br><span class="line">        lock(_table.SyncRoot) &#123;</span><br><span class="line">            _table[key] &#x3D; value;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://referencesource.microsoft.com/#mscorlib/system/collections/hashtable.cs" target="_blank" rel="noopener">https://referencesource.microsoft.com/#mscorlib/system/collections/hashtable.cs</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-35/" rel="tag"># C&#35;</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2019-06-09-git-notes-01/" rel="prev" title="git各种撤回操作">
+      <i class="fa fa-chevron-left"></i> git各种撤回操作
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2019-11-10-lua-notes-05/" rel="next" title="Lua 笔记 string/table/function知识点">
+      Lua 笔记 string/table/function知识点 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hashtable"><span class="nav-number">1.</span> <span class="nav-text">Hashtable</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内嵌类和结构"><span class="nav-number">1.1.</span> <span class="nav-text">内嵌类和结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bucket"><span class="nav-number">1.1.1.</span> <span class="nav-text">bucket</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HashtableEnumerator"><span class="nav-number">1.1.2.</span> <span class="nav-text">HashtableEnumerator</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SyncHashtable"><span class="nav-number">1.1.3.</span> <span class="nav-text">SyncHashtable</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本原理"><span class="nav-number">1.2.</span> <span class="nav-text">基本原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#尺寸和数量参数"><span class="nav-number">1.2.1.</span> <span class="nav-text">尺寸和数量参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#哈希函数和碰撞处理"><span class="nav-number">1.2.2.</span> <span class="nav-text">哈希函数和碰撞处理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#增删改查"><span class="nav-number">1.3.</span> <span class="nav-text">增删改查</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Add"><span class="nav-number">1.3.1.</span> <span class="nav-text">Add</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Remove"><span class="nav-number">1.3.2.</span> <span class="nav-text">Remove</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#set"><span class="nav-number">1.3.3.</span> <span class="nav-text">set</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#get"><span class="nav-number">1.3.4.</span> <span class="nav-text">get</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#遍历"><span class="nav-number">1.4.</span> <span class="nav-text">遍历</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程安全"><span class="nav-number">1.5.</span> <span class="nav-text">线程安全</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">2.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '28d094080c40a41e4acda0360d545996',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

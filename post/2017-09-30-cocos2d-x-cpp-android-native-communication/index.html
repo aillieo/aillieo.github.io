@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="最近使用cocos2d-x与Android交互时的一些记录，使用的是cocos2d-x提供的JniHelper，基于cocos2d-x v3.15，具体的一些代码也放在了这里。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cocos2d-x与原生安卓交互">
+<meta property="og:url" content="http://aillieo.cn/post/2017-09-30-cocos2d-x-cpp-android-native-communication/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="最近使用cocos2d-x与Android交互时的一些记录，使用的是cocos2d-x提供的JniHelper，基于cocos2d-x v3.15，具体的一些代码也放在了这里。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-09-30T14:41:12.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.050Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="cocos2d-x">
+<meta property="article:tag" content="cocos">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="android">
+<meta property="article:tag" content="安卓">
+<meta property="article:tag" content="原生">
+<meta property="article:tag" content="jni">
+<meta property="article:tag" content="jnihelper">
+<meta property="article:tag" content="native">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-09-30-cocos2d-x-cpp-android-native-communication/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>cocos2d-x与原生安卓交互 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-09-30-cocos2d-x-cpp-android-native-communication/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cocos2d-x与原生安卓交互
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-09-30 22:41:12" itemprop="dateCreated datePublished" datetime="2017-09-30T22:41:12+08:00">2017-09-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cocos2d-x/" itemprop="url" rel="index"><span itemprop="name">cocos2d-x</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近使用cocos2d-x与Android交互时的一些记录，使用的是cocos2d-x提供的JniHelper，基于cocos2d-x v3.15，具体的一些代码也放在了<a href="https://github.com/aillieo/cocos2d-x-sdk-integration" target="_blank" rel="noopener">这里</a>。</p>
+<a id="more"></a>
+
+<h2 id="cocos2d-x调用Java"><a href="#cocos2d-x调用Java" class="headerlink" title="cocos2d-x调用Java"></a>cocos2d-x调用Java</h2><h3 id="使用JniHelper"><a href="#使用JniHelper" class="headerlink" title="使用JniHelper"></a>使用JniHelper</h3><p>JniHelper是cocos2d-x对JNI的一系列接口的封装，cocos2d-x的C++代码和原生Android的java代码的交互可以通过JniHelper来完成。当需要在cocos2d-x中使用JniHelper时，包含头文件即可，注意头文件的位置：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">if</span>(CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"platform/android/jni/JniHelper.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>在JniHelper中，有一个最重要的结构体<code>JniMethodInfo</code>，用于定位Java方法的信息，定义如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">JniMethodInfo_</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    JNIEnv *    env;</span><br><span class="line">    jclass      classID;</span><br><span class="line">    jmethodID   methodID;</span><br><span class="line">&#125; JniMethodInfo;</span><br></pre></td></tr></table></figure>
+<p>其中包含三项内容。其中<code>JNIEnv</code>是与线程相关的结构体，由每个线程专属，不能跨线程访问。<code>JNIEnv</code>可以访问存储有JNI函数指针的数组。而<code>jclass</code>和<code>jmethodID</code>分别对应调用的类和方法ID。在函数调用时需要用到<code>JniMethodInfo</code>结构体，先看函数调用的步骤：</p>
+<h3 id="函数调用"><a href="#函数调用" class="headerlink" title="函数调用"></a>函数调用</h3><p>在C++中调用Java函数通常分为两步，首先获取函数信息，然后再调用。</p>
+<p>首先获取函数信息，JniHelper中提供了两个静态函数，分别用来获取Java静态函数和非静态函数（实例方法）的信息：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">getStaticMethodInfo</span><span class="params">(JniMethodInfo &amp;methodinfo,</span></span></span><br><span class="line"><span class="function"><span class="params">                                <span class="keyword">const</span> <span class="keyword">char</span> *className,</span></span></span><br><span class="line"><span class="function"><span class="params">                                <span class="keyword">const</span> <span class="keyword">char</span> *methodName,</span></span></span><br><span class="line"><span class="function"><span class="params">                                <span class="keyword">const</span> <span class="keyword">char</span> *paramCode)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">getMethodInfo</span><span class="params">(JniMethodInfo &amp;methodinfo,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">const</span> <span class="keyword">char</span> *className,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">const</span> <span class="keyword">char</span> *methodName,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">const</span> <span class="keyword">char</span> *paramCode)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>两个函数比较相似，都是需要传入一个<code>JniMethodInfo</code>的引用，以及类名、方法名、函数签名，返回一个bool值，表示对应的Java方法是否可调用。参数中的三个字符串，类名需要是包含包名的完整类名，方法即Java中被调用方法的名，最后一个函数签名，是根据函数返回值类型和函数参数类型得到的一个独特的字符串。返回值和参数类型对应的字符串标示见下表，</p>
+<table>
+<thead>
+<tr>
+<th>标示类型</th>
+<th>Java类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Z</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>B</td>
+<td>byte</td>
+</tr>
+<tr>
+<td>C</td>
+<td>char</td>
+</tr>
+<tr>
+<td>S</td>
+<td>short</td>
+</tr>
+<tr>
+<td>I</td>
+<td>int</td>
+</tr>
+<tr>
+<td>J</td>
+<td>long</td>
+</tr>
+<tr>
+<td>F</td>
+<td>float</td>
+</tr>
+<tr>
+<td>D</td>
+<td>double</td>
+</tr>
+<tr>
+<td>Ljava/lang/String;</td>
+<td>String</td>
+</tr>
+<tr>
+<td>[I</td>
+<td>int[]</td>
+</tr>
+<tr>
+<td>[Ljava/lang/object;</td>
+<td>Object[]</td>
+</tr>
+</tbody></table>
+<p>数组类型一般在前边加<code>[</code>，数组之外的引用类型需要在后边加<code>;</code>，以下是三个示例：</p>
+<table>
+<thead>
+<tr>
+<th>函数签名</th>
+<th>Java函数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>()Ljava/lang/String;</td>
+<td>string f()</td>
+</tr>
+<tr>
+<td>(ILjava/lang/Class;)J</td>
+<td>long f(int i,Class c)</td>
+</tr>
+<tr>
+<td>([B)V</td>
+<td>void f(byte[] bytes)</td>
+</tr>
+</tbody></table>
+<p>除了根据类型拼接函数签名，还可以取Java编译后的class文件，执行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">javap –s -p xxx</span><br></pre></td></tr></table></figure>
+
+<p>则会输出包含的函数签名信息。</p>
+<p>接着刚才，在获取函数信息之后，如果判断此函数可调用，则可以执行下一步，调用：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">JniMethodInfo t;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">t.env-&gt;Call...Method(...);</span><br></pre></td></tr></table></figure>
+
+<p>此时根据调用的Java函数签名不同，所使用的JNIEnv的函数也不一样，如调用一个静态无参返回值为空的Java函数，需要使用<code>CallStaticVoidMethod(...)</code>。OK，现在看一个完整的例子，首先是Java代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aillieo.cocos2d_x_jni_test;</span><br><span class="line"><span class="keyword">import</span> org.cocos2dx.cpp.AppActivity;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SceneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testJni</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"testJni() is called!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来是C++代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//  SceneTest.cpp</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"SceneTest.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"platform/android/jni/JniHelper.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLASS_NAME <span class="meta-string">"com/aillieo/cocos2d_x_jni_test/SceneTest"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SceneTest::CallJavaMethod</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    JniMethodInfo t;</span><br><span class="line">    cocos2d::<span class="built_in">log</span>(<span class="string">"will try call method"</span>);</span><br><span class="line">    <span class="keyword">if</span>(JniHelper::getStaticMethodInfo(t, CLASS_NAME, <span class="string">"testJni"</span>, <span class="string">"()V"</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        cocos2d::<span class="built_in">log</span>(<span class="string">"has this static method"</span>);</span><br><span class="line">        t.env-&gt;CallStaticVoidMethod(t.classID, t.methodID);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br></pre></td></tr></table></figure>
+
+<p>这是一个最简单的例子了，没有参数传入，也没有返回值。</p>
+<h3 id="Java类型映射"><a href="#Java类型映射" class="headerlink" title="Java类型映射"></a>Java类型映射</h3><p>在C++中调用Java代码时，很多情况下需要传入参数或者接收返回值。Java中的类型在C++中（Native）的映射如下两表所示，分别是Java中的值类型和引用类型。</p>
+<table>
+<thead>
+<tr>
+<th>Java</th>
+<th>Native类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>boolean</td>
+<td>jboolean</td>
+<td>无符号8位整型（unsigned char）</td>
+</tr>
+<tr>
+<td>byte</td>
+<td>jbyte</td>
+<td>带符号8位整型（char）</td>
+</tr>
+<tr>
+<td>char</td>
+<td>jchar</td>
+<td>无符号16位整型（unsigned short）</td>
+</tr>
+<tr>
+<td>short</td>
+<td>jshort</td>
+<td>带符号16位整型（short）</td>
+</tr>
+<tr>
+<td>int</td>
+<td>jint</td>
+<td>带符号32位整型（int）</td>
+</tr>
+<tr>
+<td>long</td>
+<td>jlong</td>
+<td>带符号64位整型（long）</td>
+</tr>
+<tr>
+<td>float</td>
+<td>jfloat</td>
+<td>32位浮点型（float）</td>
+</tr>
+<tr>
+<td>double</td>
+<td>jdouble</td>
+<td>64位浮点型（double）</td>
+</tr>
+</tbody></table>
+<p>基本数据类型可以在C++代码中直接使用。</p>
+<table>
+<thead>
+<tr>
+<th>Java引用类型</th>
+<th>Native类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>All objects</td>
+<td>jobject</td>
+</tr>
+<tr>
+<td>char[]</td>
+<td>jcharArray</td>
+</tr>
+<tr>
+<td>java.lang.Class实例</td>
+<td>jclass</td>
+</tr>
+<tr>
+<td>short[]</td>
+<td>jshortArray</td>
+</tr>
+<tr>
+<td>java.lang.String实例</td>
+<td>jstring</td>
+</tr>
+<tr>
+<td>int[]</td>
+<td>jintArray</td>
+</tr>
+<tr>
+<td>Object[]</td>
+<td>jobjectArray</td>
+</tr>
+<tr>
+<td>long[]</td>
+<td>jlongArray</td>
+</tr>
+<tr>
+<td>boolean[]</td>
+<td>jbooleanArray</td>
+</tr>
+<tr>
+<td>float[]</td>
+<td>floatArray</td>
+</tr>
+<tr>
+<td>byte[]</td>
+<td>jbyteArray</td>
+</tr>
+<tr>
+<td>double[]</td>
+<td>jdoubleArray</td>
+</tr>
+<tr>
+<td>java.lang.Throwable实例</td>
+<td>jthrowable</td>
+</tr>
+</tbody></table>
+<p>Java引用类型不能在C++中直接使用，必须通过封装在<code>JniMethodInfo</code>中的<code>JNIEnv</code>来操作。</p>
+<h4 id="带参数的方法"><a href="#带参数的方法" class="headerlink" title="带参数的方法"></a>带参数的方法</h4><p>调用带参数的Java静态方法示例代码如下：</p>
+<p>Java方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aillieo.cocos2d_x_jni_test;</span><br><span class="line"><span class="keyword">import</span> org.cocos2dx.cpp.AppActivity;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SceneTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sendParam</span><span class="params">(<span class="keyword">final</span> <span class="keyword">int</span> index, <span class="keyword">final</span> String text)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>C++调用代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//  SceneTest.cpp</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"SceneTest.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"platform/android/jni/JniHelper.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLASS_NAME <span class="meta-string">"com/aillieo/cocos2d_x_jni_test/SceneTest"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SceneTest::sendParam</span><span class="params">(<span class="keyword">int</span> index, <span class="built_in">std</span>::<span class="built_in">string</span> str)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    JniMethodInfo t;</span><br><span class="line">    cocos2d::<span class="built_in">log</span>(<span class="string">"will try call method"</span>);</span><br><span class="line">    <span class="keyword">if</span>(JniHelper::getStaticMethodInfo(t, CLASS_NAME, <span class="string">"sendParam"</span>, <span class="string">"(ILjava/lang/String;)V"</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        cocos2d::<span class="built_in">log</span>(<span class="string">"has this static method"</span>);</span><br><span class="line"></span><br><span class="line">        jint jIndex = index;</span><br><span class="line">        jstring jText = t.env-&gt;NewStringUTF(str.c_str());</span><br><span class="line">        t.env-&gt;CallStaticVoidMethod(t.classID, t.methodID, jIndex, jText);</span><br><span class="line">        t.env-&gt;DeleteLocalRef(jText);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="返回值处理"><a href="#返回值处理" class="headerlink" title="返回值处理"></a>返回值处理</h4><p>处理返回值，即从Java代码中获取信息。</p>
+<p>Java方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aillieo.cocos2d_x_jni_test;</span><br><span class="line"><span class="keyword">import</span> org.cocos2dx.cpp.AppActivity;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SceneTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getText</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Text from Android"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>C++调用代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//  SceneTest.cpp</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"SceneTest.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"platform/android/jni/JniHelper.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLASS_NAME <span class="meta-string">"com/aillieo/cocos2d_x_jni_test/SceneTest"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">SceneTest::getText</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    JniMethodInfo t;</span><br><span class="line">    cocos2d::<span class="built_in">log</span>(<span class="string">"will try call method"</span>);</span><br><span class="line">    <span class="keyword">if</span>(JniHelper::getStaticMethodInfo(t, CLASS_NAME, <span class="string">"getText"</span>, <span class="string">"()Ljava/lang/String;"</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        cocos2d::<span class="built_in">log</span>(<span class="string">"has this static method"</span>);</span><br><span class="line">        </span><br><span class="line">        jstring outStr = (jstring)t.env-&gt;CallStaticObjectMethod(t.classID, t.methodID);</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span>* c_str= t.env-&gt;GetStringUTFChars(outStr, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">ret</span><span class="params">(c_str)</span></span>;</span><br><span class="line">        t.env-&gt;ReleaseStringUTFChars(outStr, c_str);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="调用实例方法"><a href="#调用实例方法" class="headerlink" title="调用实例方法"></a>调用实例方法</h3><p>之前讨论的都是对Java静态方法的调用，对于实例方法，首先要通过静态方法获取到实例对象。首先有Java静态方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aillieo.cocos2d_x_jni_test;</span><br><span class="line"><span class="keyword">import</span> org.cocos2dx.cpp.AppActivity;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SceneTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> AppActivity m_activity;</span><br><span class="line">  </span><br><span class="line">    <span class="comment">// ... 略去无关代码</span></span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> AppActivity <span class="title">getJavaActivity</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> m_activity;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在类<code>AppActivity</code>里增加一个实例方法<code>testInstanceMethod()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.cocos2dx.cpp;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ... 略去无关代码</span></span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testInstanceMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"testInstanceMethod() is called!"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来在C++中调用：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//  SceneTest.cpp</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"SceneTest.hpp"</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"platform/android/jni/JniHelper.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLASS_NAME <span class="meta-string">"com/aillieo/cocos2d_x_jni_test/SceneTest"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CLASS_NAME_APP <span class="meta-string">"org/cocos2dx/cpp/AppActivity"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SceneTest::testInstanceMethod</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    JniMethodInfo t;</span><br><span class="line">    cocos2d::<span class="built_in">log</span>(<span class="string">"will try call method"</span>);</span><br><span class="line">    <span class="keyword">if</span>(JniHelper::getStaticMethodInfo(t, CLASS_NAME, <span class="string">"getJavaActivity"</span>, <span class="string">"()Ljava/lang/Object;"</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        cocos2d::<span class="built_in">log</span>(<span class="string">"has this static method"</span>);</span><br><span class="line">        </span><br><span class="line">        jobject activityObj;</span><br><span class="line">        activityObj = (jobject)t.env-&gt;CallStaticObjectMethod(t.classID, t.methodID);</span><br><span class="line">        </span><br><span class="line">        cocos2d::<span class="built_in">log</span>(<span class="string">"will try call instance method"</span>);</span><br><span class="line">        <span class="keyword">if</span>(JniHelper::getMethodInfo(t, CLASS_NAME_APP, <span class="string">"testInstanceMethod"</span>, <span class="string">"()V"</span>))</span><br><span class="line">        &#123;</span><br><span class="line">            cocos2d::<span class="built_in">log</span>(<span class="string">"has this instance method"</span>);</span><br><span class="line">            t.env-&gt;CallVoidMethod(activityObj, t.methodID);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ... 略去无关代码</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="处理自定义类型"><a href="#处理自定义类型" class="headerlink" title="处理自定义类型"></a>处理自定义类型</h3><p>某些情况下，需要在C++中使用Java的对象，即处理Java的自定义类型。之前已经可以通过函数调用来获取jobject对象，本节我们将有更进一步的操作：</p>
+<h4 id="获取与解析class"><a href="#获取与解析class" class="headerlink" title="获取与解析class"></a>获取与解析class</h4><p>获取Java类型有两种方法，可以直接使用<code>FindClass()</code>或根据获取到的jobject对象通过<code>GetObjectClass()</code>来获取：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">JniMethodInfo t;</span><br><span class="line">jobject activityObj;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 两种获取jclass的方法</span></span><br><span class="line">jclass myclass = t.env-&gt;FindClass(<span class="string">"org/cocos2dx/cpp/MyClass"</span>);</span><br><span class="line">jclass myclass = t.env-&gt;GetObjectClass(activityObj);</span><br></pre></td></tr></table></figure>
+
+<p>有了jclass之后，就可以获取其中的字段和方法了，根据是否静态，通过<code>JNIEnv</code>获取字段<code>jfieldID</code>和获取方法<code>jmethodID</code>的函数有以下四个：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">jfieldID <span class="title">GetStaticFieldID</span><span class="params">(JNIEnv *env, jclass clazz, <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">const</span> <span class="keyword">char</span> *sig)</span></span>;</span><br><span class="line"><span class="function">jfieldID <span class="title">GetFieldID</span><span class="params">(JNIEnv *env, jclass clazz, <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">const</span> <span class="keyword">char</span> *sig)</span></span>;</span><br><span class="line"><span class="function">jmethodID <span class="title">GetStaticMethodID</span><span class="params">(JNIEnv *env, jclass clazz, <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">const</span> <span class="keyword">char</span> *sig)</span></span>;</span><br><span class="line"><span class="function">jmethodID <span class="title">GetMethodID</span><span class="params">(JNIEnv *env, jclass clazz, <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">const</span> <span class="keyword">char</span> *sig)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>name</code>表示字段或方法的名称，<code>sig</code>表示字段类型或方法函数的签名。</p>
+<h4 id="操作字段与方法"><a href="#操作字段与方法" class="headerlink" title="操作字段与方法"></a>操作字段与方法</h4><p>获取到字段<code>jfieldID</code>和方法<code>jmethodID</code>之后，可以对字段进行get/set操作，具体的函数有以下的形式：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//静态属性</span></span><br><span class="line"><span class="comment">//Get</span></span><br><span class="line">NativeType GetStatic&lt;type&gt;Field(JNIEnv *env, jclass clazz, jfieldID fieldID);</span><br><span class="line"><span class="comment">//Set</span></span><br><span class="line"><span class="keyword">void</span> SetStatic&lt;type&gt;Field(JNIEnv *env, jclass clazz, jfieldID fieldID, NativeType value);</span><br><span class="line"></span><br><span class="line"><span class="comment">//非静态属性</span></span><br><span class="line"><span class="comment">//Get</span></span><br><span class="line">NativeType Get&lt;type&gt;Field(JNIEnv *env, jobject obj, jfieldID fieldID);</span><br><span class="line"><span class="comment">//Set</span></span><br><span class="line"><span class="keyword">void</span> Set&lt;type&gt;Field(JNIEnv *env, jobject obj, jfieldID fieldID, NativeType value);</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>NativeType</code>是Java类型在C++中的映射，<code>&lt;type&gt;</code>是Java中的基本数据类型，见下表：</p>
+<table>
+<thead>
+<tr>
+<th>&lt;type&gt;</th>
+<th>NativeType</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Object</td>
+<td>jobject</td>
+</tr>
+<tr>
+<td>Boolean</td>
+<td>jboolean</td>
+</tr>
+<tr>
+<td>Byte</td>
+<td>jbyte</td>
+</tr>
+<tr>
+<td>Char</td>
+<td>jchar</td>
+</tr>
+<tr>
+<td>Short</td>
+<td>jshort</td>
+</tr>
+<tr>
+<td>Long</td>
+<td>jint</td>
+</tr>
+<tr>
+<td>Int</td>
+<td>jlong</td>
+</tr>
+<tr>
+<td>Float</td>
+<td>jfloat</td>
+</tr>
+<tr>
+<td>Double</td>
+<td>jdouble</td>
+</tr>
+</tbody></table>
+<p>对于获取到的<code>jmethodID</code>，可以根据<code>jmethodID</code>调用方法，和上文中的一样，使用<code>t.env-&gt;Call...Method(...)</code>。</p>
+<h3 id="cocos2d-x-调用Android原生控件"><a href="#cocos2d-x-调用Android原生控件" class="headerlink" title="cocos2d-x 调用Android原生控件"></a>cocos2d-x 调用Android原生控件</h3><p>通过jni调用到的函数并不能直接作用于Android的UI线程，必须通过消息来实现。如现在想要通过C++调用Java代码，显示一个Android原生的警示框<code>AlertDialog</code>。Java中有类<code>SceneAlert</code>，其有静态成员函数<code>showAlert()</code>接受来自C++的调用，则需要有以下Java代码来实现，分别位于<code>AppActivity</code>类和<code>SceneAlert</code>类中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.cocos2dx.cpp;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.cocos2dx.lib.Cocos2dxActivity;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> android.app.AlertDialog;</span><br><span class="line"><span class="keyword">import</span> android.os.Bundle;</span><br><span class="line"><span class="keyword">import</span> android.os.Handler;</span><br><span class="line"><span class="keyword">import</span> android.os.Message;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.aillieo.cocos2d_x_sdk_integration.SceneAlert;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppActivity</span> <span class="keyword">extends</span> <span class="title">Cocos2dxActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SHOW_ALERT = <span class="number">0x0001</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line"></span><br><span class="line">        SceneAlert.setHandler(m_Handler);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Handler m_Handler = <span class="keyword">new</span> Handler()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleMessage</span><span class="params">(Message msg)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">switch</span> (msg.what)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">case</span> SHOW_ALERT: &#123;</span><br><span class="line">                    AlertDialog.Builder alertDialogBuilder = <span class="keyword">new</span> AlertDialog.Builder(AppActivity.<span class="keyword">this</span>);</span><br><span class="line">                    AlertDialog alertDialog = alertDialogBuilder.create();</span><br><span class="line">                    alertDialog.setMessage(<span class="string">"message"</span>);</span><br><span class="line">                    alertDialog.show();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以及</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.aillieo.cocos2d_x_sdk_integration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.cocos2dx.cpp.AppActivity;</span><br><span class="line"><span class="keyword">import</span> android.os.Handler;</span><br><span class="line"><span class="keyword">import</span> android.os.Message;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SceneAlert</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">private</span> Handler m_handler;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setHandler</span><span class="params">(Handler handler)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        m_handler = handler;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">showAlert</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        Message msg = <span class="keyword">new</span> Message();</span><br><span class="line">        msg.what=AppActivity.SHOW_ALERT;</span><br><span class="line">        m_handler.sendMessage(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Java调用cocos2d-x"><a href="#Java调用cocos2d-x" class="headerlink" title="Java调用cocos2d-x"></a>Java调用cocos2d-x</h2><h3 id="调用C-函数"><a href="#调用C-函数" class="headerlink" title="调用C++函数"></a>调用C++函数</h3><p>在Java中声明本地方法，需要在方法前加上关键字<code>Native</code>，然后在C++中实现本地方法，注意，声明方法名称和参数的匹配，Java代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.cocos2dx.cpp;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AppActivity</span> <span class="keyword">extends</span> <span class="title">Cocos2dxActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ...略去无关代码</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="keyword">void</span> <span class="title">sendText</span><span class="params">(String text)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ...略去无关代码</span></span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 某个响应函数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">xxxx</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// ...略去无关代码</span></span><br><span class="line">        sendText(<span class="string">"text from java);     </span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>在C++中要有对应<code>sendText</code>的实现：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//  SceneTest.cpp</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ...略去无关代码</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">Java_org_cocos2dx_cpp_AppActivity_sendText</span><span class="params">(JNIEnv *env,jobject thiz,jstring <span class="built_in">text</span>)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">string</span> str = JniHelper::jstring2string(<span class="built_in">text</span>);</span><br><span class="line">        cocos2d::<span class="built_in">log</span>(<span class="string">"text from java is : %s"</span>, str.c_str());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="cocos2d-x中跨线程处理"><a href="#cocos2d-x中跨线程处理" class="headerlink" title="cocos2d-x中跨线程处理"></a>cocos2d-x中跨线程处理</h3><p>C++中，接收到Java调用的函数，无法直接与cocos2d-x主线程直接交互，可以通过cocos2d-x提供的方法<code>performFunctionInCocosThread</code>。如修改刚才的例子，接收到Java对<code>Java_org_cocos2dx_cpp_AppActivity_sendText()</code>的调用之后，发送自定义事件<code>TEXT_FROM_JAVA</code>，则需要将函数修改为：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Java_org_cocos2dx_cpp_AppActivity_sendText</span><span class="params">(JNIEnv *env,jobject thiz,jstring <span class="built_in">text</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> str = JniHelper::jstring2string(<span class="built_in">text</span>);</span><br><span class="line">    cocos2d::<span class="built_in">log</span>(<span class="string">"text from java is : %s"</span>, str.c_str());</span><br><span class="line">    Director::getInstance()-&gt;getScheduler()-&gt;performFunctionInCocosThread([str]()<span class="keyword">mutable</span>&#123;</span><br><span class="line">        Director::getInstance()-&gt;getEventDispatcher()-&gt;dispatchCustomEvent(<span class="string">"TEXT_FROM_JAVA"</span>,&amp;str);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="http://blog.csdn.net/sgn132/article/details/50511912" target="_blank" rel="noopener">http://blog.csdn.net/sgn132/article/details/50511912</a><br><a href="http://blog.csdn.net/luxiaoyu_sdc/article/details/15874505" target="_blank" rel="noopener">http://blog.csdn.net/luxiaoyu_sdc/article/details/15874505</a><br><a href="http://www.cs.princeton.edu/courses/archive/fall97/cs461/jdkdocs/guide/jni/spec/functions.doc.html" target="_blank" rel="noopener">http://www.cs.princeton.edu/courses/archive/fall97/cs461/jdkdocs/guide/jni/spec/functions.doc.html</a><br><a href="http://wiki.jikexueyuan.com/project/deep-android-v1/jni.html" target="_blank" rel="noopener">http://wiki.jikexueyuan.com/project/deep-android-v1/jni.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cocos2d-x/" rel="tag"># cocos2d-x</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/JNI/" rel="tag"># JNI</a>
+              <a href="/tags/NDK/" rel="tag"># NDK</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-09-24-python-notes-01/" rel="prev" title="python笔记（一）">
+      <i class="fa fa-chevron-left"></i> python笔记（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-10-05-cpp-std-bind/" rel="next" title="C++中的std::bind">
+      C++中的std::bind <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#cocos2d-x调用Java"><span class="nav-number">1.</span> <span class="nav-text">cocos2d-x调用Java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用JniHelper"><span class="nav-number">1.1.</span> <span class="nav-text">使用JniHelper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数调用"><span class="nav-number">1.2.</span> <span class="nav-text">函数调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java类型映射"><span class="nav-number">1.3.</span> <span class="nav-text">Java类型映射</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#带参数的方法"><span class="nav-number">1.3.1.</span> <span class="nav-text">带参数的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#返回值处理"><span class="nav-number">1.3.2.</span> <span class="nav-text">返回值处理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#调用实例方法"><span class="nav-number">1.4.</span> <span class="nav-text">调用实例方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理自定义类型"><span class="nav-number">1.5.</span> <span class="nav-text">处理自定义类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#获取与解析class"><span class="nav-number">1.5.1.</span> <span class="nav-text">获取与解析class</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#操作字段与方法"><span class="nav-number">1.5.2.</span> <span class="nav-text">操作字段与方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cocos2d-x-调用Android原生控件"><span class="nav-number">1.6.</span> <span class="nav-text">cocos2d-x 调用Android原生控件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java调用cocos2d-x"><span class="nav-number">2.</span> <span class="nav-text">Java调用cocos2d-x</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#调用C-函数"><span class="nav-number">2.1.</span> <span class="nav-text">调用C++函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cocos2d-x中跨线程处理"><span class="nav-number">2.2.</span> <span class="nav-text">cocos2d-x中跨线程处理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">3.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '3a365a09e122b91e119d484def9d3acc',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

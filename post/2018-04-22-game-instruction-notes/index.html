@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="拖了好几周，终于完结了，关于前段时间做的游戏的新手引导系统。这是第一次尝试做新手引导，踩了一些坑，也有了一些经验和总结，得出一些系统设计的思路，更多的是希望以后再做新手引导系统时可以有一些参照，避免一些问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="游戏新手引导系统总结">
+<meta property="og:url" content="http://aillieo.cn/post/2018-04-22-game-instruction-notes/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="拖了好几周，终于完结了，关于前段时间做的游戏的新手引导系统。这是第一次尝试做新手引导，踩了一些坑，也有了一些经验和总结，得出一些系统设计的思路，更多的是希望以后再做新手引导系统时可以有一些参照，避免一些问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-04-22T07:06:56.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.063Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="游戏">
+<meta property="article:tag" content="新手引导">
+<meta property="article:tag" content="引导系统">
+<meta property="article:tag" content="Instruction">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-04-22-game-instruction-notes/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>游戏新手引导系统总结 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-04-22-game-instruction-notes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          游戏新手引导系统总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-22 15:06:56" itemprop="dateCreated datePublished" datetime="2018-04-22T15:06:56+08:00">2018-04-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/GameNotes/" itemprop="url" rel="index"><span itemprop="name">GameNotes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>拖了好几周，终于完结了，关于前段时间做的游戏的新手引导系统。这是第一次尝试做新手引导，踩了一些坑，也有了一些经验和总结，得出一些系统设计的思路，更多的是希望以后再做新手引导系统时可以有一些参照，避免一些问题。</p>
+<a id="more"></a>
+
+<h2 id="配表结构"><a href="#配表结构" class="headerlink" title="配表结构"></a>配表结构</h2><p>开发过程中花费了很多时间用来和策划沟通配表，以及修改配表之后把改好的配表反馈给策划。</p>
+<p>新手引导配表使用的是之前的一个项目的表的框架，字段很多，其实是有些混乱的，使用时基本满足需求，但是对于复杂的情况应对起来稍显无力。开发过程中，总是会想起之前玩War3的WE编辑器时用的触发器，感觉其实新手引导也很适合使用“[事件 - 条件 - 动作]”这样的结构描述。</p>
+<p>表的主要字段如下，第一行是字段名称，第二行是字段类型，第三行是参数说明，第四行是可能填的一个组值：</p>
+<table>
+<thead>
+<tr>
+<th align="center">id</th>
+<th align="center">trigger</th>
+<th align="center">condition</th>
+<th align="center">action</th>
+<th align="center">mark</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">整数</td>
+<td align="center">字符串</td>
+<td align="center">字符串</td>
+<td align="center">字符串</td>
+<td align="center">整数</td>
+</tr>
+<tr>
+<td align="center">唯一标识</td>
+<td align="center">触发类型:触发参数</td>
+<td align="center">条件类型:条件参数</td>
+<td align="center">动作类型:动作参数</td>
+<td align="center">进度标记</td>
+</tr>
+<tr>
+<td align="center">10010</td>
+<td align="center">1:10</td>
+<td align="center">2:10300</td>
+<td align="center">1:RecruitPanel</td>
+<td align="center">1</td>
+</tr>
+</tbody></table>
+<p>其中<code>id</code>表示该引导步的唯一id，后边的<code>mark</code>是用于同步状态的标记，可以用来与后端同步或者本地持久化用。<code>trigger</code> 、<code>condition</code>和 <code>action</code>是最核心的三个字段，下边具体来讨论：</p>
+<h3 id="触发"><a href="#触发" class="headerlink" title="触发"></a>触发</h3><p>触发是该步引导的开启，是必填字段。当玩家做了对应的触发动作时，就会触发引导。触发动作可以包含多种类型，打开或关闭了某个界面，点击了某个按钮，占领了某个城市，使用了某个物品，到达某个等级，某种资源量到达了多少，得到了某个英雄甚至收到服务器发的某个消息等等…就会触发该引导。</p>
+<p>触发字段用一个字符串，是用冒号分隔的两个值。第一个值是触发类型的枚举，一般是整数，第二个值是触发参数的值或枚举，是整数或字符串。如对于触发类型可定义1为玩家角色等级首次到达某数值，触发参数10表示10级，也就是说<code>1:10</code>表示玩家角色等级首次到达10级时，会触发此引导步骤。</p>
+<p>某些触发事件可能会有多个参数，约定字符串分隔格式即可，如id为1023的英雄等级到达6级，定义有触发类型3为英雄首次到达某个等级，那么触发的字符串可以写为<code>3:1023,6</code>。后边的条件、动作的字符串格式与此相似。</p>
+<h3 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h3><p>条件用于对触发事件后是否要执行动作做一次拦截或者说是过滤，是选填字段，空表示不做条件限制。例如当触发某一步的引导，需要引导去穿装备，此时要判断背包内是否有指定装备或者是否已经穿了别的装备。如果满足条件就执行，否则就跳过（或执行另一个动作）。另一种使用的场景是当玩家触发这一引导时，需要判断当前打开的UI界面，例如，引导的动作是在主界面点击英雄按钮，打开英雄界面，则条件就判断当前是否是主界面，如果已经是英雄界面那么就不会执行这一步引导的动作，如果有其它打开的界面则需要将其关闭。</p>
+<p>单个条件的格式与trigger相似，都是条件类型+条件参数的格式。如<code>2:10300</code>可以表示已完成了id为10300的引导步，等等不再列举。</p>
+<p>与触发不同，条件的格式可能更复杂，有时需要判断多个条件，对于更复杂的情况，可以向字符串中加入更多的信息。如需要同时满足多个条件，可以填写<code>ALL|3:1034,10|9:30039</code>，表示同时满足了条件<code>3:1034,10</code>和<code>9:30039</code>才算满足该步的条件。再例如<code>ANY|4:2|4:3|4:4</code>，表示满足了条件<code>4:2</code>或<code>4:3</code>或<code>4:4</code>之一即可满足这一步的条件。</p>
+<h3 id="动作"><a href="#动作" class="headerlink" title="动作"></a>动作</h3><p>动作是引导最主要的内容，即游戏需要向玩家做的事情或呈现的东西。一般是展示一些带有引导角色或者箭头、遮罩、动画的界面。</p>
+<p>参数格式也是同样类型，如<code>1:RecruitPanel</code>表示打开招募界面等等。由于本次开发中界面的打开和关闭都是通过真实地点击UI按钮来驱动的，所以并不太用到打开或关闭界面的动作类型。用到比较多的是显示引导角色、带箭头的遮罩界面等，箭头指向的区域可能是一个按钮，这时参数形式会像<code>2:RecruitPanel_ButtonTenTimes</code>。</p>
+<p>对于某些引导步骤，可能需要增加在条件判断失败时执行的动作，则可以为动作增加一些信息，如<code>7:10400|7:10450</code>，动作类型7为执行引导步，则该字符串的含义为，当判断触发条件通过时执行id为10400的引导，条件不通过时执行10450。</p>
+<h3 id="进度标记"><a href="#进度标记" class="headerlink" title="进度标记"></a>进度标记</h3><p>mark字段管理引导的进度，当离开游戏后再次返回或重新登录，会从服务器获取上次引导的状态，这一状态由mark字段来控制，表示之前的引导进行到了哪一步，或者某些分支引导有没有发生过。每完成一步引导，会向服务器发送引导步的id。</p>
+<p>mark字段是一个整数值。此值为0表示该步是普通步骤，没有标记。如值为1表示为需要同步的关键步骤。每次登录游戏时，会从服务器获取到最后一次向服务器发送过的mark为1的步骤id，则可以从该步继续引导。具体的mark的规则和处理详见后边关于进度和标记同步的章节。此值取大于1的值时，可用来表示某些支线步骤的状态。登录游戏时会获取到一组已执行过的支线步骤的mark值，如某一步mark为2，执行完成这一步时会将此值同步给磁盘或者服务器，下次登录游戏时则会收到标记值2，这一步就不会重复触发。</p>
+<h2 id="引导交互"><a href="#引导交互" class="headerlink" title="引导交互"></a>引导交互</h2><p>主要是指引导界面的呈现原理。当引导玩家去点击某个按钮时，会出现一个遮罩，屏幕上绝大部分的区域会变暗，只有待点击的按钮是正常的颜色或者会有箭头指向该按钮。这种带洞的遮罩界面的实现通常会有三种方式：</p>
+<ul>
+<li>UI挖洞，屏幕上除了按钮区域，其它的所有区域都会阻挡事件，按钮区域没有任何阻挡，也就是说点击事件直接由按钮响应，带遮罩的引导界面并不知道该点击事件，直到被点击的按钮告知引导系统，下一步的引导已触发，该显示下一个引导界面了。</li>
+<li>UI挖洞，屏幕上所有区域都会阻挡事件，与按钮相对应的区域，点击事件会穿透向下传递，由遮罩界面传下去。与上边第一种实现方式的效果相似，但是区别在于遮罩界面本身会响应一次事件，也就是说引导界面本身也知道点击已经发生了，不再需要由按钮的响应事件里再转发。</li>
+<li>UI完全不挖洞，遮罩界面会阻挡整个屏幕区域的事件，包括要点击的按钮。点击遮罩后，再根据点击的区域来调用按钮被点击的回调，也就是说后边逻辑界面的变化是纯表演，只有遮罩界面在响应事件。</li>
+</ul>
+<p>这三种方案各有优劣。在Unity中，第一种界面实现起来比较容易，反转事件接收的逻辑即可，第二种界面需要自己实现事件的向下传递。代码分离方面，第一种方式需要在功能逻辑的代码中插入少量的引导逻辑，第二种方法则基本不需要，而第三种方法，可能要在引导的逻辑中写大量游戏功能逻辑的代码。单纯从引导的角度来考虑，第二种方案最佳，第一种方案次之，第三种方案需要的代码量会更多，但是出错的可能性最小。</p>
+<h2 id="管理类InstructionManager"><a href="#管理类InstructionManager" class="headerlink" title="管理类InstructionManager"></a>管理类InstructionManager</h2><p>引导相关的单例类，负责新手引导全部的功能的调度。主要需要实现以下几方面的功能：</p>
+<h3 id="各枚举类型的定义"><a href="#各枚举类型的定义" class="headerlink" title="各枚举类型的定义"></a>各枚举类型的定义</h3><p>需要定义触发类型、条件类型和动作类型，以供自己和其它的类直接使用。</p>
+<h3 id="初始化配置"><a href="#初始化配置" class="headerlink" title="初始化配置"></a>初始化配置</h3><p>在初始化时需要读取配表，并对配表的数据进行一些处理。根据获取到的引导进度，剔除已经执行过的或者再也不可能会触发的引导步。将其从“策划友好”的格式转化成一种更加“运行时友好”的格式，如将触发类型相同的引导步提出来放进同一个数组/字典等等。</p>
+<h3 id="状态的保存"><a href="#状态的保存" class="headerlink" title="状态的保存"></a>状态的保存</h3><p>在管理器内需要保存一些字段。主要包括但不限于：</p>
+<ul>
+<li>是否在引导过程中，一个布尔值，游戏的功能系统需要通过此接口获取到是否处于新手引导期间，部分功能会有一些依赖此状态的开关；</li>
+<li>当前正在执行的步骤，用于快速获取当前执行步骤的信息；</li>
+<li>上一步完成的步骤，当完成某步骤时需要向服务器同步id，记录此值避免重复发送；</li>
+<li>各类状态值，如某些支线引导是否触发过的状态；</li>
+<li>引导暂停状态，后边延迟动作执行的章节会详细说这一点</li>
+</ul>
+<h3 id="引导步的触发"><a href="#引导步的触发" class="headerlink" title="引导步的触发"></a>引导步的触发</h3><p>引导的触发借助于游戏本身的事件系统（当然其实直接调用也是可以的）。游戏的事件系统通常会有以下的方法：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 发送事件</span></span><br><span class="line">Event.Broadcast(EVENT_NAME, params)</span><br><span class="line"><span class="comment">-- 添加和移除监听</span></span><br><span class="line">Event.AddListener(EVENT_NAME, callback)</span><br><span class="line">Event.RemoveListener(EVENT_NAME, callback)</span><br></pre></td></tr></table></figure>
+
+<p>定义用于引导事件触发的事件类型，在产生触发事件的地方直接发送事件，管理器监听事件并执行响应的方法。如可以定义引导管理器的接口如下：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 发送事件 由游戏的各个功能系统调用</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.CheckTrigger</span><span class="params">(triggerType, triggerParams)</span></span></span><br><span class="line">	Event.Broadcast(EVENT_NAME, &#123;triggerType = triggerType; triggerParams = triggerParams&#125;)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 响应事件的回调</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.OnTrigger</span><span class="params">(args)</span></span></span><br><span class="line">	<span class="keyword">local</span> triggerType, triggerParams = args.triggerType, args.triggerParams</span><br><span class="line">	<span class="comment">-- 根据triggerType 跳转到具体的处理逻辑 检查triggerParams是否符合条件</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>在发送事件时需要将参数传出去，然后在<code>OnTrigger</code>中直接判断比较。例如，配表<code>trigger</code>字段填写了<code>9:HeroPanel_ButtonUpgrade</code>，触发类型9对应于点击了某个按钮，参数是<code>HeroPanel</code>界面的名为<code>ButtonUpgrade</code>的按钮。则需要在按钮被点击时调用：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">InstructionManager.CheckTrigger(InstructionManager.TriggerType.ButtonClicked, obj.name)</span><br><span class="line"><span class="comment">-- 两个参数等价于</span></span><br><span class="line"><span class="comment">-- InstructionManager.CheckTrigger(9, "HeroPanel_ButtonUpgrade")</span></span><br></pre></td></tr></table></figure>
+
+<p>则在管理器内会根据触发类型9获取到对应的待触发的引导步，直接使用参数<code>&quot;HeroPanel_ButtonUpgrade&quot;</code>和在初始化时分解好的触发参数对比（两个字符串是否相同），如果相等则是触发成功，检查触发条件，如果条件满足则执行动作。</p>
+<h3 id="工具方法"><a href="#工具方法" class="headerlink" title="工具方法"></a>工具方法</h3><p>在引导管理类里会有一系列的工具方法，如：</p>
+<ul>
+<li>获取当前激活的UI界面，判断是否是需要的界面，或是否有需要的点击对象。此方法会在判断引导步的触发条件时较频繁地使用；</li>
+<li>根据传入的GameObject得到其在屏幕坐标下的position或RectTransform。该方法会在打开的带箭头的遮罩界面调用，用于正确地显示引导的点击区域；</li>
+<li>调用网络连接的接口，向服务器发送消息，告知新手引导的进度或状态；</li>
+</ul>
+<p>等等诸如此类的方法。</p>
+<h3 id="执行引导的动作"><a href="#执行引导的动作" class="headerlink" title="执行引导的动作"></a>执行引导的动作</h3><p>根据动作的类型，执行对应的动作，如展示引导界面等，重点在于参数的解析。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.PerformStep</span><span class="params">(id)</span></span></span><br><span class="line">    <span class="comment">-- id 为引导步的id</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="引导进行的状态"><a href="#引导进行的状态" class="headerlink" title="引导进行的状态"></a>引导进行的状态</h3><p>首先会有一个接口判断是否在新手引导期间，其它的系统会调用此接口来做一些状态判断，如在引导其间不显示活动按钮等各种限制。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.IsInInstruction</span><span class="params">()</span></span></span><br><span class="line">	<span class="keyword">return</span> <span class="literal">true</span> <span class="comment">-- or false</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>某些情况下需要暂停引导的状态（详见后边延迟动作执行的章节），因此还需要提供暂停和恢复的接口：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.Pause</span><span class="params">()</span></span></span><br><span class="line">    <span class="comment">-- ...</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.Resume</span><span class="params">()</span></span></span><br><span class="line">    <span class="comment">-- ...</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="引导的推进"><a href="#引导的推进" class="headerlink" title="引导的推进"></a>引导的推进</h2><p>引导中的每一步的推进，无非是两种情况：</p>
+<ul>
+<li>在连续的强制引导过程中，引导完成了第n步 直接去执行第n+1步</li>
+<li>在非强制引导过程中，玩家在游戏中自由操作时，完成了某个动作，触发引导某一步</li>
+</ul>
+<p>对于第一种情况其实是可以划归到第二类中的，我们可以把完成了第n步引导当做触发第n+1步引导的事件，也可以在第n步引导的动作中配置，动作为展示某界面，并触发第n+1步，这两种配置方法没有什么本质区别。但是如果使用真实UI按钮来驱动引导进行的话，则会出现一些问题。想象这样的场景：</p>
+<ul>
+<li>第n步：遮罩界面，在主界面的“副本”按钮处挖洞，也就是说只能点击副本按钮（游戏中点击副本后会打开副本界面，这属于游戏本身的逻辑）</li>
+<li>第n+1步：引导点击副本的第一关的图标，同样使用遮罩在第一关的图标处挖洞</li>
+</ul>
+<p>当第n步完成时，立即触发第n+1步，看上去似乎没有问题，但是从点击副本按钮到展示好副本界面，中间会有一个很短的时间间隔。无论是使用异步加载资源也好，或者是打开界面时带有动画，都会导致在开始执行第n+1步时，副本界面并没有完全准备好，导致的结果是无法正确地获取到副本第一关的图标的区域，引导遮罩的区域显示错误，很容易卡死玩家的游戏进度。</p>
+<p>所以在本次的游戏引导中，我避免使用上边的方法。而是引导推进的过程中，涉及到界面打开或者关闭等，我会选择将“指定界面被打开”作为触发事件，而引导步的推进关系放在条件中判断，即被触发的引导步刚好是刚刚完成的引导步的后置步。这么做会在界面完全打开之后触发，此时判断条件并执行即可。</p>
+<h2 id="进度和标记的同步"><a href="#进度和标记的同步" class="headerlink" title="进度和标记的同步"></a>进度和标记的同步</h2><h3 id="基本规则"><a href="#基本规则" class="headerlink" title="基本规则"></a>基本规则</h3><p>同步指的是与服务器同步进度（如果是单机游戏则是在磁盘记录进度）。当开始执行某一步时，会向服务器发送消息，告知其开始；当某一步执行完毕时，会向服务器发送消息告知其完成。这样对策划来说更容易分析玩家在新手引导中的状态，新手引导的设计与游戏前期留存关系密切，同时通过引导步骤的日志也可以分析出玩家的前期是如何流失的。</p>
+<p>这里涉及到一个问题，mark标记值如何使用。服务器不需要处理引导步进度的任何逻辑，玩家每次登录游戏时，会收到服务器发回的最后一个mark值为1的引导步的id，基于此设定。有两种使用mark的方式：</p>
+<ul>
+<li>当带有mark的引导步开始时，服务器收到消息更新最后一步mark的引导步id</li>
+<li>当带有mark的引导步完成时，服务器收到消息更新最后一步mark的引导步id</li>
+</ul>
+<p>实时证明第一种方法会更方便。这两种方法对于服务器实现起来没有差别，对于策划制作配表也相差无几，区别在于，客户端得到服务器发送的引导步id后，是从该步执行，还是判断该步的下一步开始执行。使用第一种方法可以减少一次触发的判断。</p>
+<p>除了主线引导的进度之外，还有一些支线的引导的记录也需要同步，原理和方法相似。</p>
+<h3 id="引导进度的推导"><a href="#引导进度的推导" class="headerlink" title="引导进度的推导"></a>引导进度的推导</h3><p>同步引导进度时会遇到这样的问题：引导进度很难保证与游戏内容的完全一致。比如玩家领取了xx奖励后完成引导的第n步，如果先向服务器发送领取奖励的消息再发送引导同步对消息，则很可能在两条消息之间，由于网络环境较差或者突然一些中断导致服务器只收到了第一条消息，导致重新进入游戏时，出现引导混乱（已经领取了xx奖励但是还是会引导去领取xx奖励）；如果将两条消息的顺序反过来同样会出现错误，这种问题是无法避免的。</p>
+<p>为解决这一问题，需要引入额外的一些工作量，放在服务器或者客户端，有一方做这些额外工作确保引导进度和游戏内容进度一致即可。</p>
+<ul>
+<li>如果由服务器来做，就在领取xx奖励时，同时修改对应的引导步状态，以确保引导进度与游戏内容的一致，此时客户端就可以完全信任服务器发来的引导进度标记；</li>
+<li>如果由客户端来做，客户端在收到带标记的引导id时，就必须做出判断，如果是对应领取xx奖励，且xx奖励不可领取（已领取过），则跳过当前引导id去执行下一步，这样服务器就无需任何额外逻辑。目前项目中是由客户端做这些额外的判断。</li>
+</ul>
+<h2 id="引导逻辑与功能逻辑分离"><a href="#引导逻辑与功能逻辑分离" class="headerlink" title="引导逻辑与功能逻辑分离"></a>引导逻辑与功能逻辑分离</h2><p>引导逻辑与功能逻辑分离，不仅仅是开发时方便，出问题后调试起来也更容易，当功能需求或引导需求发生变化时对另一者的影响也最小。触发逻辑、条件判断逻辑、动作执行逻辑如何解耦？</p>
+<h3 id="触发逻辑"><a href="#触发逻辑" class="headerlink" title="触发逻辑"></a>触发逻辑</h3><p>触发的过程需要在功能逻辑中插入引导相关的代码，如前边InstructionManager章节所述，在发生变化的地方调用其接口来广播事件：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">InstructionManager.CheckTrigger(triggerType, triggerParams)</span><br></pre></td></tr></table></figure>
+
+<p>这一行代码，似乎是没有办法避免的。而对于打开界面、关闭界面、点击按钮此类触发，则可以将调用的过程放在UI管理类或基类里。在UI界面加载完成后、销毁完成后、按钮点击事件的响应逻辑中增加上边的代码。</p>
+<h3 id="条件判断逻辑"><a href="#条件判断逻辑" class="headerlink" title="条件判断逻辑"></a>条件判断逻辑</h3><p>条件判断逻辑基本上是在引导逻辑中直接使用功能逻辑的代码（调用方法），如判断玩家等级，判断城市所属，判断副本关卡通过状态等等，基本上都可以通过调用相关管理器的接口得到一个布尔值即可完成。</p>
+<h3 id="动作执行逻辑"><a href="#动作执行逻辑" class="headerlink" title="动作执行逻辑"></a>动作执行逻辑</h3><p>基本上是在打开和关闭引导界面（带箭头和遮罩、引导角色的界面）。涉及到功能逻辑的无非是获取按钮位置、城市的位置。使用lua开发，理论上讲是可以把这些获取UI控件的逻辑都移到InstructionManager中的（不在功能逻辑中增加引导相关的代码）。但是考虑到开发效率和代码的易读性，还是在各个UI界面的脚本中，增加了一个方法：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">XXPanel:GetInstructionObj</span><span class="params">(key)</span></span></span><br><span class="line">    <span class="keyword">if</span> self.xxxobj <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">return</span> self.xxxobj </span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> BasePanel.GetInstructionObj(self,key) </span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>这样获取控件时，只需少量的逻辑代码即可获取到引导动作字段中包含的key所指定的控件（GameObjetct），进而得到对应的RectTransform，以通过箭头或遮罩展示出来，引导玩家去点击。</p>
+<p>获取引导控件时注意的几点是：</p>
+<ul>
+<li>如果要获取的对象受Layout控制，则需要在获取之前调用 <code>LayoutRebuilder.ForceRebuildLayoutImmediate(rect)</code>；</li>
+<li>如果要获取的对象并不是在打开界面时就有（可能是打开后再请求服务器或者打开后再异步加载的），则需要将引导步的触发移至加载完成时；</li>
+<li>如果获取的是Scrollview中的元素，则考虑要锁定滚动，即在调用<code>GetInstructionObj</code>时将滚动禁止</li>
+</ul>
+<h2 id="延迟动作的执行"><a href="#延迟动作的执行" class="headerlink" title="延迟动作的执行"></a>延迟动作的执行</h2><p>这是很容易出错的一个地方。某些情况下，触发引导时并不能立即执行引导动作，或者说不能立即显示引导的内容。主要会有以下两种情况：</p>
+<ul>
+<li>触发时正处于场景加载过程中，则需要将原本要立即执行的动作放到切换场景后主UI加载完成时再调用</li>
+<li>一些可能随时突然出现的界面，如被攻击的提示、收到邀请、玩家角色等级提升界面等，如果在出现这些界面时触发引导，则很可能会导致条件判断出错或无法获取到正确的UI控件</li>
+</ul>
+<p>这时候是需要将引导延迟触发或者延迟执行的，前边提到，<code>InstructionManager</code>有<code>Pause()</code>和<code>Resume()</code>方法，下边是它们可能的一种实现：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> pauseCount = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">local</span> onResumeFuncs = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- ...</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.Pause</span><span class="params">()</span></span></span><br><span class="line">    pauseCount = pauseCount + <span class="number">1</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.Resume</span><span class="params">()</span></span></span><br><span class="line">    pauseCount = pauseCount - <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> pauseCount == <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">    	<span class="comment">-- 逐个调用 onResumeFuncs 里的函数</span></span><br><span class="line">        <span class="keyword">for</span> i,v <span class="keyword">in</span> <span class="built_in">ipairs</span>(onResumeFuncs) <span class="keyword">do</span></span><br><span class="line">        	v[<span class="number">1</span>](v[<span class="number">2</span>])</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">        <span class="comment">-- 调用完成后清空 onResumeFuncs</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionManager.PerformStep</span><span class="params">(id)</span></span></span><br><span class="line">	<span class="keyword">if</span> pauseCount &gt; <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">        <span class="comment">-- 将此次操作存入 onResumeFuncs</span></span><br><span class="line">    	<span class="built_in">table</span>.<span class="built_in">insert</span>(onResumeFuncs,&#123;InstructionManager.PerformStep, id&#125;)</span><br><span class="line">    	<span class="keyword">return</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="comment">-- ...</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>引导管理器中，<code>pauseCount</code>表示被请求暂停引导的次数，此值大于0表示引导处于暂停状态。<code>onResumeFuncs</code>用来保存函数和id。当<code>pauseCount</code>恢复为0时，调用保存的函数。</p>
+<p>这样，在切换场景时，先调用<code>InstructionManager.Pause()</code>，然后在新场景完全加载完成时，调用<code>InstructionManager.Resume()</code>，即可保证在场景加载期间触发的引导移至新场景中执行动作。对于可能打断引导的界面，如玩家角色升级界面，可以在开始加载该页面时调用<code>Pause()</code>，并在关闭界面动作完成之后调用<code>Resume()。</code>这两个函数的调用可以放在UI的管理类中，只需要给对应的界面配置参数<code>willPauseInstruction</code>，这样在UI管理器请求打开界面时，如果判断该界面有此属性，则先调用暂停，同理在关闭界面时调用恢复引导即可。</p>
+<h2 id="开发与调试"><a href="#开发与调试" class="headerlink" title="开发与调试"></a>开发与调试</h2><ul>
+<li>引导系统的开关：在开发过程中乃至开发完成后，要留一个新手引导的开关，登录时可以选择是否开启新手引导，便于开发和测试人员搞新手引导之外的系统，当出现问题时可以通过开关引导系统来排查问题。</li>
+<li>丰富的log：有时候引导系统会受到很多因素的影响而导致异常，所以对于引导的触发、条件判断和动作执行的过程尽量多的输出log，当出现问题时就可以快速定位原因。</li>
+<li>跳转按钮：调试阶段，在游戏内可以设置一个超级按钮，输入指定引导步的id就可以立即执行该引导步，并支持从该引导步继续往后执行，这样做也可以大大提高开发效率。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/game-notes/" rel="tag"># game notes</a>
+              <a href="/tags/Instruction/" rel="tag"># Instruction</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-04-21-c-variable-length-array/" rel="prev" title="C语言可变长度数组">
+      <i class="fa fa-chevron-left"></i> C语言可变长度数组
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-05-16-unity-3d-ugui-source-code-05/" rel="next" title="Unity3D UGUI 源码学习 InputModule">
+      Unity3D UGUI 源码学习 InputModule <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#配表结构"><span class="nav-number">1.</span> <span class="nav-text">配表结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#触发"><span class="nav-number">1.1.</span> <span class="nav-text">触发</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#条件"><span class="nav-number">1.2.</span> <span class="nav-text">条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动作"><span class="nav-number">1.3.</span> <span class="nav-text">动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进度标记"><span class="nav-number">1.4.</span> <span class="nav-text">进度标记</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引导交互"><span class="nav-number">2.</span> <span class="nav-text">引导交互</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理类InstructionManager"><span class="nav-number">3.</span> <span class="nav-text">管理类InstructionManager</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#各枚举类型的定义"><span class="nav-number">3.1.</span> <span class="nav-text">各枚举类型的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化配置"><span class="nav-number">3.2.</span> <span class="nav-text">初始化配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#状态的保存"><span class="nav-number">3.3.</span> <span class="nav-text">状态的保存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引导步的触发"><span class="nav-number">3.4.</span> <span class="nav-text">引导步的触发</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#工具方法"><span class="nav-number">3.5.</span> <span class="nav-text">工具方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#执行引导的动作"><span class="nav-number">3.6.</span> <span class="nav-text">执行引导的动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引导进行的状态"><span class="nav-number">3.7.</span> <span class="nav-text">引导进行的状态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引导的推进"><span class="nav-number">4.</span> <span class="nav-text">引导的推进</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进度和标记的同步"><span class="nav-number">5.</span> <span class="nav-text">进度和标记的同步</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本规则"><span class="nav-number">5.1.</span> <span class="nav-text">基本规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引导进度的推导"><span class="nav-number">5.2.</span> <span class="nav-text">引导进度的推导</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引导逻辑与功能逻辑分离"><span class="nav-number">6.</span> <span class="nav-text">引导逻辑与功能逻辑分离</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#触发逻辑"><span class="nav-number">6.1.</span> <span class="nav-text">触发逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#条件判断逻辑"><span class="nav-number">6.2.</span> <span class="nav-text">条件判断逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动作执行逻辑"><span class="nav-number">6.3.</span> <span class="nav-text">动作执行逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#延迟动作的执行"><span class="nav-number">7.</span> <span class="nav-text">延迟动作的执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开发与调试"><span class="nav-number">8.</span> <span class="nav-text">开发与调试</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '517e88d619f7074c91eaab75402445e1',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

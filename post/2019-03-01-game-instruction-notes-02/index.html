@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="新公司，新项目，又做新手引导。不同之处在于这次的新手引导中更多的是剧情的展示，与剧情、任务等系统交互非常紧密，并且内嵌大量的timeline，而引导交互的内容相对较少。对于功能的实现，在参考之前的新手引导的基础上，也有了大量的改进。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="游戏新手引导系统总结">
+<meta property="og:url" content="http://aillieo.cn/post/2019-03-01-game-instruction-notes-02/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="新公司，新项目，又做新手引导。不同之处在于这次的新手引导中更多的是剧情的展示，与剧情、任务等系统交互非常紧密，并且内嵌大量的timeline，而引导交互的内容相对较少。对于功能的实现，在参考之前的新手引导的基础上，也有了大量的改进。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-03-01T14:57:22.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.080Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="游戏">
+<meta property="article:tag" content="新手引导">
+<meta property="article:tag" content="引导系统">
+<meta property="article:tag" content="Instruction">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2019-03-01-game-instruction-notes-02/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>游戏新手引导系统总结 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2019-03-01-game-instruction-notes-02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          游戏新手引导系统总结
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-03-01 22:57:22" itemprop="dateCreated datePublished" datetime="2019-03-01T22:57:22+08:00">2019-03-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/GameNotes/" itemprop="url" rel="index"><span itemprop="name">GameNotes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>新公司，新项目，又做新手引导。不同之处在于这次的新手引导中更多的是剧情的展示，与剧情、任务等系统交互非常紧密，并且内嵌大量的timeline，而引导交互的内容相对较少。对于功能的实现，在参考之前的新手引导的基础上，也有了大量的改进。</p>
+<a id="more"></a>
+
+<h2 id="简述"><a href="#简述" class="headerlink" title="简述"></a>简述</h2><p>相对于上一次<a href="../2018-04-22-game-instruction-notes">新手引导</a>，主要有几方面的不同：</p>
+<ul>
+<li><p>原来的项目框架中，对于UI界面，可通过view的名字直接同步获取到view对实例，因而处理逻辑更简单；新项目中没有这样的接口，只能取到Ctrl，进而异步取view的实例；</p>
+</li>
+<li><p>原来的项目中，通过view的实例取挖洞对象的代码，分散在各个view的代码中；新项目中功能逻辑和引导逻辑严格分开，所有诸如<code>GetInstructionObj</code>的代码都集中在同一个脚本中，以静态函数的方式出现，传入view实例，返回遮罩对象；</p>
+</li>
+<li><p>原来的遮罩挖洞界面，挖洞区域对于点击事件是无法感知的，直接将点击事件穿透传递给下层的UI或地图上的对象；新项目中挖洞区域本身可以响应点击事件，在处理点击事件的回调中手动取调用挖洞对象的<code>OnClick</code>之类的方法；</p>
+</li>
+<li><p>原来的引导系统，将触发、条件、动作等逻辑以及同步进度等都写在一个巨大的<code>InstructionMgr</code>脚本内，逻辑很混乱；新项目中这些逻辑分散到很多个不同的脚本中，每个脚本只处理各自对应的逻辑；</p>
+</li>
+<li><p>新项目中使用了一套更完善的配表生成机制，配表中直接填写枚举值和字典，使配置更清晰，代码中解析配表也更简单；</p>
+</li>
+</ul>
+<h2 id="框架"><a href="#框架" class="headerlink" title="框架"></a>框架</h2><h3 id="触发-条件-动作"><a href="#触发-条件-动作" class="headerlink" title="触发-条件-动作"></a>触发-条件-动作</h3><p>引导系统基础的实现机制依然是”触发-条件-动作”，对应三个部分：</p>
+<p>在事件中注册触发函数，这里的事件包括游戏加载完成，玩家得到xx道具，交付了xx任务，完成了id为xx的引导步等。触发通过向游戏逻辑模块的事件注册监听来实现；</p>
+<p>在触发函数中，需要做条件判断，这里的条件包括玩家是否执行过某个动作（后边提到的marks），玩家是否达到某等级，是否拥有了某个道具等。条件判断的逻辑通常是在游戏逻辑模块中处理；</p>
+<p>条件判断通过之后，会执行引导步的动作，动作执行的逻辑通常也是会调用游戏逻辑模块暴露出来的接口。</p>
+<h3 id="主要的脚本"><a href="#主要的脚本" class="headerlink" title="主要的脚本"></a>主要的脚本</h3><h4 id="InstructionModel"><a href="#InstructionModel" class="headerlink" title="InstructionModel"></a>InstructionModel</h4><p>转化和重新存储配置数据，保存从服务器获取到的进度和状态信息。</p>
+<h5 id="配置表"><a href="#配置表" class="headerlink" title="配置表"></a>配置表</h5><p>配置表的格式如下，其中各param字段都是一个键值均为string的字典，各type字段是定义好的枚举值。</p>
+<table>
+<thead>
+<tr>
+<th>stepId</th>
+<th>triggerType</th>
+<th>triggerParam</th>
+<th>conditionType</th>
+<th>conditionParam</th>
+<th>actionType</th>
+<th>actionParam</th>
+<th>keyStep</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>INT</td>
+<td>ENUM</td>
+<td>MAP</td>
+<td>ENUM</td>
+<td>MAP</td>
+<td>ENUM</td>
+<td>MAP</td>
+<td>BOOL</td>
+</tr>
+<tr>
+<td>1001</td>
+<td>GameLoad</td>
+<td></td>
+<td>Always</td>
+<td></td>
+<td>PlayStory</td>
+<td>storyId:100001</td>
+<td>true</td>
+</tr>
+</tbody></table>
+<h5 id="引导进度"><a href="#引导进度" class="headerlink" title="引导进度"></a>引导进度</h5><p>正在进行的引导需要保存两个数据，<code>lastFinishedStep</code>和<code>currentStep</code>。</p>
+<p>引导步开始和结束时会改变<code>currentStep</code>，引导步结束时会修改<code>lastFinishedStep</code>。<code>currentStep</code>用于判断是否在引导过程中，当<code>lastFinishedStep</code>发生变化时，会向服务器同步数据。</p>
+<h5 id="标记状态"><a href="#标记状态" class="headerlink" title="标记状态"></a>标记状态</h5><p>字段<code>marks</code>，用于记录支线/触发式的引导是否执行过。当<code>marks</code>发生变化时，会向服务器同步。<code>marks</code>需要与<code>ActionType</code>中的<code>SetMark</code>和<code>ConditionType</code>中的<code>NoMark</code>配合使用。初始状态<code>marks</code>各位都是0，执行动作<code>SetMark</code>后将对应位设置位1，在条件判断系统中会有条件类型<code>NoNark</code>。</p>
+<p>当登录游戏时，会请求<code>lastFinishedStep</code>和<code>marks</code>两个数据。其中<code>lastFinishedStep</code>由前端向后端发送的完成引导步的消息和配表中的<code>keyStep</code>共同决定，<code>marks</code>完全决定于前端向后端发送的数据。</p>
+<h4 id="InstructionCtrl"><a href="#InstructionCtrl" class="headerlink" title="InstructionCtrl"></a>InstructionCtrl</h4><p>负责引导系统总体的调度。当检测到新手引导开启并且玩家并未完成所有的新手引导时，则启用初始化，包括触发、条件、动作三部分的初始化。引导系统的总开关、调试功能的开关也都在<code>InstructionCtrl</code>中。除此之外，<code>InstructionCtrl</code>还负责与后端的进度同步，即消息的发送和接收解析；</p>
+<h4 id="InstructionTriggerCtrl"><a href="#InstructionTriggerCtrl" class="headerlink" title="InstructionTriggerCtrl"></a>InstructionTriggerCtrl</h4><p>初始化时注册所有的触发函数，即向游戏内的各个事件添加监听，在触发的函数中根据触发参数做一些简单的判断，如果与触发参数一致则跳转到条件判断环节。</p>
+<h4 id="InstructionConditionCtrl"><a href="#InstructionConditionCtrl" class="headerlink" title="InstructionConditionCtrl"></a>InstructionConditionCtrl</h4><p>将各个系统暴露出来的接口进行加工，封装成一组能够返回一个布尔值的函数。如果判断通过则进入动作执行环节。如果<code>conditionParam</code>中包含有字段<code>onFailToStep</code>则会在条件判断失败时直接跳转到对应引导步。</p>
+<h4 id="InstructionActionCtrl"><a href="#InstructionActionCtrl" class="headerlink" title="InstructionActionCtrl"></a>InstructionActionCtrl</h4><p>执行动作，直接调用各个系统暴露出来的接口，并在完成步骤时调用事件<code>ActionEndEvent</code>。</p>
+<p>在<code>ActionEndEvent</code>中会同步引导进度，同时由于在<code>InstructionTriggerCtrl</code>中为<code>triggerType</code>为<code>StepFinish</code>的引导步监听了此事件，所以可以推动引导的顺序进行。</p>
+<p>同时为了实现跳过逻辑，在执行动作调用各个逻辑系统的接口时，各逻辑系统的接口需要返回一个handle，在调用接口之后，向<code>ActionSkippedEvent</code>注册监听的函数，并将handle以闭包变量的形式封在函数内，以确保当玩家要跳过时可以调用。</p>
+<h4 id="InstructionInjector"><a href="#InstructionInjector" class="headerlink" title="InstructionInjector"></a>InstructionInjector</h4><p>这是向逻辑系统的脚本中注入引导逻辑的一个比较hacking的做法，有点类似与装饰器，可以替换掉原函数，也可以在原函数的调用之前、之后增加额外的函数调用。有点破坏整体框架，慎用。</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionInjector.PerformInjection</span><span class="params">(moduleName,funcName,willFunc,overrideFunc,didFunc)</span></span></span><br><span class="line">    <span class="built_in">require</span>(moduleName)</span><br><span class="line">    <span class="keyword">local</span> module = <span class="built_in">package</span>.<span class="built_in">loaded</span>[moduleName]</span><br><span class="line">    <span class="keyword">if</span> <span class="literal">nil</span> == module <span class="keyword">then</span> <span class="keyword">return</span> <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">local</span> originalFunc = module[funcName]</span><br><span class="line">    <span class="keyword">if</span> originalFunc == <span class="literal">nil</span> <span class="keyword">or</span> <span class="built_in">type</span>(originalFunc) == <span class="string">"function"</span> <span class="keyword">then</span></span><br><span class="line">        <span class="comment">-- 如果不存在这个字段或者存在这个名字的函数</span></span><br><span class="line">        <span class="keyword">if</span> willFunc <span class="keyword">or</span> overrideFunc <span class="keyword">or</span> didFunc <span class="keyword">then</span></span><br><span class="line">            module[funcName] = <span class="function"><span class="keyword">function</span><span class="params">(...)</span></span></span><br><span class="line">                <span class="keyword">local</span> ret</span><br><span class="line">                <span class="keyword">if</span> willFunc <span class="keyword">then</span> willFunc(...) <span class="keyword">end</span></span><br><span class="line">                <span class="keyword">if</span> overrideFunc <span class="keyword">then</span></span><br><span class="line">                    ret = overrideFunc(...)</span><br><span class="line">                <span class="keyword">elseif</span> originalFunc <span class="keyword">then</span></span><br><span class="line">                    ret = originalFunc(...)</span><br><span class="line">                <span class="keyword">end</span></span><br><span class="line">                <span class="keyword">if</span> didFunc <span class="keyword">then</span> didFunc(...) <span class="keyword">end</span></span><br><span class="line">                <span class="keyword">return</span> ret</span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="InstructionDebugger"><a href="#InstructionDebugger" class="headerlink" title="InstructionDebugger"></a>InstructionDebugger</h4><p>引导调试器，唯一一个CS脚本，基于IMGUI绘制简单的界面，几个按钮分别绑定lua的几个函数，支持跳过当前、跳过全部、跳到指定步等功能。逻辑全部在lua中实现。</p>
+<h3 id="涉及到的UI"><a href="#涉及到的UI" class="headerlink" title="涉及到的UI"></a>涉及到的UI</h3><h4 id="遮罩界面"><a href="#遮罩界面" class="headerlink" title="遮罩界面"></a>遮罩界面</h4><p>引导系统中最常见的界面了，UI挖洞以达到让玩家点击暴露出来的UI组件的目的，依旧是使用MVC结构。</p>
+<h5 id="UIInstructionMaskModel"><a href="#UIInstructionMaskModel" class="headerlink" title="UIInstructionMaskModel"></a>UIInstructionMaskModel</h5><p>在打开遮罩界面之前，先将当前步的<code>actionParam</code>保存下来到<code>model</code>里，对应遮罩界面的<code>actionParam</code>用于定义遮罩的对象、尺寸、位置和其它的一些信息，通常可以包括以下参数：</p>
+<ul>
+<li><p><code>ui</code> 需要挖洞的UI对象相对于view的完整路径，该对象上通常有Button、Toggle等响应点击的组件</p>
+</li>
+<li><p><code>listView</code> 涉及到的滚动列表组件，当需要获取滚动列表中的元素时，需包含此字段</p>
+</li>
+<li><p><code>layoutRoot</code> 涉及到在layout中取指定的一个对象时，需包含此字段</p>
+</li>
+<li><p><code>index</code> 通常配合<code>listView</code>和<code>layoutRoot</code>使用，获取其中的第几个对象</p>
+</li>
+<li><p><code>xxxId</code> 可以是道具id，兵种id等，根据给定的<code>listView</code>和<code>xxxId</code>在滚动列表中找到对应的item</p>
+</li>
+<li><p><code>size</code> 挖洞区域的尺寸，通常选区地图上的非UI对象时需要提供此字段</p>
+</li>
+<li><p><code>dontPassClick</code> 用于模拟一些假的点击，遮罩的UI接收到点击事件后，不再向下传递给真实的UI界面</p>
+</li>
+</ul>
+<h5 id="UIInstructionMaskCtrl"><a href="#UIInstructionMaskCtrl" class="headerlink" title="UIInstructionMaskCtrl"></a>UIInstructionMaskCtrl</h5><p>操作界面的Open和Close方法，以打开和关闭界面。在打开遮罩界面后，并根据model中保存的<code>actionParam</code>计算出一个框框以指引点击区域。主要分为两步：</p>
+<ol>
+<li><p>获取点击对象，在脚本<code>UIInstructionMaskingUtils</code>中包含一组的方法，根据传入的view的luaInstance和<code>actionParam</code>得到要获取的遮罩对象。遮罩对象即是指引玩家点击的对象，通常是一个button、或者image、toggle等或者是地图上一个带有collider和eventTrigger的GameObject；</p>
+</li>
+<li><p>根据获取到的GameObject，计算出来一个rect，并使遮罩界面上的挖洞区域和rect对齐。</p>
+</li>
+</ol>
+<p>如果没有找到描述的GameObject，则将全屏遮黑，并监听OnViewOpen的回调，直到需要的界面view加载完成并准备好数据，再获取一次GameObject和rect。</p>
+<p>根据UI或地图上的GameObject获取rect的方法如下：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UIInstructionMaskCtrl.UIObjToCanvasRect</span><span class="params">(uiObj)</span></span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> UIInstructionMaskCtrl.csRefs.uiCam <span class="keyword">then</span></span><br><span class="line">        <span class="comment">-- UIInstructionMaskCtrl.csRefs.uiCam = ...</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> UIInstructionMaskCtrl.ObjToCanvasRect(uiObj,UIInstructionMaskCtrl.csRefs.uiCam)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UIInstructionMaskCtrl.MapObjToCanvasRect</span><span class="params">(mapObj)</span></span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> UIInstructionMaskCtrl.csRefs.worldCam <span class="keyword">then</span></span><br><span class="line">        <span class="comment">-- UIInstructionMaskCtrl.csRefs.worldCam = ...</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> UIInstructionMaskCtrl.ObjToCanvasRect(mapObj,UIInstructionMaskCtrl.csRefs.worldCam)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UIInstructionMaskCtrl.ObjToCanvasRect</span><span class="params">(obj,cam)</span></span></span><br><span class="line">    <span class="keyword">local</span> worldPos = obj.transform.position</span><br><span class="line">    <span class="keyword">local</span> viewPos = cam:WorldToViewportPoint(worldPos)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> UIInstructionMaskCtrl.rootRect <span class="keyword">then</span></span><br><span class="line">        <span class="comment">-- local rootCanvasObj = ..</span></span><br><span class="line">        <span class="keyword">local</span> rootRect = rootCanvasObj:GetComponent(typeof(CS.UnityEngine.RectTransform)).rect</span><br><span class="line">        UIInstructionMaskCtrl.rootRect = &#123;</span><br><span class="line">            width = rootRect.width,</span><br><span class="line">            height = rootRect.height</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">local</span> canvasPos = &#123;</span><br><span class="line">        x = viewPos.x * UIInstructionMaskCtrl.rootRect.width,</span><br><span class="line">        y = viewPos.y * UIInstructionMaskCtrl.rootRect.height</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">local</span> rect</span><br><span class="line">    <span class="keyword">local</span> objRect = obj:GetComponent(typeof(CS.UnityEngine.RectTransform))</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> IsNil(objRect) <span class="keyword">then</span></span><br><span class="line">        rect = objRect.rect</span><br><span class="line">    <span class="keyword">elseif</span> <span class="literal">nil</span> ~= UIInstructionMaskModel.actionParam.size <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">local</span> size = UIInstructionMaskModel.actionParam.size</span><br><span class="line">        rect = &#123;</span><br><span class="line">            x = <span class="number">-0.5</span> * size[<span class="number">1</span>],</span><br><span class="line">            y = <span class="number">-0.5</span> * size[<span class="number">2</span>],</span><br><span class="line">            width = size[<span class="number">1</span>],</span><br><span class="line">            height = size[<span class="number">2</span>],</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        rect = &#123;</span><br><span class="line">            x = <span class="number">-50</span>, y = <span class="number">-50</span>,</span><br><span class="line">            width = <span class="number">100</span>, height = <span class="number">100</span></span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        x = canvasPos.x + rect.x + rect.width/<span class="number">2</span>,</span><br><span class="line">        y = canvasPos.y + rect.y + rect.height/<span class="number">2</span>,</span><br><span class="line">        width = rect.width,</span><br><span class="line">        height = rect.height</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="UIInstructionMaskView"><a href="#UIInstructionMaskView" class="headerlink" title="UIInstructionMaskView"></a>UIInstructionMaskView</h5><p>即遮罩界面，在打开或找到目标时，显示UI挖洞区域，并与目标的rect对齐。</p>
+<p>挖洞区域需要接受点击事件，回调函数<code>OnClick</code>，在其中需要将点击事件传递给真正的点击对象，如果是UI就找到<code>Selectable</code>调用点击方法，如果是地图对象，找到<code>EventTrigger</code>并调用点击方法。</p>
+<p>此外还需要处理一些其它的可选项，如箭头位置、箭头指向方向、文字内容、文字位置等，从<code>actionParam</code>中获取配置。</p>
+<h4 id="UIInstructionMaskingUtils"><a href="#UIInstructionMaskingUtils" class="headerlink" title="UIInstructionMaskingUtils"></a>UIInstructionMaskingUtils</h4><p>提供一组静态方法，传入view的lua实例对象和<code>actionParam</code>，返回一个GameObject：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Private.DefaultGetInstructionObj</span><span class="params">(viewLuaInstance,actionParams)</span></span></span><br><span class="line">    <span class="comment">-- ...</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>不同的view，获取组件对象的方式差异较大，大多数情况下都需要对每个view单独写一些逻辑，不再展开详述。</p>
+<h4 id="引导员或剧情对话界面"><a href="#引导员或剧情对话界面" class="headerlink" title="引导员或剧情对话界面"></a>引导员或剧情对话界面</h4><p>全部由剧情系统实现，暴露出接口由引导系统调用。</p>
+<h4 id="全屏遮黑"><a href="#全屏遮黑" class="headerlink" title="全屏遮黑"></a>全屏遮黑</h4><p>只用一张白色的全屏Image，将淡入、淡出时间，持续时间，颜色等参数暴露出来，由配表控制即可。</p>
+<h4 id="其它直接调用的UI"><a href="#其它直接调用的UI" class="headerlink" title="其它直接调用的UI"></a>其它直接调用的UI</h4><p>通常如果<code>ActionType</code>是打开一个界面<code>OpenView</code>，需要在界面加载完成时调用<code>OnActionEnd()</code>。如果UI界面涉及到的是一个完整的操作，如玩家起名、角色选择等，需要做成单独的<code>ActionType</code>，打开界面时，向关闭界面的事件注册监听<code>OnActionEnd</code>，关闭界面时调用才认为是这一步完成。</p>
+<h2 id="触发机制"><a href="#触发机制" class="headerlink" title="触发机制"></a>触发机制</h2><p>在<code>InstructionTriggerCtrl</code>初始化时，对配置中的引导步进行处理。遍历所有可能执行的引导步，根据其<code>TriggerType</code>注册监听事件。玩家游戏过程中，操作触发了引导，会将触发的引导步的id作为参数传入注册的监听函数。举例说明：</p>
+<p>在<code>InstructionTriggerCtrl</code>内部的监听函数：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Private.CheckTriggerActionEnd</span><span class="params">(finishedStepId)</span></span></span><br><span class="line">    <span class="keyword">local</span> triggeredStepId = Private.listenersForStepEnd[finishedStepId]</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> triggeredStepId <span class="keyword">then</span> <span class="keyword">return</span> <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">local</span> stepInfo = InstructionModel.GetCfg(triggeredStepId)</span><br><span class="line">    <span class="keyword">if</span> stepInfo <span class="keyword">then</span></span><br><span class="line">        InstructionConditionCtrl.CheckAndPerformInstruction(stepInfo)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>初始化时注册监听，先把触发类型为<code>StepFinish</code>的筛选出来：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> k,v <span class="keyword">in</span> <span class="built_in">pairs</span>(InstructionModel.GetAllCfgSteps()) <span class="keyword">do</span></span><br><span class="line">    <span class="comment">-- ...</span></span><br><span class="line">    <span class="keyword">if</span> v.trigger == TriggerType.StepFinish <span class="keyword">then</span></span><br><span class="line">        Private.listenersForStepEnd[<span class="built_in">tonumber</span>(v.triggerParam.id)] = k</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="comment">-- ...</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>为事件<code>InstructionActionCtrl.ActionEndEvent</code>注册监听</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> InstructionActionCtrl = <span class="built_in">require</span>(<span class="string">"Game/Ctrl/InstructionActionCtrl"</span>)</span><br><span class="line">InstructionActionCtrl.ActionEndEvent:AddListener(<span class="function"><span class="keyword">function</span><span class="params">(stepId)</span></span></span><br><span class="line">    Private.CheckTriggerActionEnd(stepId)</span><br><span class="line"><span class="keyword">end</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="条件判断机制"><a href="#条件判断机制" class="headerlink" title="条件判断机制"></a>条件判断机制</h2><p>介于触发系统和动作执行系统中间的一环，只有满足了条件才会去执行动作。同时支持配置将多个条件合并成一个条件，满足其一<code>Any</code>或满足所有<code>All</code>则认为是满足条件。默认类型为<code>Always</code>，即直接返回true。</p>
+<p>与触发系统类似，<code>InstructionConditionCtrl</code>中也包含一组判断函数judge，当调用<code>InstructionConditionCtrl.CheckAndPerformInstruction</code>的实现如下：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionConditionCtrl.CheckAndPerformInstruction</span><span class="params">(stepInfo)</span></span></span><br><span class="line">    <span class="keyword">local</span> condition = stepInfo.condition</span><br><span class="line">    <span class="keyword">local</span> judgeFunc = Private.judges[condition]</span><br><span class="line">    <span class="keyword">local</span> conditionParam = InstructionUtils.ProcessParams(stepInfo.conditionParam)</span><br><span class="line">    <span class="keyword">if</span> judgeFunc(conditionParam) <span class="keyword">then</span></span><br><span class="line">        InstructionActionCtrl.PerformInstructionAction(stepInfo)</span><br><span class="line">    <span class="keyword">elseif</span> conditionParam.onFailStep <span class="keyword">then</span></span><br><span class="line">        InstructionActionCtrl.PerformInstructionAction(InstructionModel.GetCfg(conditionParam.onFailStep))</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>例如<code>InstructionConditionCtrl</code>中对于没有设置过mark的判断：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Private.JudgeFunc_NoMark</span><span class="params">(conditionParam)</span></span></span><br><span class="line">    <span class="keyword">local</span> mark = conditionParam.mark</span><br><span class="line">    <span class="keyword">local</span> InstructionModel = <span class="built_in">require</span>(<span class="string">"Game/Model/InstructionModel"</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">not</span> InstructionModel.CheckHasMark(mark)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionModel.CheckHasMark</span><span class="params">(mark)</span></span></span><br><span class="line">    <span class="keyword">return</span> Private.marks &amp; (<span class="number">1</span> &lt;&lt; mark) ~= <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>其中对于一些关系的判断，可以直接借助lua的<code>load(string)</code>来完成。以下是判断玩家等级的判断函数，其中op通常是比较符号，如<code>&gt;</code>、<code>&lt;=</code>等：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Private.JudgeFunc_PlayerLevel</span><span class="params">(conditionParam)</span></span></span><br><span class="line">    <span class="keyword">local</span> op = conditionParam.op</span><br><span class="line">    <span class="keyword">local</span> level = conditionParam.level</span><br><span class="line">    <span class="keyword">local</span> playerLevel = ...</span><br><span class="line">    <span class="keyword">local</span> opStr = <span class="built_in">string</span>.<span class="built_in">format</span>(<span class="string">"return %d %s %d"</span>,playerLevel,op,level)</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">load</span>(opStr)()</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="动作执行机制"><a href="#动作执行机制" class="headerlink" title="动作执行机制"></a>动作执行机制</h2><p>动作系统初始化时同样根据ActionType注册函数，在执行动作时根据类别调用：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionActionCtrl.PerformInstructionAction</span><span class="params">(stepInfo)</span></span></span><br><span class="line">    <span class="keyword">local</span> InstructionCtrl = <span class="built_in">require</span>(<span class="string">"Game/Ctrl/InstructionCtrl"</span>)</span><br><span class="line">    InstructionCtrl.currentStepId = stepInfo.id</span><br><span class="line">    Private.OnActionBegin(stepInfo.id)</span><br><span class="line">    <span class="keyword">local</span> handler = Private.handlers[stepInfo.action]</span><br><span class="line">    <span class="keyword">local</span> actionParam = InstructionUtils.ProcessParams(stepInfo.actionParam)</span><br><span class="line">    <span class="keyword">if</span> handler <span class="keyword">then</span></span><br><span class="line">        handler(stepInfo.id,actionParam)</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        Logger:Error(<span class="string">"暂未实现 ActionType = "</span> .. stepInfo.action)</span><br><span class="line">        Private.DoEmpty(stepInfo.id,actionParam)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>动作执行直接调用各逻辑功能模块提供的接口即可。动作执行之前和之后，需要向后端同步。执行动作之后需要掉<code>ActionEndEvent</code>事件：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Private.OnActionBegin</span><span class="params">(stepId)</span></span></span><br><span class="line">    <span class="keyword">local</span> InstructionModel = <span class="built_in">require</span>(<span class="string">"Game/Model/InstructionModel"</span>)</span><br><span class="line">    InstructionModel.currentStepId = stepId</span><br><span class="line">    <span class="keyword">local</span> InstructionCtrl = <span class="built_in">require</span>(<span class="string">"Game/Ctrl/InstructionCtrl"</span>)</span><br><span class="line">    InstructionCtrl.SyncWithServer(stepId,<span class="literal">false</span>)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Private.OnActionEnd</span><span class="params">(stepId)</span></span></span><br><span class="line">    <span class="keyword">local</span> InstructionModel = <span class="built_in">require</span>(<span class="string">"Game/Model/InstructionModel"</span>)</span><br><span class="line">    <span class="keyword">if</span> stepId == InstructionModel.currentStepId <span class="keyword">then</span></span><br><span class="line">        InstructionModel.currentStepId = <span class="number">-1</span></span><br><span class="line">        InstructionModel.lastFinishStepId = stepId</span><br><span class="line">        <span class="keyword">local</span> InstructionCtrl = <span class="built_in">require</span>(<span class="string">"Game/Ctrl/InstructionCtrl"</span>)</span><br><span class="line">        InstructionCtrl.SyncWithServer(stepId,<span class="literal">true</span>)</span><br><span class="line">        InstructionActionCtrl.ActionEndEvent(stepId)</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment">-- Logger:Error("错误！！！    stepId = " .. stepId)</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>例如<code>InstructionActionCtrl</code>中设置标记的执行动作：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Private.DoSetMark</span><span class="params">(stepId,actionParam)</span></span></span><br><span class="line">    <span class="keyword">local</span> mark = actionParam.mark</span><br><span class="line">    <span class="keyword">local</span> InstructionModel = <span class="built_in">require</span>(<span class="string">"Game/Model/InstructionModel"</span>)</span><br><span class="line">    InstructionModel.SetMark(mark)</span><br><span class="line">    Private.OnActionEnd(stepId)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">InstructionModel.SetMark</span><span class="params">(mark)</span></span></span><br><span class="line">    Private.marks = Private.marks | (<span class="number">1</span> &lt;&lt; mark)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>对于不能立即完成的动作，如播放一个timeline，需要将完成动作的回调<code>Private.OnActionEnd</code>传递给相关的系统，在timeline播放完成时调用。</p>
+<p>除此之外动作类型还可以结合游戏框架里的一些基础系统，如等待几秒钟的时间（可以设置在等待时间期间禁掉触摸事件），或者预加载一个timeline的资源等。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/game-notes/" rel="tag"># game notes</a>
+              <a href="/tags/Instruction/" rel="tag"># Instruction</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-12-24-effective-c-sharp-notes-04/" rel="prev" title="《Effective C#》笔记 使用框架">
+      <i class="fa fa-chevron-left"></i> 《Effective C#》笔记 使用框架
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2019-03-29-effective-c-sharp-notes-05/" rel="next" title="《Effective C#》笔记 C#中的动态编程">
+      《Effective C#》笔记 C#中的动态编程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简述"><span class="nav-number">1.</span> <span class="nav-text">简述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#框架"><span class="nav-number">2.</span> <span class="nav-text">框架</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#触发-条件-动作"><span class="nav-number">2.1.</span> <span class="nav-text">触发-条件-动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#主要的脚本"><span class="nav-number">2.2.</span> <span class="nav-text">主要的脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#InstructionModel"><span class="nav-number">2.2.1.</span> <span class="nav-text">InstructionModel</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#配置表"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">配置表</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#引导进度"><span class="nav-number">2.2.1.2.</span> <span class="nav-text">引导进度</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#标记状态"><span class="nav-number">2.2.1.3.</span> <span class="nav-text">标记状态</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstructionCtrl"><span class="nav-number">2.2.2.</span> <span class="nav-text">InstructionCtrl</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstructionTriggerCtrl"><span class="nav-number">2.2.3.</span> <span class="nav-text">InstructionTriggerCtrl</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstructionConditionCtrl"><span class="nav-number">2.2.4.</span> <span class="nav-text">InstructionConditionCtrl</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstructionActionCtrl"><span class="nav-number">2.2.5.</span> <span class="nav-text">InstructionActionCtrl</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstructionInjector"><span class="nav-number">2.2.6.</span> <span class="nav-text">InstructionInjector</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstructionDebugger"><span class="nav-number">2.2.7.</span> <span class="nav-text">InstructionDebugger</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#涉及到的UI"><span class="nav-number">2.3.</span> <span class="nav-text">涉及到的UI</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#遮罩界面"><span class="nav-number">2.3.1.</span> <span class="nav-text">遮罩界面</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#UIInstructionMaskModel"><span class="nav-number">2.3.1.1.</span> <span class="nav-text">UIInstructionMaskModel</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#UIInstructionMaskCtrl"><span class="nav-number">2.3.1.2.</span> <span class="nav-text">UIInstructionMaskCtrl</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#UIInstructionMaskView"><span class="nav-number">2.3.1.3.</span> <span class="nav-text">UIInstructionMaskView</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UIInstructionMaskingUtils"><span class="nav-number">2.3.2.</span> <span class="nav-text">UIInstructionMaskingUtils</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#引导员或剧情对话界面"><span class="nav-number">2.3.3.</span> <span class="nav-text">引导员或剧情对话界面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#全屏遮黑"><span class="nav-number">2.3.4.</span> <span class="nav-text">全屏遮黑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#其它直接调用的UI"><span class="nav-number">2.3.5.</span> <span class="nav-text">其它直接调用的UI</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#触发机制"><span class="nav-number">3.</span> <span class="nav-text">触发机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条件判断机制"><span class="nav-number">4.</span> <span class="nav-text">条件判断机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动作执行机制"><span class="nav-number">5.</span> <span class="nav-text">动作执行机制</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'cafc3f8bcb956127ebe499483f34d11f',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

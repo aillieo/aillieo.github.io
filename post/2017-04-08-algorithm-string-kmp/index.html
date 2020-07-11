@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="字符串匹配是在目标字符串target中查找与字符串pattern相匹配的起始索引位置的算法，字符串匹配算法中，Knuth-Morris-Pratt算法（简称KMP）是比较常用的算法之一。下边通过一个例子来介绍KMP匹配算法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字符串匹配的KMP算法">
+<meta property="og:url" content="http://aillieo.cn/post/2017-04-08-algorithm-string-kmp/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="字符串匹配是在目标字符串target中查找与字符串pattern相匹配的起始索引位置的算法，字符串匹配算法中，Knuth-Morris-Pratt算法（简称KMP）是比较常用的算法之一。下边通过一个例子来介绍KMP匹配算法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-04-08T02:51:12.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.048Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="字符串">
+<meta property="article:tag" content="匹配">
+<meta property="article:tag" content="kmp">
+<meta property="article:tag" content="算法">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-04-08-algorithm-string-kmp/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>字符串匹配的KMP算法 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-04-08-algorithm-string-kmp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          字符串匹配的KMP算法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-04-08 10:51:12" itemprop="dateCreated datePublished" datetime="2017-04-08T10:51:12+08:00">2017-04-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index"><span itemprop="name">Algorithm</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>字符串匹配是在目标字符串<code>target</code>中查找与字符串<code>pattern</code>相匹配的起始索引位置的算法，字符串匹配算法中，Knuth-Morris-Pratt算法（简称KMP）是比较常用的算法之一。下边通过一个例子来介绍KMP匹配算法。</p>
+<a id="more"></a>
+
+<h2 id="对暴力匹配的改进"><a href="#对暴力匹配的改进" class="headerlink" title="对暴力匹配的改进"></a>对暴力匹配的改进</h2><p>为了引入KMP算法的优势，首先来看低效的暴力匹配方法。现在需要在字符串<code>target</code>中匹配字符串<code>pattern</code>，二者的值如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">target  = <span class="string">"ABCABCDABCDABDE"</span>;</span><br><span class="line">pattern = <span class="string">"ABCDABD"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>使用暴力匹配方法，需要从<code>target</code>的第一个字符开始，依次与<code>pattern</code>匹配：</p>
+<p>（注：以下代码段中<code>|</code>表示已匹配且匹配成功，<code>x</code>表示已匹配且匹配失败，<code>?</code>表示即将匹配）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#1    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">      ?</span><br><span class="line">pat - ABCDABD</span><br></pre></td></tr></table></figure>
+
+<p>逐个比较字符，直到遇到不同：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#2    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">      |||x</span><br><span class="line">pat - ABCDABD</span><br></pre></td></tr></table></figure>
+
+<p>终止当前的匹配，将<code>target</code>中游标位置右移1，开始新的一轮比较：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#3    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">       ?</span><br><span class="line">pat -  ABCDABD</span><br></pre></td></tr></table></figure>
+
+<p>由于首个字符不一致，会继续跳过，直到<code>target</code>中首个字符匹配时：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#4    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">         |?</span><br><span class="line">pat -    ABCDABD</span><br></pre></td></tr></table></figure>
+
+<p>继续刚才的方法，直到全部匹配成功或出现不一致：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#5    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">         ||||||x</span><br><span class="line">pat -    ABCDABD</span><br></pre></td></tr></table></figure>
+
+<p>此时，如继续暴力匹配的方法，会进入<code>#6</code>所示的状态：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#6    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">          ?</span><br><span class="line">pat -     ABCDABD</span><br></pre></td></tr></table></figure>
+
+<p>这是一种极其低效的方法。实际上，在刚才一轮的比较过程中，回到<code>#5</code>所示状态，可以看到参与比较的<code>target</code>中第7-8个字符<code>AB</code>，与<code>pattern</code>的起始部分相匹配，而<code>target</code>的第4-6个字符<code>BCD</code>与<code>pattern</code>的起始部分不匹配，这些信息对于计算程序是可知的。如果在进行逐个字符比较的过程中，可以依据这些信息，就能够在开始下次比较时，跳过第4-6个字符，直接将游标移到第7个字符，且从<code>target</code>第9个字符开始比较，即<code>#7</code>所示的状态，则会大大降低比较次数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#7    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">             ||?</span><br><span class="line">pat -        ABCDABD</span><br></pre></td></tr></table></figure>
+
+<p>KMP算法即按照这一思路来实现，它会在比较过程中，记录比较信息，进而在下次比较时，跳过<code>target</code>中已经参与过比较的字符，并计算出新的<code>target</code>和<code>pattern</code>中游标的位置，进而大大提高效率。</p>
+<h2 id="KMP算法"><a href="#KMP算法" class="headerlink" title="KMP算法"></a>KMP算法</h2><p>在KMP算法中，引入局部匹配表（partial match table）的概念，局部匹配表根据匹配字符串<code>pattern</code>生成，是一个长度与<code>pattern</code>相等的整数数组。此处先接着刚才的例子介绍KMP算法的原理，下节介绍局部匹配表如何生成。</p>
+<p>对于<code>pattern</code>字符串<code>ABCDABD</code>，局部匹配表<code>T = [-1,0,0,0,0,1,2]</code>，即：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pat :  A B C D A B D</span><br><span class="line">PMT : -1 0 0 0 0 1 2</span><br></pre></td></tr></table></figure>
+
+<p>在每次匹配出现匹配失败时，<code>target</code>中的游标不会回退到上次开始匹配的位置+1处，而是继续向后，并且会根据局部匹配表计算出<code>pattern</code>中游标的位置。</p>
+<p>回到刚才<code>#5</code>所示的状态，出现匹配失败时，<code>target</code>中游标索引<code>i=9</code>，<code>pattern</code>中游标索引位置<code>k=6</code>，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#5    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE     i &#x3D; 3 + 6</span><br><span class="line">         ||||||x</span><br><span class="line">pat -    ABCDABD          k &#x3D; 6</span><br><span class="line">         0123456</span><br></pre></td></tr></table></figure>
+
+<p>KMP算法使用以下公式计算下次匹配开始时游标的位置（<code>T</code>表示局部匹配表数组），当出现<code>target[i]!=pattern[k]</code>时，下一次的匹配比较将在<code>target[i]和pattern[T[k]]</code>之间进行：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(k==<span class="number">0</span>)</span><br><span class="line">&#123;</span><br><span class="line">	i++;  <span class="comment">// 注意：这种情况表示上次匹配中pattern的第一个字符就不匹配</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">	k = T[k];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结合本文的例子，对于<code>#5</code>的状态，则会计算出下次匹配时，有<code>i=9</code>以及 <code>k=2</code>，将此状态记为<code>#8</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#8    012345678901234</span><br><span class="line">tar - ABCABCDABCDABDE</span><br><span class="line">               ? </span><br><span class="line">pat -        ABCDABD</span><br><span class="line">             0123456</span><br></pre></td></tr></table></figure>
+
+<p>对比发现与之前期望的<code>#7</code>所示状态相同。</p>
+<p>使用这种方法对于长度分别为<code>m</code>的<code>target</code>字符串，计算的时间复杂度为<code>O(m)</code>。</p>
+<h2 id="初始化局部匹配表"><a href="#初始化局部匹配表" class="headerlink" title="初始化局部匹配表"></a>初始化局部匹配表</h2><p>构建局部匹配表的算法，对于长度为<code>n</code>的字符串<code>pattern</code>，时间复杂度为<code>O(n)</code>。使用局部匹配表，可以使<code>target</code>中的字符最多参与一次匹配比较。在字符串<code>pattern</code>内部进行预匹配，查找和记录可能的匹配位置，保存为回退点，用于在出现不匹配时回退，以避免无用的比较。</p>
+<p>定义<code>T[0]= -1</code>，除<code>T[0]</code>外后边的<code>T[j]=k</code>的意义可以简单看成是：<code>pattern</code>中下标为<code>j</code>的字符（不含本身）的前面有最多<code>k</code>个字符与<code>pattern</code>起始的<code>k</code>个字符相同。</p>
+<p>依然使用之前的例子：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pattern = <span class="string">"ABCDABD"</span>;</span><br></pre></td></tr></table></figure>
+
+<p>对于<code>pattern</code>对应的局部匹配表，先确定前缀（prefix）和后缀（suffix）的概念，前缀是字符串中从第一个字符开始取到的子字符串，字符串的前缀长度必须小于原字符串。如字符串<code>&quot;HIJKL&quot;</code>有前缀<code>&quot;H&quot;</code>、<code>&quot;HI&quot;</code>、 <code>&quot;HIJ&quot;</code>、 <code>&quot;HIJK&quot;</code>。后缀的定义与此相似，方向相反。</p>
+<ol>
+<li>首先有<code>T[0] = -1</code>；</li>
+<li>接下来确定<code>T[1]</code>的值，比较整个字符串的前缀与<code>pattern[0]</code>的后缀，<code>pattern[0]=&quot;A&quot;</code>无后缀，因此有<code>T[1] = 0</code>；</li>
+<li>确定<code>T[2]</code>的值，比较整个字符串的前缀与<code>pattern[0-1]</code>的后缀，<code>pattern[0-1]</code>有后缀<code>&quot;B&quot;</code>，但与<code>pattern</code>的前缀不一致，因此<code>T[2] = 0</code>；</li>
+<li>继续到<code>T[3]</code>，比较整个字符串的前缀与<code>pattern[0-2]</code>的后缀，没有匹配的部分，所以<code>T[3] = 0</code>；</li>
+<li>继续到<code>T[4]</code>，比较整个字符串的前缀与<code>pattern[0-3]</code>的后缀，没有匹配的部分，所以<code>T[4] = 0</code>；</li>
+<li>继续到<code>T[5]</code>，比较整个字符串的前缀与<code>pattern[0-4]</code>的后缀，<code>pattern[0-4] = &quot;ABCDA&quot;</code>，有后缀<code>&quot;A&quot;</code>与整个字符串的前缀<code>&quot;A&quot;</code>相同，相同部分长度为1，因此有<code>T[5] = 1</code>。</li>
+<li>最后到<code>T[6]</code>，比较整个字符串的前缀与<code>pattern[0-5]</code>的后缀，<code>pattern[0-5] = &quot;ABCDAB&quot;</code>，有后缀<code>&quot;AB&quot;</code>与整个字符串的前缀<code>&quot;AB&quot;</code>相同，相同部分长度为2，因此有<code>T[6] = 2</code>。</li>
+<li>比较结束，得到<code>T = [-1,0,0,0,0,1,2]</code> 。</li>
+</ol>
+<p>局部匹配表，又称为模式值或模式数组（<code>next[]</code>）、失效函数（failure function）等，有若干种相似的定义方式，对应的KMP算法实现也稍有不同。计算局部匹配表的一种方法，及KMP算法的一种c++实现见下节。</p>
+<h2 id="KMP算法c-实现"><a href="#KMP算法c-实现" class="headerlink" title="KMP算法c++实现"></a>KMP算法c++实现</h2><p><a href="http://www.sanfoundry.com/cpp-program-implement-kruth-morris-patt-algorithm-kmp/" target="_blank" rel="noopener">代码来源</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * C++ Program to Implement Knuth–Morris–Pratt Algorithm (KMP)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;cstring&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">preKMP</span><span class="params">(<span class="built_in">string</span> pattern, <span class="keyword">int</span> f[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> m = pattern.length(), k;</span><br><span class="line">	f[<span class="number">0</span>] = <span class="number">-1</span>;</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; m; i++)</span><br><span class="line">	&#123;</span><br><span class="line">		k = f[i - <span class="number">1</span>];</span><br><span class="line">		<span class="keyword">while</span> (k &gt;= <span class="number">0</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span> (pattern[k] == pattern[i - <span class="number">1</span>])</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			<span class="keyword">else</span></span><br><span class="line">				k = f[k];</span><br><span class="line">		&#125;</span><br><span class="line">		f[i] = k + <span class="number">1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment">//check whether target string contains pattern </span></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">KMP</span><span class="params">(<span class="built_in">string</span> pattern, <span class="built_in">string</span> target)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> m = pattern.length();</span><br><span class="line">	<span class="keyword">int</span> n = target.length();</span><br><span class="line">	<span class="keyword">int</span> f[m];     </span><br><span class="line">	preKMP(pattern, f);     </span><br><span class="line">	<span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">int</span> k = <span class="number">0</span>;        </span><br><span class="line">	<span class="keyword">while</span> (i &lt; n)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (k == <span class="number">-1</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			i++;</span><br><span class="line">			k = <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (target[i] == pattern[k])</span><br><span class="line">		&#123;</span><br><span class="line">			i++;</span><br><span class="line">			k++;</span><br><span class="line">			<span class="keyword">if</span> (k == m)</span><br><span class="line">				<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span></span><br><span class="line">			k = f[k];</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">string</span> tar = <span class="string">"san and linux training"</span>;</span><br><span class="line">	<span class="built_in">string</span> pat = <span class="string">"lin"</span>;</span><br><span class="line">	<span class="keyword">if</span> (KMP(pat, tar))</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;<span class="string">"'"</span>&lt;&lt;pat&lt;&lt;<span class="string">"' found in string '"</span>&lt;&lt;tar&lt;&lt;<span class="string">"'"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;<span class="string">"'"</span>&lt;&lt;pat&lt;&lt;<span class="string">"' not found in string '"</span>&lt;&lt;tar&lt;&lt;<span class="string">"'"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	pat = <span class="string">"sanfoundry"</span>;</span><br><span class="line">	<span class="keyword">if</span> (KMP(pat, tar))</span><br><span class="line">		<span class="built_in">cout</span>&lt;&lt;<span class="string">"'"</span>&lt;&lt;pat&lt;&lt;<span class="string">"' found in string '"</span>&lt;&lt;tar&lt;&lt;<span class="string">"'"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	<span class="built_in">cout</span>&lt;&lt;<span class="string">"'"</span>&lt;&lt;pat&lt;&lt;<span class="string">"' not found in string '"</span>&lt;&lt;tar&lt;&lt;<span class="string">"'"</span>&lt;&lt;<span class="built_in">endl</span>;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://en.wikipedia.org/wiki/Knuth–Morris–Pratt_algorithm" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Knuth–Morris–Pratt_algorithm</a><br><a href="http://www.ituring.com.cn/article/59881" target="_blank" rel="noopener">http://www.ituring.com.cn/article/59881</a><br><a href="http://www.sanfoundry.com/cpp-program-implement-kruth-morris-patt-algorithm-kmp/" target="_blank" rel="noopener">http://www.sanfoundry.com/cpp-program-implement-kruth-morris-patt-algorithm-kmp/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/string/" rel="tag"># string</a>
+              <a href="/tags/KMP/" rel="tag"># KMP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-04-02-unity-3d-notes-01/" rel="prev" title="Unity3d点滴记录（一）">
+      <i class="fa fa-chevron-left"></i> Unity3d点滴记录（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-05-07-shell-script-basics/" rel="next" title="shell脚本基础">
+      shell脚本基础 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#对暴力匹配的改进"><span class="nav-number">1.</span> <span class="nav-text">对暴力匹配的改进</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KMP算法"><span class="nav-number">2.</span> <span class="nav-text">KMP算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化局部匹配表"><span class="nav-number">3.</span> <span class="nav-text">初始化局部匹配表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KMP算法c-实现"><span class="nav-number">4.</span> <span class="nav-text">KMP算法c++实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '276432e9e7c36c3229dc32e367c89bc6',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文使用对比测评的方式比较了几种Lua中代码和方式，并做了简要的总结和分析。结合其中结论，可指导写出质量更高、性能更优的脚本。本文基于Lua5.1，大部分内容也同样适用于Lua5.2和5.3。本文中引用到的Lua源代码都取自Lua 5.1.5版本。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lua笔记 效率&amp;性能">
+<meta property="og:url" content="http://aillieo.cn/post/2018-09-13-lua-notes-03/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="本文使用对比测评的方式比较了几种Lua中代码和方式，并做了简要的总结和分析。结合其中结论，可指导写出质量更高、性能更优的脚本。本文基于Lua5.1，大部分内容也同样适用于Lua5.2和5.3。本文中引用到的Lua源代码都取自Lua 5.1.5版本。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-09-13T14:08:20.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.073Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Lua">
+<meta property="article:tag" content="performance">
+<meta property="article:tag" content="性能">
+<meta property="article:tag" content="优化">
+<meta property="article:tag" content="效率">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="time">
+<meta property="article:tag" content="gc">
+<meta property="article:tag" content="collectgarbage">
+<meta property="article:tag" content="local">
+<meta property="article:tag" content="LUAI_MAXVARS">
+<meta property="article:tag" content="tail">
+<meta property="article:tag" content="OP">
+<meta property="article:tag" content="尾递归">
+<meta property="article:tag" content="rehash">
+<meta property="article:tag" content="重新hash">
+<meta property="article:tag" content="string">
+<meta property="article:tag" content="拼接">
+<meta property="article:tag" content="concat">
+<meta property="article:tag" content="format">
+<meta property="article:tag" content="插入">
+<meta property="article:tag" content="insert">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-09-13-lua-notes-03/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Lua笔记 效率&性能 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-09-13-lua-notes-03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Lua笔记 效率&性能
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-09-13 22:08:20" itemprop="dateCreated datePublished" datetime="2018-09-13T22:08:20+08:00">2018-09-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Lua/" itemprop="url" rel="index"><span itemprop="name">Lua</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文使用对比测评的方式比较了几种Lua中代码和方式，并做了简要的总结和分析。结合其中结论，可指导写出质量更高、性能更优的脚本。本文基于Lua5.1，大部分内容也同样适用于Lua5.2和5.3。本文中引用到的Lua源代码都取自Lua 5.1.5版本。</p>
+<a id="more"></a>
+
+<h2 id="评测方法"><a href="#评测方法" class="headerlink" title="评测方法"></a>评测方法</h2><p>主要有运行时间和产生GC两个指标，以下是获取运行时间和内存用量/GC的方法：</p>
+<h3 id="获取运行时间"><a href="#获取运行时间" class="headerlink" title="获取运行时间"></a>获取运行时间</h3><p>为了更好地做比较，使用下边的方法来记录代码的运行时间：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> a, b</span><br><span class="line">a = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment">-- do something</span></span><br><span class="line"></span><br><span class="line">b = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"><span class="built_in">print</span>(b-a)</span><br></pre></td></tr></table></figure>
+
+<h3 id="获取内存用量"><a href="#获取内存用量" class="headerlink" title="获取内存用量"></a>获取内存用量</h3><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"stop"</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"collect"</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">collectgarbage</span>(<span class="string">"count"</span>))</span><br></pre></td></tr></table></figure>
+
+<p>上边三行代码都是调用函数<code>collectgarbage()</code>，配合传入的不同的参数达到不同的目的：</p>
+<ul>
+<li><p><code>stop</code> 停止自动GC</p>
+</li>
+<li><p><code>collect</code> 执行一次完整的GC循环</p>
+</li>
+<li><p><code>count</code> 返回当前内存用量，以k为单位</p>
+</li>
+</ul>
+<h2 id="使用local保存全局变量的引用"><a href="#使用local保存全局变量的引用" class="headerlink" title="使用local保存全局变量的引用"></a>使用local保存全局变量的引用</h2><p>使用<code>local</code>保存全局变量的引用可以提高变量访问效率。</p>
+<h3 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h3><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> <span class="built_in">sin</span> = <span class="built_in">math</span>.<span class="built_in">sin</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> a,b</span><br><span class="line">a = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"><span class="keyword">local</span> res = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> i = <span class="number">1</span>, <span class="number">10000000</span> <span class="keyword">do</span></span><br><span class="line">    res = res + <span class="built_in">math</span>.<span class="built_in">sin</span>(i)    <span class="comment">-- case 1</span></span><br><span class="line">    <span class="comment">--res = res + sin(i)    -- case 2</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">b = <span class="built_in">os</span>.<span class="built_in">clock</span>();</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"cost time = "</span> .. b-a)</span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码得到case1和case2的输出分别为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;case 1</span><br><span class="line">cost time &#x3D; 2.10697</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;case 2 [better]</span><br><span class="line">cost time &#x3D; 1.260123</span><br></pre></td></tr></table></figure>
+
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>Lua使用的是基于寄存器的虚拟机（使用一个栈来提供寄存器），所有的local变量都会保存在寄存器里，因此访问local变量的速度会快于全局变量。在Lua的源码中可以看到对局部变量的最大数量有200的限制：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">@@ LUAI_MAXVARS is the maximum number of local variables per function</span></span><br><span class="line"><span class="comment">@* (must be smaller than 250).</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LUAI_MAXVARS            200</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="尾递归调用"><a href="#尾递归调用" class="headerlink" title="尾递归调用"></a>尾递归调用</h2><p>对于一些情况下的函数递归调用，转为尾递归写法，可以减少调用栈的分配，提高函数运行效率同时也避免了栈溢出的风险。</p>
+<h3 id="测试代码-1"><a href="#测试代码-1" class="headerlink" title="测试代码"></a>测试代码</h3><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> n = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> add = <span class="function"><span class="keyword">function</span><span class="params">()</span></span></span><br><span class="line">  n = n + <span class="number">1</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">fr</span><span class="params">(times)</span></span></span><br><span class="line">  <span class="keyword">if</span> times &lt;= <span class="number">0</span> <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">"now n = "</span> .. n)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  add()</span><br><span class="line">  <span class="keyword">return</span> fr(times - <span class="number">1</span>)   <span class="comment">-- case 1</span></span><br><span class="line">  <span class="comment">-- fr(times - 1)     -- case 2</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> a, b</span><br><span class="line">a = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"></span><br><span class="line">fr(<span class="number">100000</span>)</span><br><span class="line"></span><br><span class="line">b = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"><span class="built_in">print</span>(b-a)</span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码得到case1和case2的输出分别为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;case 1  [better]</span><br><span class="line">now n &#x3D; 100000</span><br><span class="line">0.020423</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;case 2</span><br><span class="line">now n &#x3D; 100000</span><br><span class="line">0.050295</span><br></pre></td></tr></table></figure>
+
+<h3 id="分析-1"><a href="#分析-1" class="headerlink" title="分析"></a>分析</h3><p><code>fr</code>调用<code>add</code>后不会再做任何事情，这种情况下当被调用函数<code>add</code>结束时程序不需要返回到调用者<code>fr</code>；尾调用不需要使用额外的栈空间，因此尾调用递归的层次可以无限制的。</p>
+<p>在Lua的源代码<code>lvm.c</code>中可以看到以下内容：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">case OP_CALL: &#123;</span><br><span class="line">  int b = GETARG_B(i);</span><br><span class="line">  int nresults = GETARG_C(i) - <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">if</span> (b != <span class="number">0</span>) L-&gt;top = ra+b;  /* <span class="keyword">else</span> previous instruction set top */</span><br><span class="line">  L-&gt;savedpc = pc;</span><br><span class="line">  switch (luaD_precall(L, ra, nresults)) &#123;</span><br><span class="line">    case PCRLUA: &#123;</span><br><span class="line">      nexeccalls++;</span><br><span class="line">      <span class="keyword">goto</span> reentry;  /* restart luaV_execute over new Lua <span class="function"><span class="keyword">function</span> */</span></span><br><span class="line"><span class="function">    &#125;</span></span><br><span class="line"><span class="function">    <span class="title">case</span> <span class="title">PCRC</span>: &#123;</span></span><br><span class="line"><span class="function">      /* <span class="title">it</span> <span class="title">was</span> <span class="title">a</span> <span class="title">C</span> <span class="title">function</span> <span class="params">(`precall' called it)</span></span>; adjust results */</span><br><span class="line">      <span class="keyword">if</span> (nresults &gt;= <span class="number">0</span>) L-&gt;top = L-&gt;ci-&gt;top;</span><br><span class="line">      base = L-&gt;base;</span><br><span class="line">      continue;</span><br><span class="line">    &#125;</span><br><span class="line">    default: &#123;</span><br><span class="line">      <span class="keyword">return</span>;  /* <span class="built_in">yield</span> */</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">case OP_TAILCALL: &#123;</span><br><span class="line">  int b = GETARG_B(i);</span><br><span class="line">  <span class="keyword">if</span> (b != <span class="number">0</span>) L-&gt;top = ra+b;  /* <span class="keyword">else</span> previous instruction set top */</span><br><span class="line">  L-&gt;savedpc = pc;</span><br><span class="line">  lua_assert(GETARG_C(i) - <span class="number">1</span> == LUA_MULTRET);</span><br><span class="line">  switch (luaD_precall(L, ra, LUA_MULTRET)) &#123;</span><br><span class="line">    case PCRLUA: &#123;</span><br><span class="line">      /* tail call: put new frame <span class="keyword">in</span> place of previous one */</span><br><span class="line">      CallInfo *ci = L-&gt;ci - <span class="number">1</span>;  /* previous frame */</span><br><span class="line">      int aux;</span><br><span class="line">      StkId func = ci-&gt;func;</span><br><span class="line">      StkId pfunc = (ci+<span class="number">1</span>)-&gt;func;  /* previous <span class="function"><span class="keyword">function</span> <span class="title">index</span> */</span></span><br><span class="line"><span class="function">      <span class="title">if</span> <span class="params">(L-&gt;openupval)</span></span> luaF_close(L, ci-&gt;base);</span><br><span class="line">      L-&gt;base = ci-&gt;base = ci-&gt;func + ((ci+<span class="number">1</span>)-&gt;base - pfunc);</span><br><span class="line">      <span class="keyword">for</span> (aux = <span class="number">0</span>; pfunc+aux &lt; L-&gt;top; aux++)  /* move frame down */</span><br><span class="line">        setobjs2s(L, func+aux, pfunc+aux);</span><br><span class="line">      ci-&gt;top = L-&gt;top = func+aux;  /* correct top */</span><br><span class="line">      lua_assert(L-&gt;top == L-&gt;base + clvalue(func)-&gt;l.p-&gt;maxstacksize);</span><br><span class="line">      ci-&gt;savedpc = L-&gt;savedpc;</span><br><span class="line">      ci-&gt;tailcalls++;  /* one more call lost */</span><br><span class="line">      L-&gt;ci<span class="comment">--;  /* remove new frame */</span></span><br><span class="line">      <span class="keyword">goto</span> reentry;</span><br><span class="line">    &#125;</span><br><span class="line">    case PCRC: &#123;  /* it was a C <span class="function"><span class="keyword">function</span> <span class="params">(`precall' called it)</span></span> */</span><br><span class="line">      base = L-&gt;base;</span><br><span class="line">      continue;</span><br><span class="line">    &#125;</span><br><span class="line">    default: &#123;</span><br><span class="line">      <span class="keyword">return</span>;  /* <span class="built_in">yield</span> */</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于没有系统研读过Lua的源码，仅结合注释及上下文做出一些判断。Lua中高端函数调用与函数尾调用使用的是两个指令（<code>OP_CALL</code>和<code>OP_TAILCALL</code>），二者很相似，都是通过<code>luaD_precall</code>执行函数调用，并根据调用了Lua函数还是C函数进行处理。在<code>OP_TAILCALL</code>中，调用Lua函数之后，可以看到有这样的操作：取到“previous frame”即之前的调用信息<code>CallInfo *ci</code>，使用新增的CallInfo中的信息取替换<code>ci</code>中的内容，并移除新增的CallInfo。直接复用<code>CallInfo</code>从而调用函数不增加栈的深度。</p>
+<h2 id="减少rehash"><a href="#减少rehash" class="headerlink" title="减少rehash"></a>减少rehash</h2><p>初始化一个表时，可以直接在构造表的时候为表内的key赋值，这样做会好于创建空表再为其填入键和值。因为后者可能触发大量rehash。</p>
+<h3 id="测试代码-2"><a href="#测试代码-2" class="headerlink" title="测试代码"></a>测试代码</h3><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">gettable_1</span><span class="params">()</span></span></span><br><span class="line">   <span class="keyword">local</span> t = &#123;</span><br><span class="line">      a=<span class="number">1</span>,</span><br><span class="line">      b=<span class="number">2</span>,</span><br><span class="line">      c=<span class="number">3</span>,</span><br><span class="line">      d=<span class="number">4</span>,</span><br><span class="line">      e=<span class="number">5</span>,</span><br><span class="line">      f=<span class="number">6</span>,</span><br><span class="line">      g=<span class="number">7</span>,</span><br><span class="line">      h=<span class="number">8</span>,</span><br><span class="line">      i=<span class="number">9</span>,</span><br><span class="line">      j=<span class="number">10</span></span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> t</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">gettable_2</span><span class="params">()</span></span></span><br><span class="line">   <span class="keyword">local</span> t = &#123;&#125;</span><br><span class="line">   t.a=<span class="number">1</span></span><br><span class="line">   t.b=<span class="number">2</span></span><br><span class="line">   t.c=<span class="number">3</span></span><br><span class="line">   t.d=<span class="number">4</span></span><br><span class="line">   t.e=<span class="number">5</span></span><br><span class="line">   t.f=<span class="number">6</span></span><br><span class="line">   t.g=<span class="number">7</span></span><br><span class="line">   t.h=<span class="number">8</span></span><br><span class="line">   t.i=<span class="number">9</span></span><br><span class="line">   t.j=<span class="number">10</span></span><br><span class="line">   <span class="keyword">return</span> t</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> a,b</span><br><span class="line">a = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> t=&#123;&#125;</span><br><span class="line"><span class="keyword">for</span> i = <span class="number">1</span>,<span class="number">100000</span> <span class="keyword">do</span></span><br><span class="line"></span><br><span class="line">   <span class="comment">--t = gettable_1()  -- case 1</span></span><br><span class="line">   t = gettable_2()    <span class="comment">-- case 2</span></span><br><span class="line">   </span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">b=<span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"cost time  "</span> .. b - a)</span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码得到case1和case2的输出分别为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;case 1 [better]</span><br><span class="line">cost time  0.126207</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;case 2</span><br><span class="line">cost time  0.332967</span><br></pre></td></tr></table></figure>
+
+<h3 id="分析-2"><a href="#分析-2" class="headerlink" title="分析"></a>分析</h3><p>Lua中表的实现涉及到一些巧妙的算法。每个表都包含两个部分：array部分和hash部分。array部分保存以整数1到n为键的值，其中n是一些特定的值（稍后会说n是怎么算出来的）。所有的其它键值对（包括整数键但是整数超出1到n的范围）保存在hash部分。</p>
+<p>如其名所示，hash部分使用hash算法来存储和查找键。它使用的是开放地址法（open address table），所有的键值对都存储在一个hash数组中。使用hash函数来为键取得索引；如果出现hash冲突（即两个不同的键hash得出了相同的索引位置），对应的键会存在一个list列表中，列表中每个元素对应的是一个hash数组中的元素。</p>
+<p>当Lua需要向表中插入新的值并且此时hash数组已满时，就会触发rehash。rehash的第一步就是计算新的array部分和hash部分的尺寸。为此，Lua会遍历所有的键值对，计数并分类，然后选择能够使array部分的元素填充率超过一半的最大的2的次方数作为array部分的新尺寸。而hash部分的尺寸是能够容纳所有剩余元素的2的次方数（与array部分的策略不同）。</p>
+<p>当创建空表时，array部分和hash部分的尺寸都是0，因此插入新的值的时候就会频繁地触发rehash。</p>
+<h2 id="字符串效率"><a href="#字符串效率" class="headerlink" title="字符串效率"></a>字符串效率</h2><p>这里基于Lua5.1（5.2开始有长短字符串之分，部分逻辑可能与这里不一样，但结论相似）。对于短小的字符串拼接（或字符串与数字拼接），直接使用<code>..</code>。对于较大量的字符串的拼接，存入table使用<code>table.concat</code>来拼接性能更佳。</p>
+<h3 id="测试代码-3"><a href="#测试代码-3" class="headerlink" title="测试代码"></a>测试代码</h3><p>比较<code>string.format</code> 和 拼接<code>..</code>：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> <span class="built_in">tostring</span> = <span class="built_in">tostring</span></span><br><span class="line"><span class="keyword">local</span> <span class="built_in">format</span> = <span class="built_in">string</span>.<span class="built_in">format</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">stringformat_1</span><span class="params">(str,num)</span></span></span><br><span class="line">   <span class="keyword">return</span> str..<span class="string">" "</span> .. num</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">stringformat_2</span><span class="params">(str,num)</span></span></span><br><span class="line">   <span class="keyword">return</span> <span class="built_in">format</span>(<span class="string">"%s %d"</span>,str,num)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> n = <span class="number">1</span></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">getargs</span><span class="params">()</span></span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">tostring</span>(n),n</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"collect"</span>)</span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"stop"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> a,b</span><br><span class="line">a = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i = <span class="number">1</span>,<span class="number">1000000</span> <span class="keyword">do</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- local str = stringformat_1(getargs())   -- case 1</span></span><br><span class="line">    <span class="keyword">local</span> str = stringformat_2(getargs())   <span class="comment">-- case 2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">b=<span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"cost time  "</span> .. b - a)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> c,d</span><br><span class="line">c= <span class="built_in">collectgarbage</span>(<span class="string">"count"</span>)</span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"collect"</span>)</span><br><span class="line">d = <span class="built_in">collectgarbage</span>(<span class="string">"count"</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"gc  "</span> .. c - d)</span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码得到case1和case2的输出分别为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;case 1 [better]</span><br><span class="line">cost time  1.222692</span><br><span class="line">gc  0.2373046875</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;case 2</span><br><span class="line">cost time  1.533907</span><br><span class="line">gc  0.9404296875</span><br></pre></td></tr></table></figure>
+
+<p>接下来是拼接<code>..</code> 和 <code>table.concat</code>：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> <span class="built_in">unpack</span> = <span class="built_in">unpack</span> <span class="keyword">or</span> <span class="built_in">table</span>.<span class="built_in">unpack</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">stringconcat_1</span><span class="params">(...)</span></span></span><br><span class="line">   <span class="keyword">local</span> args = &#123;...&#125;</span><br><span class="line">   <span class="keyword">local</span> ret = <span class="string">""</span></span><br><span class="line">   <span class="keyword">for</span> i,v <span class="keyword">in</span> <span class="built_in">ipairs</span>(args) <span class="keyword">do</span></span><br><span class="line">      ret = ret .. v</span><br><span class="line">   <span class="keyword">end</span></span><br><span class="line">   <span class="keyword">return</span> ret</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">stringconcat_2</span><span class="params">(...)</span></span></span><br><span class="line">   <span class="keyword">local</span> args = &#123;...&#125;</span><br><span class="line">   <span class="keyword">local</span> ret = <span class="built_in">table</span>.<span class="built_in">concat</span>(args)</span><br><span class="line">   <span class="keyword">return</span> ret</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> t=&#123;&#125;</span><br><span class="line"><span class="keyword">for</span> i = <span class="number">1</span>,<span class="number">10000</span> <span class="keyword">do</span></span><br><span class="line">   t[i] = <span class="built_in">tostring</span>(i)</span><br><span class="line">   <span class="comment">-- t[i] = ""</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"collect"</span>)</span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"stop"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> a,b</span><br><span class="line">a = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> str = stringconcat_1(<span class="built_in">unpack</span>(t))    <span class="comment">-- case 3</span></span><br><span class="line"><span class="comment">-- local str = stringconcat_2(unpack(t))    -- case 4</span></span><br><span class="line"></span><br><span class="line">b=<span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"cost time  "</span> .. b - a)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> c,d</span><br><span class="line">c= <span class="built_in">collectgarbage</span>(<span class="string">"count"</span>)</span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"collect"</span>)</span><br><span class="line">d = <span class="built_in">collectgarbage</span>(<span class="string">"count"</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"gc  "</span> .. c - d)</span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码得到case3和case4的输出分别为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;case 3</span><br><span class="line">cost time  0.187638</span><br><span class="line">gc  185725.85449219</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;case 4 [better]</span><br><span class="line">cost time  0.001454</span><br><span class="line">gc  595.0361328125</span><br></pre></td></tr></table></figure>
+
+<h3 id="分析-3"><a href="#分析-3" class="headerlink" title="分析"></a>分析</h3><p><code>..</code>拼接函数在<code>lvm.c</code>中定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">luaV_concat</span> <span class="params">(lua_State *L, <span class="keyword">int</span> total, <span class="keyword">int</span> last)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    StkId top = L-&gt;base + last + <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">int</span> n = <span class="number">2</span>;  <span class="comment">/* number of elements handled in this pass (at least 2) */</span></span><br><span class="line">    <span class="keyword">if</span> (!(ttisstring(top<span class="number">-2</span>) || ttisnumber(top<span class="number">-2</span>)) || !tostring(L, top<span class="number">-1</span>)) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!call_binTM(L, top<span class="number">-2</span>, top<span class="number">-1</span>, top<span class="number">-2</span>, TM_CONCAT))</span><br><span class="line">        luaG_concaterror(L, top<span class="number">-2</span>, top<span class="number">-1</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (tsvalue(top<span class="number">-1</span>)-&gt;len == <span class="number">0</span>)  <span class="comment">/* second op is empty? */</span></span><br><span class="line">      (<span class="keyword">void</span>)tostring(L, top - <span class="number">2</span>);  <span class="comment">/* result is first op (as string) */</span></span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">/* at least two string values; get as many as possible */</span></span><br><span class="line">      <span class="keyword">size_t</span> tl = tsvalue(top<span class="number">-1</span>)-&gt;len;</span><br><span class="line">      <span class="keyword">char</span> *<span class="built_in">buffer</span>;</span><br><span class="line">      <span class="keyword">int</span> i;</span><br><span class="line">      <span class="comment">/* collect total length */</span></span><br><span class="line">      <span class="keyword">for</span> (n = <span class="number">1</span>; n &lt; total &amp;&amp; tostring(L, top-n<span class="number">-1</span>); n++) &#123;</span><br><span class="line">        <span class="keyword">size_t</span> l = tsvalue(top-n<span class="number">-1</span>)-&gt;len;</span><br><span class="line">        <span class="keyword">if</span> (l &gt;= MAX_SIZET - tl) luaG_runerror(L, <span class="string">"string length overflow"</span>);</span><br><span class="line">        tl += l;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="built_in">buffer</span> = luaZ_openspace(L, &amp;G(L)-&gt;buff, tl);</span><br><span class="line">      tl = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (i=n; i&gt;<span class="number">0</span>; i--) &#123;  <span class="comment">/* concat all strings */</span></span><br><span class="line">        <span class="keyword">size_t</span> l = tsvalue(top-i)-&gt;len;</span><br><span class="line">        <span class="built_in">memcpy</span>(<span class="built_in">buffer</span>+tl, svalue(top-i), l);</span><br><span class="line">        tl += l;</span><br><span class="line">      &#125;</span><br><span class="line">      setsvalue2s(L, top-n, luaS_newlstr(L, <span class="built_in">buffer</span>, tl));</span><br><span class="line">    &#125;</span><br><span class="line">    total -= n<span class="number">-1</span>;  <span class="comment">/* got `n' strings to create 1 new */</span></span><br><span class="line">    last -= n<span class="number">-1</span>;</span><br><span class="line">  &#125; <span class="keyword">while</span> (total &gt; <span class="number">1</span>);  <span class="comment">/* repeat until only 1 result left */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>else</code>里边是最核心的逻辑。<code>luaZ_openspace</code>背后会调用C函数<code>realloc</code>，<code>&amp;G(L)-&gt;buff</code>是虚拟机上分配的一段用于拼接字符串（string concatentation）的临时空间。这里所做的就是内存分配与拷贝，最后再将buffer转为string放到栈里。</p>
+<p><code>table.concat()</code>是table库的函数，定义在<code>ltablib.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tconcat</span> <span class="params">(lua_State *L)</span> </span>&#123;</span><br><span class="line">  luaL_Buffer b;</span><br><span class="line">  <span class="keyword">size_t</span> lsep;</span><br><span class="line">  <span class="keyword">int</span> i, last;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> *sep = luaL_optlstring(L, <span class="number">2</span>, <span class="string">""</span>, &amp;lsep);</span><br><span class="line">  luaL_checktype(L, <span class="number">1</span>, LUA_TTABLE);</span><br><span class="line">  i = luaL_optint(L, <span class="number">3</span>, <span class="number">1</span>);</span><br><span class="line">  last = luaL_opt(L, luaL_checkint, <span class="number">4</span>, luaL_getn(L, <span class="number">1</span>));</span><br><span class="line">  luaL_buffinit(L, &amp;b);</span><br><span class="line">  <span class="keyword">for</span> (; i &lt; last; i++) &#123;</span><br><span class="line">    addfield(L, &amp;b, i);</span><br><span class="line">    luaL_addlstring(&amp;b, sep, lsep);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (i == last)  <span class="comment">/* add last value (if interval was not empty) */</span></span><br><span class="line">    addfield(L, &amp;b, i);</span><br><span class="line">  luaL_pushresult(&amp;b);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用了这样一个东西<code>luaL_Buffer</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">luaL_Buffer</span> &#123;</span></span><br><span class="line">  <span class="keyword">char</span> *p;      <span class="comment">/* current position in buffer */</span></span><br><span class="line">  <span class="keyword">int</span> lvl;  <span class="comment">/* number of strings in the stack (level) */</span></span><br><span class="line">  lua_State *L;</span><br><span class="line">  <span class="keyword">char</span> <span class="built_in">buffer</span>[LUAL_BUFFERSIZE];</span><br><span class="line">&#125; luaL_Buffer;</span><br></pre></td></tr></table></figure>
+
+<p>内部维护了一个<code>buffer</code>和一个<code>lvl</code>，当<code>buffer</code>被写满时会把string存入栈，然后清空buffer。最后concat完成时，会把buffer中的内容和已存入栈中的string（可能会有多个）使用<code>lua_concat</code>拼接在一起。<code>lua_concat</code>会调用到前边的<code>luaV_concat</code>。</p>
+<p><code>string.format()</code>是string库的函数，定义在<code>lstrlib.c</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">str_format</span> <span class="params">(lua_State *L)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> top = lua_gettop(L);</span><br><span class="line">  <span class="keyword">int</span> arg = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">size_t</span> sfl;</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> *strfrmt = luaL_checklstring(L, arg, &amp;sfl);</span><br><span class="line">  <span class="keyword">const</span> <span class="keyword">char</span> *strfrmt_end = strfrmt+sfl;</span><br><span class="line">  luaL_Buffer b;</span><br><span class="line">  luaL_buffinit(L, &amp;b);</span><br><span class="line">  <span class="keyword">while</span> (strfrmt &lt; strfrmt_end) &#123;</span><br><span class="line">    <span class="keyword">if</span> (*strfrmt != L_ESC)</span><br><span class="line">      luaL_addchar(&amp;b, *strfrmt++);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (*++strfrmt == L_ESC)</span><br><span class="line">      luaL_addchar(&amp;b, *strfrmt++);  <span class="comment">/* %% */</span></span><br><span class="line">    <span class="keyword">else</span> &#123; <span class="comment">/* format item */</span></span><br><span class="line">      <span class="keyword">char</span> form[MAX_FORMAT];  <span class="comment">/* to store the format (`%...') */</span></span><br><span class="line">      <span class="keyword">char</span> buff[MAX_ITEM];  <span class="comment">/* to store the formatted item */</span></span><br><span class="line">      <span class="keyword">if</span> (++arg &gt; top)</span><br><span class="line">        luaL_argerror(L, arg, <span class="string">"no value"</span>);</span><br><span class="line">      strfrmt = scanformat(L, strfrmt, form);</span><br><span class="line">      <span class="keyword">switch</span> (*strfrmt++) &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'c'</span>: &#123;</span><br><span class="line">          <span class="built_in">sprintf</span>(buff, form, (<span class="keyword">int</span>)luaL_checknumber(L, arg));</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'d'</span>:  <span class="keyword">case</span> <span class="string">'i'</span>: &#123;</span><br><span class="line">          addintlen(form);</span><br><span class="line">          <span class="built_in">sprintf</span>(buff, form, (LUA_INTFRM_T)luaL_checknumber(L, arg));</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'o'</span>:  <span class="keyword">case</span> <span class="string">'u'</span>:  <span class="keyword">case</span> <span class="string">'x'</span>:  <span class="keyword">case</span> <span class="string">'X'</span>: &#123;</span><br><span class="line">          addintlen(form);</span><br><span class="line">          <span class="built_in">sprintf</span>(buff, form, (<span class="keyword">unsigned</span> LUA_INTFRM_T)luaL_checknumber(L, arg));</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'e'</span>:  <span class="keyword">case</span> <span class="string">'E'</span>: <span class="keyword">case</span> <span class="string">'f'</span>:</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'g'</span>: <span class="keyword">case</span> <span class="string">'G'</span>: &#123;</span><br><span class="line">          <span class="built_in">sprintf</span>(buff, form, (<span class="keyword">double</span>)luaL_checknumber(L, arg));</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'q'</span>: &#123;</span><br><span class="line">          addquoted(L, &amp;b, arg);</span><br><span class="line">          <span class="keyword">continue</span>;  <span class="comment">/* skip the 'addsize' at the end */</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'s'</span>: &#123;</span><br><span class="line">          <span class="keyword">size_t</span> l;</span><br><span class="line">          <span class="keyword">const</span> <span class="keyword">char</span> *s = luaL_checklstring(L, arg, &amp;l);</span><br><span class="line">          <span class="keyword">if</span> (!<span class="built_in">strchr</span>(form, <span class="string">'.'</span>) &amp;&amp; l &gt;= <span class="number">100</span>) &#123;</span><br><span class="line">            <span class="comment">/* no precision and string is too long to be formatted;</span></span><br><span class="line"><span class="comment">               keep original string */</span></span><br><span class="line">            lua_pushvalue(L, arg);</span><br><span class="line">            luaL_addvalue(&amp;b);</span><br><span class="line">            <span class="keyword">continue</span>;  <span class="comment">/* skip the `addsize' at the end */</span></span><br><span class="line">          &#125;</span><br><span class="line">          <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">sprintf</span>(buff, form, s);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">default</span>: &#123;  <span class="comment">/* also treat cases `pnLlh' */</span></span><br><span class="line">          <span class="keyword">return</span> luaL_error(L, <span class="string">"invalid option "</span> LUA_QL(<span class="string">"%%%c"</span>) <span class="string">" to "</span></span><br><span class="line">                               LUA_QL(<span class="string">"format"</span>), *(strfrmt - <span class="number">1</span>));</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      luaL_addlstring(&amp;b, buff, <span class="built_in">strlen</span>(buff));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  luaL_pushresult(&amp;b);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也借助了<code>luaL_Buffer</code>，同时内部又分配了两个Char数组<code>form</code>和<code>buff</code>，使用<code>sprintf</code>来格式化字符串。逐个解析参数并将<code>buff</code>写入<code>luaL_Buffer</code>。最后将得到的字符串写到栈中。</p>
+<p>通过对比上边三种拼接字符串的方式可知：</p>
+<ul>
+<li><p>对于简单的字符串拼接或字符串与数字的拼接，直接使用<code>..</code>就好，使用<code>string.format</code>的方式会增加更多格式解析、内存分配开销，然而其最终使用的还是<code>..</code>。<code>string.format</code>更适合去处理较为复杂的带格式的字符串处理。</p>
+</li>
+<li><p>对于字符串的反复拼接，使用<code>table.concat</code>会更高效。每次调用<code>..</code>都会产生内存的分配或者拷贝，且中间会产生很多临时的字符串（额外的GC），而使用<code>table.concat</code>则是将拼接动作放到最后一次性完成，借助<code>luaL_Buffer</code>减少了调用<code>lua_concat</code>的次数，并且避免了合并期间产生的额外的字符串（额外的GC）。</p>
+</li>
+</ul>
+<p>创建字符串时：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">TString *<span class="title">luaS_newlstr</span> <span class="params">(lua_State *L, <span class="keyword">const</span> <span class="keyword">char</span> *str, <span class="keyword">size_t</span> l)</span> </span>&#123;</span><br><span class="line">  GCObject *o;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> h = cast(<span class="keyword">unsigned</span> <span class="keyword">int</span>, l);  <span class="comment">/* seed */</span></span><br><span class="line">  <span class="keyword">size_t</span> <span class="built_in">step</span> = (l&gt;&gt;<span class="number">5</span>)+<span class="number">1</span>;  <span class="comment">/* if string is too long, don't hash all its chars */</span></span><br><span class="line">  <span class="keyword">size_t</span> l1;</span><br><span class="line">  <span class="keyword">for</span> (l1=l; l1&gt;=<span class="built_in">step</span>; l1-=<span class="built_in">step</span>)  <span class="comment">/* compute hash */</span></span><br><span class="line">    h = h ^ ((h&lt;&lt;<span class="number">5</span>)+(h&gt;&gt;<span class="number">2</span>)+cast(<span class="keyword">unsigned</span> <span class="keyword">char</span>, str[l1<span class="number">-1</span>]));</span><br><span class="line">  <span class="keyword">for</span> (o = G(L)-&gt;strt.hash[lmod(h, G(L)-&gt;strt.<span class="built_in">size</span>)];</span><br><span class="line">       o != <span class="literal">NULL</span>;</span><br><span class="line">       o = o-&gt;gch.next) &#123;</span><br><span class="line">    TString *ts = rawgco2ts(o);</span><br><span class="line">    <span class="keyword">if</span> (ts-&gt;tsv.len == l &amp;&amp; (<span class="built_in">memcmp</span>(str, getstr(ts), l) == <span class="number">0</span>)) &#123;</span><br><span class="line">      <span class="comment">/* string may be dead */</span></span><br><span class="line">      <span class="keyword">if</span> (isdead(G(L), o)) changewhite(o);</span><br><span class="line">      <span class="keyword">return</span> ts;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> newlstr(L, str, l, h);  <span class="comment">/* not found */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果在string的hash表中包含有与要创建的字符串相同的字符串（没有被GC回收掉），则直接复用，否则才会创建新的。</p>
+<h2 id="插入数据"><a href="#插入数据" class="headerlink" title="插入数据"></a>插入数据</h2><p>三种插入数据的方式对比：</p>
+<p><code>table.insert</code>，或者<code>t[#t+1] = xxx</code>，再或者记录表的长度，每次插入新数据时使用<code>t[n+1] = xxx</code>。结果证明，对于连续的插入数据，最后一种方法最佳。</p>
+<h3 id="测试代码-4"><a href="#测试代码-4" class="headerlink" title="测试代码"></a>测试代码</h3><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">insert_1</span><span class="params">(t,data)</span></span></span><br><span class="line">    <span class="keyword">for</span> i,v <span class="keyword">in</span> <span class="built_in">ipairs</span>(data) <span class="keyword">do</span></span><br><span class="line">        <span class="built_in">table</span>.<span class="built_in">insert</span>(t,v)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> t</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">insert_2</span><span class="params">(t,data)</span></span></span><br><span class="line">    <span class="keyword">for</span> i,v <span class="keyword">in</span> <span class="built_in">ipairs</span>(data) <span class="keyword">do</span></span><br><span class="line">        t[#t + <span class="number">1</span>] = v</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> t</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> <span class="function"><span class="keyword">function</span> <span class="title">insert_3</span><span class="params">(t,data)</span></span></span><br><span class="line">    <span class="keyword">local</span> n = #t</span><br><span class="line">    <span class="keyword">for</span> i,v <span class="keyword">in</span> <span class="built_in">ipairs</span>(data) <span class="keyword">do</span></span><br><span class="line">        n = n + <span class="number">1</span></span><br><span class="line">        t[n] = v</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> t</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> data = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> i = <span class="number">1</span>,<span class="number">1000000</span> <span class="keyword">do</span></span><br><span class="line">    data[i] = i</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"collect"</span>)</span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"stop"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> a,b</span><br><span class="line">a = <span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> t = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- insert_1(t,data)  -- case 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- insert_2(t,data)  -- case 2</span></span><br><span class="line"></span><br><span class="line">insert_3(t,data)  <span class="comment">-- case 3</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">b=<span class="built_in">os</span>.<span class="built_in">clock</span>()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">"cost time  "</span> .. b - a)</span><br><span class="line"></span><br><span class="line"><span class="keyword">local</span> c,d</span><br><span class="line">c= <span class="built_in">collectgarbage</span>(<span class="string">"count"</span>)</span><br><span class="line"><span class="built_in">collectgarbage</span>(<span class="string">"collect"</span>)</span><br><span class="line">d = <span class="built_in">collectgarbage</span>(<span class="string">"count"</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"gc  "</span> .. c - d)</span><br></pre></td></tr></table></figure>
+
+<p>运行以上代码得到case1、case2和case3的输出分别为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; case 1</span><br><span class="line">cost time  0.50343</span><br><span class="line">gc  0.5576171875</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; case 2</span><br><span class="line">cost time  0.365689</span><br><span class="line">gc  0.5595703125</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; case 3 [best]</span><br><span class="line">cost time  0.169078</span><br><span class="line">gc  0.5595703125</span><br></pre></td></tr></table></figure>
+
+<h3 id="分析-4"><a href="#分析-4" class="headerlink" title="分析"></a>分析</h3><p><code>table.insert</code>的实现：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tinsert</span> <span class="params">(lua_State *L)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> e = aux_getn(L, <span class="number">1</span>) + <span class="number">1</span>;  <span class="comment">/* first empty element */</span></span><br><span class="line">  <span class="keyword">int</span> pos;  <span class="comment">/* where to insert new element */</span></span><br><span class="line">  <span class="keyword">switch</span> (lua_gettop(L)) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>: &#123;  <span class="comment">/* called with only 2 arguments */</span></span><br><span class="line">      pos = e;  <span class="comment">/* insert new element at the end */</span></span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">3</span>: &#123;</span><br><span class="line">      <span class="keyword">int</span> i;</span><br><span class="line">      pos = luaL_checkint(L, <span class="number">2</span>);  <span class="comment">/* 2nd argument is the position */</span></span><br><span class="line">      <span class="keyword">if</span> (pos &gt; e) e = pos;  <span class="comment">/* `grow' array if necessary */</span></span><br><span class="line">      <span class="keyword">for</span> (i = e; i &gt; pos; i--) &#123;  <span class="comment">/* move up elements */</span></span><br><span class="line">        lua_rawgeti(L, <span class="number">1</span>, i<span class="number">-1</span>);</span><br><span class="line">        lua_rawseti(L, <span class="number">1</span>, i);  <span class="comment">/* t[i] = t[i-1] */</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">default</span>: &#123;</span><br><span class="line">      <span class="keyword">return</span> luaL_error(L, <span class="string">"wrong number of arguments to "</span> LUA_QL(<span class="string">"insert"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  luaL_setn(L, <span class="number">1</span>, e);  <span class="comment">/* new size */</span></span><br><span class="line">  lua_rawseti(L, <span class="number">1</span>, pos);  <span class="comment">/* t[pos] = v */</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在向其中插入数据时（暂时只考虑两参数，即向末尾插入新的数据），每次插入数据都会调用<code>aux_getn</code>方法（会调用<code>luaH_getn</code>），用于获取table的长度。事实上<code>#</code>这个运算符（<code>OP_LEN</code>）也是调用的<code>luaH_getn</code>。也就是说其实<code>table.insert</code>的内部会有一次类似于<code>t[#t+1] = xxx</code>这样的操作。以下是<code>luaH_getn</code>的实现：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">** Try to find a boundary in table `t'. A `boundary' is an integer index</span></span><br><span class="line"><span class="comment">** such that t[i] is non-nil and t[i+1] is nil (and 0 if t[1] is nil).</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">luaH_getn</span> <span class="params">(Table *t)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> j = t-&gt;sizearray;</span><br><span class="line">  <span class="keyword">if</span> (j &gt; <span class="number">0</span> &amp;&amp; ttisnil(&amp;t-&gt;<span class="built_in">array</span>[j - <span class="number">1</span>])) &#123;</span><br><span class="line">    <span class="comment">/* there is a boundary in the array part: (binary) search for it */</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (j - i &gt; <span class="number">1</span>) &#123;</span><br><span class="line">      <span class="keyword">unsigned</span> <span class="keyword">int</span> m = (i+j)/<span class="number">2</span>;</span><br><span class="line">      <span class="keyword">if</span> (ttisnil(&amp;t-&gt;<span class="built_in">array</span>[m - <span class="number">1</span>])) j = m;</span><br><span class="line">      <span class="keyword">else</span> i = m;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> i;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">/* else must find a boundary in hash part */</span></span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> (t-&gt;node == dummynode)  <span class="comment">/* hash part is empty? */</span></span><br><span class="line">    <span class="keyword">return</span> j;  <span class="comment">/* that is easy... */</span></span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">return</span> unbound_search(t, j);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先是使用二分查找来获取array部分的边界（前边说到array部分长度总是2的倍数，没有数据的部分会被nil填充），否则如果没有hash部分（array部分为空或者array部分刚好填满），直接返回array长度，再否则就调用<code>unbound_search</code>（查找hash部分）。整体来看这个获取长度的开销还是不小的，因此缓存下来长度，并且在插入数据时直接以<code>n+1</code>为key，是一种很高效的做法。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="http://www.lua.org/gems/sample.pdf" target="_blank" rel="noopener">http://www.lua.org/gems/sample.pdf</a></p>
+<p><a href="https://www.lua.org/source/5.1/" target="_blank" rel="noopener">https://www.lua.org/source/5.1/</a></p>
+<p><a href="https://book.douban.com/subject/3076942/" target="_blank" rel="noopener">LUA程序设计（第2版）</a></p>
+<p><a href="http://www.cppblog.com/airtrack/archive/2012/09/19/191233.html" target="_blank" rel="noopener">http://www.cppblog.com/airtrack/archive/2012/09/19/191233.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Lua/" rel="tag"># Lua</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-09-07-unity-3d-ugui-source-code-15/" rel="prev" title="Unity3D UGUI 源码学习 其它">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 其它
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-09-15-lua-notes-04/" rel="next" title="Lua笔记 迭代器">
+      Lua笔记 迭代器 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#评测方法"><span class="nav-number">1.</span> <span class="nav-text">评测方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#获取运行时间"><span class="nav-number">1.1.</span> <span class="nav-text">获取运行时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取内存用量"><span class="nav-number">1.2.</span> <span class="nav-text">获取内存用量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用local保存全局变量的引用"><span class="nav-number">2.</span> <span class="nav-text">使用local保存全局变量的引用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试代码"><span class="nav-number">2.1.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析"><span class="nav-number">2.2.</span> <span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#尾递归调用"><span class="nav-number">3.</span> <span class="nav-text">尾递归调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试代码-1"><span class="nav-number">3.1.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析-1"><span class="nav-number">3.2.</span> <span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#减少rehash"><span class="nav-number">4.</span> <span class="nav-text">减少rehash</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试代码-2"><span class="nav-number">4.1.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析-2"><span class="nav-number">4.2.</span> <span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符串效率"><span class="nav-number">5.</span> <span class="nav-text">字符串效率</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试代码-3"><span class="nav-number">5.1.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析-3"><span class="nav-number">5.2.</span> <span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#插入数据"><span class="nav-number">6.</span> <span class="nav-text">插入数据</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#测试代码-4"><span class="nav-number">6.1.</span> <span class="nav-text">测试代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分析-4"><span class="nav-number">6.2.</span> <span class="nav-text">分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">7.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '7aa90e6eaa86c706a9e5b6acaa971509',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

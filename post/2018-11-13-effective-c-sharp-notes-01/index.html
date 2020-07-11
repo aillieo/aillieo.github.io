@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="阅读《Effective C#》一书的总结，第一部分，C#语言习惯。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Effective C#》笔记 C#语言习惯">
+<meta property="og:url" content="http://aillieo.cn/post/2018-11-13-effective-c-sharp-notes-01/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="阅读《Effective C#》一书的总结，第一部分，C#语言习惯。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-11-13T13:51:29.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.079Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="effective">
+<meta property="article:tag" content="高效">
+<meta property="article:tag" content="50">
+<meta property="article:tag" content="改善">
+<meta property="article:tag" content="属性">
+<meta property="article:tag" content="readonly">
+<meta property="article:tag" content="const">
+<meta property="article:tag" content="as">
+<meta property="article:tag" content="Conditional">
+<meta property="article:tag" content="Equals">
+<meta property="article:tag" content="GetHashCode">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-11-13-effective-c-sharp-notes-01/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>《Effective C#》笔记 C#语言习惯 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-11-13-effective-c-sharp-notes-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《Effective C#》笔记 C#语言习惯
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-11-13 21:51:29" itemprop="dateCreated datePublished" datetime="2018-11-13T21:51:29+08:00">2018-11-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/" itemprop="url" rel="index"><span itemprop="name">C&#35;</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/Effective-C-35/" itemprop="url" rel="index"><span itemprop="name">Effective C&#35;</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>阅读《Effective C#》一书的总结，第一部分，C#语言习惯。</p>
+<a id="more"></a>
+
+<h2 id="C-Language-Idioms"><a href="#C-Language-Idioms" class="headerlink" title="C# Language Idioms"></a>C# Language Idioms</h2><h3 id="01-使用属性Property而不是直接访问成员数据"><a href="#01-使用属性Property而不是直接访问成员数据" class="headerlink" title="01 使用属性Property而不是直接访问成员数据"></a>01 使用属性Property而不是直接访问成员数据</h3><p>使用Property可支持Data binding；</p>
+<p>使用Property更容易应对需求改变引起的实现的变化；</p>
+<p>Property内部是基于Method，所以可以很容易支持多线程（set、get时加锁）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">public class Customer</span><br><span class="line">&#123;</span><br><span class="line">    private object syncHandle &#x3D; new object();</span><br><span class="line">    private string name;</span><br><span class="line">    public string Name</span><br><span class="line">    &#123;</span><br><span class="line">        get</span><br><span class="line">        &#123;</span><br><span class="line">            lock (syncHandle)</span><br><span class="line">            return name;</span><br><span class="line">        &#125;</span><br><span class="line">        set</span><br><span class="line">        &#123;</span><br><span class="line">            if (string.IsNullOrEmpty(value))</span><br><span class="line">                throw new ArgumentException(&quot;Name cannot be blank&quot;,&quot;Name&quot;);</span><br><span class="line">            lock (syncHandle)</span><br><span class="line">                name &#x3D; value;</span><br><span class="line">        &#125; </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; More Elided.</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Property可以定义为抽象的，也可以在接口中定义；</p>
+<p>Property可是实现超出成员变量以外的功能，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 直接索引</span><br><span class="line">public int this[int index]</span><br><span class="line">&#123;</span><br><span class="line">    get &#123; return theValues[index]; &#125;</span><br><span class="line">    set &#123; theValues[index] &#x3D; value; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 类似于多维数组</span><br><span class="line">public int this[int x, int y]</span><br><span class="line">&#123;</span><br><span class="line">    get &#123; return ComputeValue(x, y); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="02-使用readonly而不是const"><a href="#02-使用readonly而不是const" class="headerlink" title="02 使用readonly而不是const"></a>02 使用readonly而不是const</h3><p><code>readonly</code>是运行时常量，<code>const</code>是编译时常量；</p>
+<p>编译时常量速度更快，但务必保证不同版本的发布中其值是不变的。运行时常量速度稍慢，但是更灵活；</p>
+<p><code>const</code>仅适用于数值和字符串，<code>readonly</code>可用于带有构造函数的类型；</p>
+<h3 id="03-使用is或as操作符而不是类型转换"><a href="#03-使用is或as操作符而不是类型转换" class="headerlink" title="03 使用is或as操作符而不是类型转换"></a>03 使用is或as操作符而不是类型转换</h3><p>使用<code>as</code>，更安全，运行时更高效；</p>
+<p><code>as</code>和<code>is</code>不会执行任何用户定义的类型转换操作符，即只有运行时类型匹配才会成功；</p>
+<p><code>as</code>更简洁，更易读，且避免了使用<code>try ... catch ...</code>；</p>
+<p><code>as</code>无法处理值类型，可以先用<code>is</code>判断再<code>cast</code>；</p>
+<h3 id="04-使用Conditional属性而不是-if"><a href="#04-使用Conditional属性而不是-if" class="headerlink" title="04 使用Conditional属性而不是#if"></a>04 使用Conditional属性而不是#if</h3><p>使用<code>#if/#endif</code>使代码难以阅读和调试；</p>
+<p><code>Conditional</code>属性仅适用于方法，且方法返回类型为<code>void</code>；</p>
+<p><code>Conditional</code>属性不会影响其修饰的函数生成的代码，修改的是对函数的调用；</p>
+<p>当函数有多个<code>Conditional</code>属性时，它们是“或”的关系；</p>
+<h3 id="05-总是提供ToString"><a href="#05-总是提供ToString" class="headerlink" title="05 总是提供ToString()"></a>05 总是提供ToString()</h3><p>可以便捷地向使用者展示对象的信息；</p>
+<p>对于更复杂的对象，实现<code>IFormattable.ToString()</code>；</p>
+<h3 id="06-理解多种“相等”概念的关系"><a href="#06-理解多种“相等”概念的关系" class="headerlink" title="06 理解多种“相等”概念的关系"></a>06 理解多种“相等”概念的关系</h3><p>C#中当定义了类或者结构时，需要为这个类型定义何谓“相等”，C#中有下边四种相等的概念：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 方法1</span><br><span class="line">public static bool ReferenceEquals(object left, object right);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 方法2</span><br><span class="line">public static bool Equals(object left, object right);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 方法3</span><br><span class="line">public virtual bool Equals(object right); </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 方法4</span><br><span class="line">public static bool operator &#x3D;&#x3D;(MyClass left, MyClass right);</span><br></pre></td></tr></table></figure>
+
+<p>通常前二者不应当重定义；</p>
+<p>方法1<code>ReferenceEquals</code>用于比较二者是否是同一引用，如果传入参数为值类型，则会自动装箱；</p>
+<p>以下代码总是输出”Always happens.”：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">int i &#x3D; 5; </span><br><span class="line">int j &#x3D; 5; </span><br><span class="line"></span><br><span class="line">if (Object.ReferenceEquals(i, j))</span><br><span class="line">    Console.WriteLine(&quot;Never happens.&quot;); </span><br><span class="line">else</span><br><span class="line">    Console.WriteLine(&quot;Always happens.&quot;);</span><br><span class="line"></span><br><span class="line">if (Object.ReferenceEquals(i, i))</span><br><span class="line">    Console.WriteLine(&quot;Never happens.&quot;); </span><br><span class="line">else</span><br><span class="line">    Console.WriteLine(&quot;Always happens.&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>方法2<code>Object.Equals()</code>内部会用到方法1和方法3，其实现类似于下边的逻辑：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public static new bool Equals(object left, object right) </span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; Check object identity </span><br><span class="line">    if (Object.ReferenceEquals(left, right) )</span><br><span class="line">        return true; </span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; both null references handled above</span><br><span class="line">    if (Object.ReferenceEquals(left, null) || Object.ReferenceEquals(right, null)) </span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    return left.Equals(right);</span><br></pre></td></tr></table></figure>
+
+<p>对于方法3，实例方法<code>Equals()</code>，需要实现<code>IEquatable&lt;T&gt;</code>来覆写；</p>
+<p>值类型（结构体），应该实现<code>Equals()</code>方法。否则在比较时会调用默认的比较方法（基于反射的逐成员对比，很低效）；</p>
+<p>引用类型在调用<code>Equals()</code>时默认会比较引用，如希望通过比较内容来判定，则覆写<code>Equals()</code>；</p>
+<p>值类型应当覆写<code>operator ==</code>，以避免低效的反射及不必要的装箱拆箱；</p>
+<p>引用类型不要覆写<code>operator ==</code>，因为需要保持其比较引用的原始含义；</p>
+<p><code>IStructuralEquality</code>适用于<code>System.Array</code>和<code>Tuple&lt;&gt;</code>，使其使用值类型语义；</p>
+<h3 id="07-理解GetHashCode-的缺陷"><a href="#07-理解GetHashCode-的缺陷" class="headerlink" title="07 理解GetHashCode()的缺陷"></a>07 理解GetHashCode()的缺陷</h3><p>应避免使用，仅用在基于hash的集合中为键定义hash值，如HashSet<T>或Dictionary&lt;K,V&gt;等；</p>
+<p>对于引用类型，可以取到正确的结果但是很低效，对于值类型数据取到的是不正确的结果；</p>
+<p>覆写<code>GetHashCode()</code>务必满足三个条件：</p>
+<ul>
+<li><p>相等的对象（<code>operator==</code>）得到相等的hash值；</p>
+</li>
+<li><p>对于一个实例，hash值应保持固定不变；</p>
+</li>
+<li><p>函数得到的hash值应当在所有的整数中随机分布；</p>
+</li>
+</ul>
+<h3 id="08-使用查询语法而不是循环"><a href="#08-使用查询语法而不是循环" class="headerlink" title="08 使用查询语法而不是循环"></a>08 使用查询语法而不是循环</h3><p>使用查询语法使代码逻辑由可读性差的命令式（imperative）变成易于理解的陈述式（declarative）；</p>
+<p>查询语法和循环，二者的效率孰高孰低需要根据不同的情形而定；</p>
+<p>一些使用查询语法的例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">int[] foo &#x3D; (from n in Enumerable.Range(0, 100) </span><br><span class="line">    select n * n).ToArray();</span><br><span class="line"></span><br><span class="line">foo.ForAll((n) &#x3D;&gt; Console.WriteLine(n.ToString()));</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">private static IEnumerable&lt;Tuple&lt;int, int&gt;&gt; QueryIndices() </span><br><span class="line">&#123;</span><br><span class="line">    return from x in Enumerable.Range(0, 100) </span><br><span class="line">        from y in Enumerable.Range(0, 100) </span><br><span class="line">        select Tuple.Create(x, y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static IEnumerable&lt;Tuple&lt;int, int&gt;&gt; QueryIndices2() </span><br><span class="line">&#123;</span><br><span class="line">    return from x in Enumerable.Range(0, 100) </span><br><span class="line">        from y in Enumerable.Range(0, 100)</span><br><span class="line">        where x + y &lt; 100 </span><br><span class="line">        select Tuple.Create(x, y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static IEnumerable&lt;Tuple&lt;int, int&gt;&gt; QueryIndices3() </span><br><span class="line">&#123;</span><br><span class="line">    return from x in Enumerable.Range(0, 100) </span><br><span class="line">        from y in Enumerable.Range(0, 100) </span><br><span class="line">        where x + y &lt; 100 </span><br><span class="line">        orderby (x*x + y*y) descending </span><br><span class="line">        select Tuple.Create(x, y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static IEnumerable&lt;Tuple&lt;int, int&gt;&gt; MethodIndices3() </span><br><span class="line">&#123;</span><br><span class="line">    return Enumerable.Range(0, 100). </span><br><span class="line">        SelectMany(x &#x3D;&gt; Enumerable.Range(0,100), </span><br><span class="line">        (x,y) &#x3D;&gt; Tuple.Create(x,y)).</span><br><span class="line">        Where(pt &#x3D;&gt; pt.Item1 + pt.Item2 &lt; 100). </span><br><span class="line">        OrderByDescending(pt &#x3D;&gt; </span><br><span class="line">        pt.Item1* pt.Item1 + pt.Item2 * pt.Item2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="09-在API中避免类型转换操作"><a href="#09-在API中避免类型转换操作" class="headerlink" title="09 在API中避免类型转换操作"></a>09 在API中避免类型转换操作</h3><p>使用类型转换操作可以实现不同的类的可替换性（substitutability），例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">static public implicit operator Ellipse(Circle c) </span><br><span class="line">&#123;</span><br><span class="line">    return new Ellipse(c.center, c.center, c.radius, c.radius); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意这样的代码会有很大的隐患，当出现以下的场景时：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public static void Flatten(Ellipse e) </span><br><span class="line">&#123;</span><br><span class="line">    e.R1 &#x2F;&#x3D; 2;</span><br><span class="line">    e.R2 *&#x3D; 2; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; call it using a circle:</span><br><span class="line">Circle c &#x3D; new Circle(new PointF(3.0f, 0), 5.0f); </span><br><span class="line">Flatten(c);</span><br></pre></td></tr></table></figure>
+
+<p><code>Flatten()</code>会作用于一个临时对象，然后该对象会变成没有引用的垃圾。函数的调用并不会产生实际的效果。正确的方式是使用构造函数来代替类型转换：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Circle c &#x3D; new Circle(new PointF(3.0f, 0), 5.0f);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Work with the circle. </span><br><span class="line">&#x2F;&#x2F; ...</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Convert to an ellipse.</span><br><span class="line">Ellipse e &#x3D; new Ellipse(c); </span><br><span class="line">Flatten(e);</span><br></pre></td></tr></table></figure>
+
+<h3 id="10-使用可选参数来减少方法重载"><a href="#10-使用可选参数来减少方法重载" class="headerlink" title="10 使用可选参数来减少方法重载"></a>10 使用可选参数来减少方法重载</h3><p>使用具名参数和可选参数，会使代码逻辑更清晰；</p>
+<p>具名参数的一个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">private void SetName(string lastName, string firstName) </span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">&#x2F;&#x2F; elided </span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">SetName(lastName: &quot;Wagner&quot;, firstName: &quot;Bill&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>在维护程序的过程中，对于public或protected接口，尽量避免修改参数及参数名，而是提供重载方法。参数名也是接口的一部分；</p>
+<h3 id="11-理解小函数的魅力"><a href="#11-理解小函数的魅力" class="headerlink" title="11 理解小函数的魅力"></a>11 理解小函数的魅力</h3><p>C#代码到可执行的机器码需要两步，首先C#编译器将代码生成IL代码存在程序集中，JIT按需将各方法生成机器码；</p>
+<p>小函数可以让JIT编译器更方便地按需编译，而不必一次性编译大量的不会立即使用的代码；</p>
+<p>小函数跟利于JIT编译器的寄存器化（enregistration），即将一些局部变量放在寄存器而不是栈上。局部变量的数量越少越好；</p>
+<p>小函数更容易被内联；</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p>《Effective C#: 50 Specific Ways to Improve Your C# (2nd Edition)》</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-35/" rel="tag"># C&#35;</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-11-08-unity-3d-notes-04/" rel="prev" title="Unity3D 基于shader和Image的雷达图">
+      <i class="fa fa-chevron-left"></i> Unity3D 基于shader和Image的雷达图
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-11-16-effective-c-sharp-notes-02/" rel="next" title="《Effective C#》笔记 .Net资源管理">
+      《Effective C#》笔记 .Net资源管理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#C-Language-Idioms"><span class="nav-number">1.</span> <span class="nav-text">C# Language Idioms</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#01-使用属性Property而不是直接访问成员数据"><span class="nav-number">1.1.</span> <span class="nav-text">01 使用属性Property而不是直接访问成员数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#02-使用readonly而不是const"><span class="nav-number">1.2.</span> <span class="nav-text">02 使用readonly而不是const</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#03-使用is或as操作符而不是类型转换"><span class="nav-number">1.3.</span> <span class="nav-text">03 使用is或as操作符而不是类型转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#04-使用Conditional属性而不是-if"><span class="nav-number">1.4.</span> <span class="nav-text">04 使用Conditional属性而不是#if</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#05-总是提供ToString"><span class="nav-number">1.5.</span> <span class="nav-text">05 总是提供ToString()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#06-理解多种“相等”概念的关系"><span class="nav-number">1.6.</span> <span class="nav-text">06 理解多种“相等”概念的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#07-理解GetHashCode-的缺陷"><span class="nav-number">1.7.</span> <span class="nav-text">07 理解GetHashCode()的缺陷</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#08-使用查询语法而不是循环"><span class="nav-number">1.8.</span> <span class="nav-text">08 使用查询语法而不是循环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#09-在API中避免类型转换操作"><span class="nav-number">1.9.</span> <span class="nav-text">09 在API中避免类型转换操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-使用可选参数来减少方法重载"><span class="nav-number">1.10.</span> <span class="nav-text">10 使用可选参数来减少方法重载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-理解小函数的魅力"><span class="nav-number">1.11.</span> <span class="nav-text">11 理解小函数的魅力</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">2.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '479c63498d21b6fb06d928fb290d861f',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

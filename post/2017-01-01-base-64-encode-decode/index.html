@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Base64编码是一种用64个字符来表示任意二进制数据的方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Base64编码与解码">
+<meta property="og:url" content="http://aillieo.cn/post/2017-01-01-base-64-encode-decode/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="Base64编码是一种用64个字符来表示任意二进制数据的方法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-01-01T13:46:49.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.041Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Base64">
+<meta property="article:tag" content="encode">
+<meta property="article:tag" content="decode">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-01-01-base-64-encode-decode/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Base64编码与解码 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-01-01-base-64-encode-decode/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Base64编码与解码
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-01-01 21:46:49" itemprop="dateCreated datePublished" datetime="2017-01-01T21:46:49+08:00">2017-01-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index"><span itemprop="name">Algorithm</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Base64编码是一种用64个字符来表示任意二进制数据的方法。</p>
+<a id="more"></a>
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>当需要在原本适用于存储或传输文本或字符流的环境中存储或传输二进制数据时，可以考虑使用Base64编码方法。<br>Base64编码方法广泛应用于</p>
+<p>可以将图片文件或多语言的字符串使用Base64编码，便于存储及传输</p>
+<p>使用Base64编码时，会把每3个8位共24字节（3*8=24）转化为4个6位的24字节（4*6=24），之后在每份的6位前面补两个值为0的位，形成新的8位（1字节）的形式。即原先的3个字节转变成为4个字节，转化后的字节值的范围为00000000至00111111，即0至2^6，使用大小为64的编码表可以完成所有值的表示。在转化的过程中，如果遇到字符不足3个字节，则用0在尾部填充补够3字节，对应输出字符使用’=’，因此编码后输出的文本末尾可能会出现1或2个’=’。Base64解码的过程则与上述过程相反。<br>常用的一种Base64编码表如下表所示：</p>
+
+<table>
+<thead>
+<tr>
+<th colspan = "3"  style="text-align:center">Value</th>
+<th colspan = "3"  style="text-align:center">Char</th>
+<th></th>
+<th colspan = "3"  style="text-align:center">Value</th>
+<th colspan = "3"  style="text-align:center">Char</th>
+<th></th>
+<th colspan = "3"  style="text-align:center">Value</th>
+<th colspan = "3"  style="text-align:center">Char</th>
+<th></th>
+<th colspan = "3"  style="text-align:center">Value</th>
+<th colspan = "3"  style="text-align:center">Char</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan = "3"  style="text-align:center">0</td>
+<td colspan = "3"  style="text-align:center">A</td>
+<td rowspan = "16"></td>
+<td colspan = "3"  style="text-align:center">16</td>
+<td colspan = "3"  style="text-align:center">Q</td>
+<td rowspan = "16"></td>
+<td colspan = "3"  style="text-align:center">32</td>
+<td colspan = "3"  style="text-align:center">g</td>
+<td rowspan = "16"></td>
+<td colspan = "3"  style="text-align:center">48</td>
+<td colspan = "3"  style="text-align:center">w</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">1</td>
+<td colspan = "3"  style="text-align:center">B</td>
+<td colspan = "3"  style="text-align:center">17</td>
+<td colspan = "3"  style="text-align:center">R</td>
+<td colspan = "3"  style="text-align:center">33</td>
+<td colspan = "3"  style="text-align:center">h</td>
+<td colspan = "3"  style="text-align:center">49</td>
+<td colspan = "3"  style="text-align:center">x</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">2</td>
+<td colspan = "3"  style="text-align:center">C</td>
+<td colspan = "3"  style="text-align:center">18</td>
+<td colspan = "3"  style="text-align:center">S</td>
+<td colspan = "3"  style="text-align:center">34</td>
+<td colspan = "3"  style="text-align:center">i</td>
+<td colspan = "3"  style="text-align:center">50</td>
+<td colspan = "3"  style="text-align:center">y</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">3</td>
+<td colspan = "3"  style="text-align:center">D</td>
+<td colspan = "3"  style="text-align:center">19</td>
+<td colspan = "3"  style="text-align:center">T</td>
+<td colspan = "3"  style="text-align:center">35</td>
+<td colspan = "3"  style="text-align:center">j</td>
+<td colspan = "3"  style="text-align:center">51</td>
+<td colspan = "3"  style="text-align:center">z</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">4</td>
+<td colspan = "3"  style="text-align:center">E</td>
+<td colspan = "3"  style="text-align:center">20</td>
+<td colspan = "3"  style="text-align:center">U</td>
+<td colspan = "3"  style="text-align:center">36</td>
+<td colspan = "3"  style="text-align:center">k</td>
+<td colspan = "3"  style="text-align:center">52</td>
+<td colspan = "3"  style="text-align:center">0</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">5</td>
+<td colspan = "3"  style="text-align:center">F</td>
+<td colspan = "3"  style="text-align:center">21</td>
+<td colspan = "3"  style="text-align:center">V</td>
+<td colspan = "3"  style="text-align:center">37</td>
+<td colspan = "3"  style="text-align:center">l</td>
+<td colspan = "3"  style="text-align:center">53</td>
+<td colspan = "3"  style="text-align:center">1</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">6</td>
+<td colspan = "3"  style="text-align:center">G</td>
+<td colspan = "3"  style="text-align:center">22</td>
+<td colspan = "3"  style="text-align:center">W</td>
+<td colspan = "3"  style="text-align:center">38</td>
+<td colspan = "3"  style="text-align:center">m</td>
+<td colspan = "3"  style="text-align:center">54</td>
+<td colspan = "3"  style="text-align:center">2</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">7</td>
+<td colspan = "3"  style="text-align:center">H</td>
+<td colspan = "3"  style="text-align:center">23</td>
+<td colspan = "3"  style="text-align:center">X</td>
+<td colspan = "3"  style="text-align:center">39</td>
+<td colspan = "3"  style="text-align:center">n</td>
+<td colspan = "3"  style="text-align:center">55</td>
+<td colspan = "3"  style="text-align:center">3</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">8</td>
+<td colspan = "3"  style="text-align:center">I</td>
+<td colspan = "3"  style="text-align:center">24</td>
+<td colspan = "3"  style="text-align:center">Y</td>
+<td colspan = "3"  style="text-align:center">40</td>
+<td colspan = "3"  style="text-align:center">o</td>
+<td colspan = "3"  style="text-align:center">56</td>
+<td colspan = "3"  style="text-align:center">4</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">9</td>
+<td colspan = "3"  style="text-align:center">J</td>
+<td colspan = "3"  style="text-align:center">25</td>
+<td colspan = "3"  style="text-align:center">Z</td>
+<td colspan = "3"  style="text-align:center">41</td>
+<td colspan = "3"  style="text-align:center">p</td>
+<td colspan = "3"  style="text-align:center">57</td>
+<td colspan = "3"  style="text-align:center">5</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">10</td>
+<td colspan = "3"  style="text-align:center">K</td>
+<td colspan = "3"  style="text-align:center">26</td>
+<td colspan = "3"  style="text-align:center">a</td>
+<td colspan = "3"  style="text-align:center">42</td>
+<td colspan = "3"  style="text-align:center">q</td>
+<td colspan = "3"  style="text-align:center">58</td>
+<td colspan = "3"  style="text-align:center">6</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">11</td>
+<td colspan = "3"  style="text-align:center">L</td>
+<td colspan = "3"  style="text-align:center">27</td>
+<td colspan = "3"  style="text-align:center">b</td>
+<td colspan = "3"  style="text-align:center">43</td>
+<td colspan = "3"  style="text-align:center">r</td>
+<td colspan = "3"  style="text-align:center">59</td>
+<td colspan = "3"  style="text-align:center">7</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">12</td>
+<td colspan = "3"  style="text-align:center">M</td>
+<td colspan = "3"  style="text-align:center">28</td>
+<td colspan = "3"  style="text-align:center">c</td>
+<td colspan = "3"  style="text-align:center">44</td>
+<td colspan = "3"  style="text-align:center">s</td>
+<td colspan = "3"  style="text-align:center">60</td>
+<td colspan = "3"  style="text-align:center">8</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">13</td>
+<td colspan = "3"  style="text-align:center">N</td>
+<td colspan = "3"  style="text-align:center">29</td>
+<td colspan = "3"  style="text-align:center">d</td>
+<td colspan = "3"  style="text-align:center">45</td>
+<td colspan = "3"  style="text-align:center">t</td>
+<td colspan = "3"  style="text-align:center">61</td>
+<td colspan = "3"  style="text-align:center">9</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">14</td>
+<td colspan = "3"  style="text-align:center">O</td>
+<td colspan = "3"  style="text-align:center">30</td>
+<td colspan = "3"  style="text-align:center">e</td>
+<td colspan = "3"  style="text-align:center">46</td>
+<td colspan = "3"  style="text-align:center">u</td>
+<td colspan = "3"  style="text-align:center">62</td>
+<td colspan = "3"  style="text-align:center">+</td>
+</tr>
+<tr>
+<td colspan = "3"  style="text-align:center">15</td>
+<td colspan = "3"  style="text-align:center">P</td>
+<td colspan = "3"  style="text-align:center">31</td>
+<td colspan = "3"  style="text-align:center">f</td>
+<td colspan = "3"  style="text-align:center">47</td>
+<td colspan = "3"  style="text-align:center">v</td>
+<td colspan = "3"  style="text-align:center">63</td>
+<td colspan = "3"  style="text-align:center">/</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2 id="应用案例"><a href="#应用案例" class="headerlink" title="应用案例"></a>应用案例</h2><p>将字符串<code>&quot;Man&quot;</code>进行Base64编码：</p>
+<p><code>&quot;Man&quot;</code>中三个字符按转化为二进制依次为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#39;M&#39; -&gt; 01001101</span><br><span class="line">&#39;a&#39; -&gt; 01100001</span><br><span class="line">&#39;n&#39; -&gt; 01101110</span><br></pre></td></tr></table></figure>
+
+<p>拼接在一起即<code>&quot;Man&quot;</code>的二进制格式为<code>01001101-01100001-01101110</code>，将其分为每组6位的4组得到 <code>010011-010110-000101-101110</code>。每组前部补两个0，补全为1个字节，共四个字节，此时每个字节对应的十进制值在0-2^6之间，即0-64。根据编码表得到对应的经过Base64编码后的字符串为<code>&quot;TWFu&quot;</code>。上述过程可以参看下表：</p>
+
+<div>
+<table>
+<thead>
+<tr>
+<th colspan = "8"  style="text-align:center">source ASCII (if &lt;128)</th>
+<th colspan = "8"  style="text-align:center" >M</th>
+<th colspan = "8"  style="text-align:center">a</th>
+<th colspan = "8"  style="text-align:center">n</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan = "8"  style="text-align:center">source octets</td>
+<td colspan = "8"  style="text-align:center">77 (0x4d)</td>
+<td colspan = "8"  style="text-align:center">97 (0x61)</td>
+<td colspan = "8"  style="text-align:center">110 (0x6e)</td>
+</tr>
+<tr>
+<td colspan = "8"  style="text-align:center">Bit pattern</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+</tr>
+<tr>
+<td colspan = "8"  style="text-align:center">Index</td>
+<td colspan = "6"  style="text-align:center">19</td>
+<td colspan = "6"  style="text-align:center">22</td>
+<td colspan = "6"  style="text-align:center">5</td>
+<td colspan = "6"  style="text-align:center">46</td>
+</tr>
+<tr>
+<td colspan = "8"  style="text-align:center">Base64-encoded</td>
+<td colspan = "6"  style="text-align:center">T</td>
+<td colspan = "6"  style="text-align:center">W</td>
+<td colspan = "6"  style="text-align:center">F</td>
+<td colspan = "6"  style="text-align:center">u</td>
+</tr>
+<tr>
+<td colspan = "8"  style="text-align:center">encoded octets</td>
+<td colspan = "6"  style="text-align:center">84 (0x54)</td>
+<td colspan = "6"  style="text-align:center">87 (0x57)</td>
+<td colspan = "6"  style="text-align:center">70 (0x46)</td>
+<td colspan = "6"  style="text-align:center">117 (0x75)</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+<h2 id="C-实现Base64编码与解码"><a href="#C-实现Base64编码与解码" class="headerlink" title="C++实现Base64编码与解码"></a>C++实现Base64编码与解码</h2><p>本节代码来源 <a href="http://www.adp-gmbh.ch/cpp/common/base64.html" target="_blank" rel="noopener">http://www.adp-gmbh.ch/cpp/common/base64.html</a></p>
+<p>涉及到两个文件：头文件 <code>base64.h</code>，源文件 <code>base64.cpp</code>，除此之外还有使用Base64相关函数的测试用例代码。</p>
+<p>base64.h</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   base64.cpp and base64.h</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   Copyright (C) 2004-2008 René Nyffenegger</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   This source code is provided 'as-is', without any express or implied</span></span><br><span class="line"><span class="comment">   warranty. In no event will the author be held liable for any damages</span></span><br><span class="line"><span class="comment">   arising from the use of this software.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   Permission is granted to anyone to use this software for any purpose,</span></span><br><span class="line"><span class="comment">   including commercial applications, and to alter it and redistribute it</span></span><br><span class="line"><span class="comment">   freely, subject to the following restrictions:</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   1. The origin of this source code must not be misrepresented; you must not</span></span><br><span class="line"><span class="comment">      claim that you wrote the original source code. If you use this source code</span></span><br><span class="line"><span class="comment">      in a product, an acknowledgment in the product documentation would be</span></span><br><span class="line"><span class="comment">      appreciated but is not required.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   2. Altered source versions must be plainly marked as such, and must not be</span></span><br><span class="line"><span class="comment">      misrepresented as being the original source code.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   3. This notice may not be removed or altered from any source distribution.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   René Nyffenegger rene.nyffenegger@adp-gmbh.ch</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">base64_encode</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">char</span> <span class="keyword">const</span>* , <span class="keyword">unsigned</span> <span class="keyword">int</span> len)</span></span>;</span><br><span class="line"><span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">base64_decode</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">string</span> <span class="keyword">const</span>&amp; s)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>base64.cpp</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"base64.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span> base64_chars =</span><br><span class="line">             <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZ"</span></span><br><span class="line">             <span class="string">"abcdefghijklmnopqrstuvwxyz"</span></span><br><span class="line">             <span class="string">"0123456789+/"</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">bool</span> <span class="title">is_base64</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">char</span> c)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (<span class="built_in">isalnum</span>(c) || (c == <span class="string">'+'</span>) || (c == <span class="string">'/'</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">base64_encode</span><span class="params">(<span class="keyword">unsigned</span> <span class="keyword">char</span> <span class="keyword">const</span>* bytes_to_encode, <span class="keyword">unsigned</span> <span class="keyword">int</span> in_len)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span> ret;</span><br><span class="line">  <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> char_array_3[<span class="number">3</span>];</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> char_array_4[<span class="number">4</span>];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (in_len--) &#123;</span><br><span class="line">    char_array_3[i++] = *(bytes_to_encode++);</span><br><span class="line">    <span class="keyword">if</span> (i == <span class="number">3</span>) &#123;</span><br><span class="line">      char_array_4[<span class="number">0</span>] = (char_array_3[<span class="number">0</span>] &amp; <span class="number">0xfc</span>) &gt;&gt; <span class="number">2</span>;</span><br><span class="line">      char_array_4[<span class="number">1</span>] = ((char_array_3[<span class="number">0</span>] &amp; <span class="number">0x03</span>) &lt;&lt; <span class="number">4</span>) + ((char_array_3[<span class="number">1</span>] &amp; <span class="number">0xf0</span>) &gt;&gt; <span class="number">4</span>);</span><br><span class="line">      char_array_4[<span class="number">2</span>] = ((char_array_3[<span class="number">1</span>] &amp; <span class="number">0x0f</span>) &lt;&lt; <span class="number">2</span>) + ((char_array_3[<span class="number">2</span>] &amp; <span class="number">0xc0</span>) &gt;&gt; <span class="number">6</span>);</span><br><span class="line">      char_array_4[<span class="number">3</span>] = char_array_3[<span class="number">2</span>] &amp; <span class="number">0x3f</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">for</span>(i = <span class="number">0</span>; (i &lt;<span class="number">4</span>) ; i++)</span><br><span class="line">        ret += base64_chars[char_array_4[i]];</span><br><span class="line">      i = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (i)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">for</span>(j = i; j &lt; <span class="number">3</span>; j++)</span><br><span class="line">      char_array_3[j] = <span class="string">'\0'</span>;</span><br><span class="line"></span><br><span class="line">    char_array_4[<span class="number">0</span>] = (char_array_3[<span class="number">0</span>] &amp; <span class="number">0xfc</span>) &gt;&gt; <span class="number">2</span>;</span><br><span class="line">    char_array_4[<span class="number">1</span>] = ((char_array_3[<span class="number">0</span>] &amp; <span class="number">0x03</span>) &lt;&lt; <span class="number">4</span>) + ((char_array_3[<span class="number">1</span>] &amp; <span class="number">0xf0</span>) &gt;&gt; <span class="number">4</span>);</span><br><span class="line">    char_array_4[<span class="number">2</span>] = ((char_array_3[<span class="number">1</span>] &amp; <span class="number">0x0f</span>) &lt;&lt; <span class="number">2</span>) + ((char_array_3[<span class="number">2</span>] &amp; <span class="number">0xc0</span>) &gt;&gt; <span class="number">6</span>);</span><br><span class="line">    char_array_4[<span class="number">3</span>] = char_array_3[<span class="number">2</span>] &amp; <span class="number">0x3f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; (j &lt; i + <span class="number">1</span>); j++)</span><br><span class="line">      ret += base64_chars[char_array_4[j]];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>((i++ &lt; <span class="number">3</span>))</span><br><span class="line">      ret += <span class="string">'='</span>;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> ret;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">base64_decode</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">string</span> <span class="keyword">const</span>&amp; encoded_string)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> in_len = encoded_string.<span class="built_in">size</span>();</span><br><span class="line">  <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> in_ = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">unsigned</span> <span class="keyword">char</span> char_array_4[<span class="number">4</span>], char_array_3[<span class="number">3</span>];</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span> ret;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (in_len-- &amp;&amp; ( encoded_string[in_] != <span class="string">'='</span>) &amp;&amp; is_base64(encoded_string[in_])) &#123;</span><br><span class="line">    char_array_4[i++] = encoded_string[in_]; in_++;</span><br><span class="line">    <span class="keyword">if</span> (i ==<span class="number">4</span>) &#123;</span><br><span class="line">      <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt;<span class="number">4</span>; i++)</span><br><span class="line">        char_array_4[i] = base64_chars.<span class="built_in">find</span>(char_array_4[i]);</span><br><span class="line"></span><br><span class="line">      char_array_3[<span class="number">0</span>] = (char_array_4[<span class="number">0</span>] &lt;&lt; <span class="number">2</span>) + ((char_array_4[<span class="number">1</span>] &amp; <span class="number">0x30</span>) &gt;&gt; <span class="number">4</span>);</span><br><span class="line">      char_array_3[<span class="number">1</span>] = ((char_array_4[<span class="number">1</span>] &amp; <span class="number">0xf</span>) &lt;&lt; <span class="number">4</span>) + ((char_array_4[<span class="number">2</span>] &amp; <span class="number">0x3c</span>) &gt;&gt; <span class="number">2</span>);</span><br><span class="line">      char_array_3[<span class="number">2</span>] = ((char_array_4[<span class="number">2</span>] &amp; <span class="number">0x3</span>) &lt;&lt; <span class="number">6</span>) + char_array_4[<span class="number">3</span>];</span><br><span class="line"></span><br><span class="line">      <span class="keyword">for</span> (i = <span class="number">0</span>; (i &lt; <span class="number">3</span>); i++)</span><br><span class="line">        ret += char_array_3[i];</span><br><span class="line">      i = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (i) &#123;</span><br><span class="line">    <span class="keyword">for</span> (j = i; j &lt;<span class="number">4</span>; j++)</span><br><span class="line">      char_array_4[j] = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt;<span class="number">4</span>; j++)</span><br><span class="line">      char_array_4[j] = base64_chars.<span class="built_in">find</span>(char_array_4[j]);</span><br><span class="line"></span><br><span class="line">    char_array_3[<span class="number">0</span>] = (char_array_4[<span class="number">0</span>] &lt;&lt; <span class="number">2</span>) + ((char_array_4[<span class="number">1</span>] &amp; <span class="number">0x30</span>) &gt;&gt; <span class="number">4</span>);</span><br><span class="line">    char_array_3[<span class="number">1</span>] = ((char_array_4[<span class="number">1</span>] &amp; <span class="number">0xf</span>) &lt;&lt; <span class="number">4</span>) + ((char_array_4[<span class="number">2</span>] &amp; <span class="number">0x3c</span>) &gt;&gt; <span class="number">2</span>);</span><br><span class="line">    char_array_3[<span class="number">2</span>] = ((char_array_4[<span class="number">2</span>] &amp; <span class="number">0x3</span>) &lt;&lt; <span class="number">6</span>) + char_array_4[<span class="number">3</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; (j &lt; i - <span class="number">1</span>); j++) ret += char_array_3[j];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在代码中使用上述函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"base64.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span> s = <span class="string">"ADP GmbH\nAnalyse Design &amp; Programmierung\nGesellschaft mit beschränkter Haftung"</span> ;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span> encoded = base64_encode(<span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">char</span>*&gt;(s.c_str()), s.length());</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span> decoded = base64_decode(encoded);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"encoded: "</span> &lt;&lt; encoded &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">"decoded: "</span> &lt;&lt; decoded &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://en.wikipedia.org/wiki/Base64" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Base64</a><br><a href="http://www.adp-gmbh.ch/cpp/common/base64.html" target="_blank" rel="noopener">http://www.adp-gmbh.ch/cpp/common/base64.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Base64/" rel="tag"># Base64</a>
+              <a href="/tags/encode/" rel="tag"># encode</a>
+              <a href="/tags/decode/" rel="tag"># decode</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2016-12-16-loadrunner-protobuf/" rel="prev" title="在LoadRunner中使用protobuf">
+      <i class="fa fa-chevron-left"></i> 在LoadRunner中使用protobuf
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-01-09-algorithm-complexity-cheatsheet/" rel="next" title="常见算法复杂度Cheatsheet">
+      常见算法复杂度Cheatsheet <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用案例"><span class="nav-number">2.</span> <span class="nav-text">应用案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C-实现Base64编码与解码"><span class="nav-number">3.</span> <span class="nav-text">C++实现Base64编码与解码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '38e6ad79e3d5e6b9659cadcb50c1797e',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

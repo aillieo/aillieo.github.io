@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="BaseInputModule是Unity GUI事件系统的一部分，负责产生事件并发送事件。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 InputModule">
+<meta property="og:url" content="http://aillieo.cn/post/2018-05-16-unity-3d-ugui-source-code-05/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="BaseInputModule是Unity GUI事件系统的一部分，负责产生事件并发送事件。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-16T04:26:09.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.063Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="Input">
+<meta property="article:tag" content="unity3d">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="InputModule">
+<meta property="article:tag" content="BaseInput">
+<meta property="article:tag" content="BaseInputModule">
+<meta property="article:tag" content="输入模块">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-05-16-unity-3d-ugui-source-code-05/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 InputModule | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-05-16-unity-3d-ugui-source-code-05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 InputModule
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-16 12:26:09" itemprop="dateCreated datePublished" datetime="2018-05-16T12:26:09+08:00">2018-05-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>BaseInputModule是Unity GUI事件系统的一部分，负责产生事件并发送事件。</p>
+<a id="more"></a>
+
+<p>几个<code>InputModule</code>的继承关系：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public abstract class BaseInputModule : UIBehaviour</span><br><span class="line"></span><br><span class="line">public abstract class PointerInputModule : BaseInputModule</span><br><span class="line"></span><br><span class="line">public class TouchInputModule : PointerInputModule</span><br><span class="line">public class StandaloneInputModule : PointerInputModule</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>BaseInputModule：输入模块的基类，持有一个<code>BaseInput</code>对象，提供了<code>GetAxisEventData()</code>和<code>GetBaseEventData()</code>方法获取（产生）一个新的事件，除此之外还有一些静态的工具方法和基类的虚方法</p>
+</li>
+<li><p>PointerInputModule：通用的方法 多为protected 给StandaloneInputModule调用</p>
+</li>
+<li><p>TouchInputModule：Obsolete 已弃用，改由<code>StandaloneInputModule</code>处理</p>
+</li>
+<li><p>StandaloneInputModule： 实现了ActivateModule DeactivateModule UpdateModule Process</p>
+</li>
+</ul>
+<h2 id="BaseInput"><a href="#BaseInput" class="headerlink" title="BaseInput"></a>BaseInput</h2><p>开始<code>BaseInputModule</code>之前，先看<code>BaseInput</code>类，它是对<code>UnityEngine.Input</code>类的一层封装，获取输入的状态，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; ...</span><br><span class="line">public virtual bool GetMouseButtonDown(int button)</span><br><span class="line">&#123;	return Input.GetMouseButtonDown(button);&#125;</span><br><span class="line"></span><br><span class="line">public virtual bool GetMouseButtonUp(int button)</span><br><span class="line">&#123;	return Input.GetMouseButtonUp(button);&#125;</span><br><span class="line"></span><br><span class="line">public virtual bool GetMouseButton(int button)</span><br><span class="line">&#123;	return Input.GetMouseButton(button);&#125;</span><br><span class="line"></span><br><span class="line">public virtual Vector2 mousePosition</span><br><span class="line">&#123;	get &#123; return Input.mousePosition; &#125;&#125;</span><br><span class="line"></span><br><span class="line">public virtual int touchCount</span><br><span class="line">&#123;	get &#123; return Input.touchCount; &#125;&#125;</span><br><span class="line"></span><br><span class="line">public virtual Touch GetTouch(int index)</span><br><span class="line">&#123;	return Input.GetTouch(index);&#125;</span><br><span class="line"></span><br><span class="line">public virtual bool GetButtonDown(string buttonName)</span><br><span class="line">&#123;	return Input.GetButtonDown(buttonName);&#125;</span><br><span class="line">&#x2F;&#x2F; ...</span><br></pre></td></tr></table></figure>
+
+<h2 id="EventData"><a href="#EventData" class="headerlink" title="EventData"></a>EventData</h2><p>事件数据，记录当前事件相关的信息。有抽象基类<code>AbstractEventData</code>，衍生出的有<code>BaseEventData</code>，后者又有衍生类<code>PointerEventData</code>和<code>AxisEventData</code>。EventData是UI系统总事件的承载者，其中包含有与该事件相关的各种信息。</p>
+<h3 id="AbstractEventData"><a href="#AbstractEventData" class="headerlink" title="AbstractEventData"></a>AbstractEventData</h3><p>有两个方法和一个属性。用于处理和获取该事件是否被使用的状态。这些方法后边在说到<code>StandaloneInputModule</code>的<code>Process()</code>时会用到。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public void Reset()</span><br><span class="line">&#123;    m_Used &#x3D; false;&#125;</span><br><span class="line"></span><br><span class="line">public void Use()</span><br><span class="line">&#123;    m_Used &#x3D; true;&#125;</span><br><span class="line"></span><br><span class="line">public bool used</span><br><span class="line">&#123;    get &#123; return m_Used; &#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="BaseEventData"><a href="#BaseEventData" class="headerlink" title="BaseEventData"></a>BaseEventData</h3><p>相比于抽象基类，多了两个属性，即当前的输入模块<code>currentInputModule</code>和当前选中的对象<code>selectedObject</code>。</p>
+<h3 id="PointerEventData"><a href="#PointerEventData" class="headerlink" title="PointerEventData"></a>PointerEventData</h3><p>相比Base增加了很多东西，都是和点击相关的。</p>
+<p>按键或触摸的id，其中<code>InputButton</code>是它定义的一个枚举类型：</p>
+<ul>
+<li><code>InputButton button</code>：鼠标按键枚举值（左键、中键、右键）</li>
+<li><code>int pointerId</code>：触摸的id</li>
+</ul>
+<p>事件相关的对象</p>
+<ul>
+<li><p><code>GameObject pointerEnter</code>：接收<code>OnPointerEnter</code>事件的对象</p>
+</li>
+<li><p><code>GameObject m_PointerPress</code>：接收<code>OnPointerDown</code>事件的对象</p>
+</li>
+<li><p><code>GameObject lastPress</code>：上一次响应按下事件的对象</p>
+</li>
+<li><p><code>GameObject rawPointerPress</code>：发生按下事件的对象，即使它不能响应该事件</p>
+</li>
+<li><p><code>GameObject pointerDrag</code>：接收<code>OnDrag</code>事件的对象</p>
+</li>
+<li><p><code>List&lt;GameObject&gt; hovered</code>：存储的是一组对象，这些对象都接收过<code>OnPointerEnter</code>事件，详见后边<code>HandlePointerExitAndEnter()</code></p>
+</li>
+</ul>
+<p>射线投射结果相关：</p>
+<ul>
+<li><code>RaycastResult pointerCurrentRaycast</code>：当前事件关联的射线投射结果</li>
+<li><code>RaycastResult pointerPressRaycast</code>：按下（点击）事件关联的射线投射结果</li>
+</ul>
+<p>状态标记：</p>
+<ul>
+<li><code>bool eligibleForClick</code>：当前事件用于点击</li>
+</ul>
+<p>点击位置信息：</p>
+<ul>
+<li><code>Vector2 position</code>：当前点击（鼠标或触摸）位置</li>
+<li><code>Vector2 delta</code>：与上一帧点击的变化量</li>
+<li><code>Vector2 pressPosition</code>：按下的位置</li>
+</ul>
+<p>点击的其它信息：</p>
+<ul>
+<li><code>float clickTime</code>：上一次点击的时间</li>
+<li><code>int clickCount</code>：点击的数量</li>
+</ul>
+<p>与拖动和滑动相关的信息：</p>
+<ul>
+<li><code>Vector2 scrollDelta</code>：与上一帧相比的滑动量</li>
+<li><code>bool useDragThreshold</code>：是否使用拖拽阈值</li>
+<li><code>bool dragging</code>：是否正在拖动</li>
+</ul>
+<p>定义了一个枚举类型<code>FramePressState</code>：某一帧内按键的状态。</p>
+<p>除了上边之外还有一些方法，也都是用来获取状态信息的。</p>
+<h3 id="AxisEventData"><a href="#AxisEventData" class="headerlink" title="AxisEventData"></a>AxisEventData</h3><p>包含两个属性，移动方向<code>moveDir</code>及移动矢量<code>moveVector</code>，前者是一个枚举类型，后者是<code>Vector2</code>类型。</p>
+<h2 id="BaseInputModule"><a href="#BaseInputModule" class="headerlink" title="BaseInputModule"></a>BaseInputModule</h2><h3 id="重要的成员"><a href="#重要的成员" class="headerlink" title="重要的成员"></a>重要的成员</h3><ul>
+<li><p>m_AxisEventData：在<code>GetAxisEventData()</code>中会反复使用的一个<code>AxisEventData</code>对象</p>
+</li>
+<li><p>m_BaseEventData：在<code>GetBaseEventData()</code>中会反复使用的一个<code>BaseEventData</code>对象</p>
+</li>
+<li><p>BaseInput input：获取<code>BaseInput</code>对象，在<code>BaseInputModule</code>及其衍生类中很多动作都是由其持有的<code>BaseInput</code>对象来完成的。在获取<code>input</code>时，先判断是否有<code>m_InputOverride</code>（衍生类可以通过设置<code>m_InputOverride</code>来实现对<code>input</code>的覆盖）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">public BaseInput input</span><br><span class="line">&#123;</span><br><span class="line">	get</span><br><span class="line">	&#123;</span><br><span class="line">		if (m_InputOverride !&#x3D; null)</span><br><span class="line">			return m_InputOverride;</span><br><span class="line"></span><br><span class="line">		if (m_DefaultInput &#x3D;&#x3D; null)</span><br><span class="line">		&#123;</span><br><span class="line">			var inputs &#x3D; GetComponents&lt;BaseInput&gt;();</span><br><span class="line">			foreach (var baseInput in inputs)</span><br><span class="line">			&#123;</span><br><span class="line">				&#x2F;&#x2F; We dont want to use any classes that derrive from BaseInput for default.</span><br><span class="line">				if (baseInput !&#x3D; null &amp;&amp; baseInput.GetType() &#x3D;&#x3D; typeof(BaseInput))</span><br><span class="line">				&#123;</span><br><span class="line">					m_DefaultInput &#x3D; baseInput;</span><br><span class="line">					break;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			if (m_DefaultInput &#x3D;&#x3D; null)</span><br><span class="line">				m_DefaultInput &#x3D; gameObject.AddComponent&lt;BaseInput&gt;();</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		return m_DefaultInput;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<h3 id="重要的方法"><a href="#重要的方法" class="headerlink" title="重要的方法"></a>重要的方法</h3><p>覆写了OnEnable和OnDisable，在被调用时调用EventSystem的UpdateModules()方法。定义了抽象方法<code>Process()</code>，虚方法<code>DeactivateModule()</code>和<code>DeactivateModule()</code>由其衍生类来实现。</p>
+<p>每帧调用<code>UpdateModule()</code>和<code>Process()</code></p>
+<p>除此之外有一些静态工具方法：</p>
+<ul>
+<li>RaycastResult FindFirstRaycast()：在传入的<code>RaycastResult</code>的列表中找到第一个有效的<code>RaycastResult</code>    </li>
+<li>MoveDirection DetermineMoveDirection()：根据传入的坐标x和y，转化为<code>MoveDirection</code>枚举类型</li>
+<li>GameObject FindCommonRoot()：传入两个<code>GameObject</code>返回其共有的父对象</li>
+</ul>
+<p>还有一个是实例方法<code>HandlePointerExitAndEnter</code>，用于处理Pointer（鼠标或点击）离开某个对象及新进入某个对象时对两者的一些操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; walk up the tree till a common root between the last entered and the current entered is foung</span><br><span class="line">&#x2F;&#x2F; send exit events up to (but not inluding) the common root. Then send enter events up to</span><br><span class="line">&#x2F;&#x2F; (but not including the common root).</span><br><span class="line">protected void HandlePointerExitAndEnter(PointerEventData currentPointerData, GameObject newEnterTarget)</span><br><span class="line">&#123;</span><br><span class="line">	&#x2F;&#x2F; if we have no target &#x2F; pointerEnter has been deleted</span><br><span class="line">	&#x2F;&#x2F; just send exit events to anything we are tracking</span><br><span class="line">	&#x2F;&#x2F; then exit</span><br><span class="line">	if (newEnterTarget &#x3D;&#x3D; null || currentPointerData.pointerEnter &#x3D;&#x3D; null)</span><br><span class="line">	&#123;</span><br><span class="line">		for (var i &#x3D; 0; i &lt; currentPointerData.hovered.Count; ++i)</span><br><span class="line">			ExecuteEvents.Execute(currentPointerData.hovered[i], currentPointerData, ExecuteEvents.pointerExitHandler);</span><br><span class="line"></span><br><span class="line">		currentPointerData.hovered.Clear();</span><br><span class="line"></span><br><span class="line">		if (newEnterTarget &#x3D;&#x3D; null)</span><br><span class="line">		&#123;</span><br><span class="line">			currentPointerData.pointerEnter &#x3D; newEnterTarget;</span><br><span class="line">			return;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; if we have not changed hover target</span><br><span class="line">	if (currentPointerData.pointerEnter &#x3D;&#x3D; newEnterTarget &amp;&amp; newEnterTarget)</span><br><span class="line">		return;</span><br><span class="line"></span><br><span class="line">	GameObject commonRoot &#x3D; FindCommonRoot(currentPointerData.pointerEnter, newEnterTarget);</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; and we already an entered object from last time</span><br><span class="line">	if (currentPointerData.pointerEnter !&#x3D; null)</span><br><span class="line">	&#123;</span><br><span class="line">		&#x2F;&#x2F; send exit handler call to all elements in the chain</span><br><span class="line">		&#x2F;&#x2F; until we reach the new target, or null!</span><br><span class="line">		Transform t &#x3D; currentPointerData.pointerEnter.transform;</span><br><span class="line"></span><br><span class="line">		while (t !&#x3D; null)</span><br><span class="line">		&#123;</span><br><span class="line">			&#x2F;&#x2F; if we reach the common root break out!</span><br><span class="line">			if (commonRoot !&#x3D; null &amp;&amp; commonRoot.transform &#x3D;&#x3D; t)</span><br><span class="line">				break;</span><br><span class="line"></span><br><span class="line">			ExecuteEvents.Execute(t.gameObject, currentPointerData, ExecuteEvents.pointerExitHandler);</span><br><span class="line">			currentPointerData.hovered.Remove(t.gameObject);</span><br><span class="line">			t &#x3D; t.parent;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;&#x2F; now issue the enter call up to but not including the common root</span><br><span class="line">	currentPointerData.pointerEnter &#x3D; newEnterTarget;</span><br><span class="line">	if (newEnterTarget !&#x3D; null)</span><br><span class="line">	&#123;</span><br><span class="line">		Transform t &#x3D; newEnterTarget.transform;</span><br><span class="line"></span><br><span class="line">		while (t !&#x3D; null &amp;&amp; t.gameObject !&#x3D; commonRoot)</span><br><span class="line">		&#123;</span><br><span class="line">			ExecuteEvents.Execute(t.gameObject, currentPointerData, ExecuteEvents.pointerEnterHandler);</span><br><span class="line">			currentPointerData.hovered.Add(t.gameObject);</span><br><span class="line">			t &#x3D; t.parent;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实注释已经很清楚了，寻找之前最后一次进入的对象，以及当前进入的对象的共同父节点，然后对从离开的对象到共同父节点（不含共同的父节点）发送“离开（Exit）”事件，同理对从进入的对象到共同父节点（不含共同的父节点）发送“进入（Enter）”事件。</p>
+<p><code>ExecuteEvents</code>是与事件执行相关的类，<code>ExecuteEvents.Execute(...)</code>是对某个对象（GameObject）执行某事件的方法，后边的章节会专门说这个类。</p>
+<p>整个过程分为几步：</p>
+<ul>
+<li>如果没有新进入的对象，或者<code>currentPointerData.pointerEnter</code>是null，那么就不处理进入（Enter），只处理离开（Exit），即对<code>currentPointerData.hovered</code>中的各个对象都执行离开的事件，并在最后确保将<code>currentPointerData.pointerEnter</code>设为null</li>
+<li>如果对象没有变化，就是说即将进入的对象和当前事件数据中的进入对象是同一个对象，直接返回。</li>
+<li>寻找当前事件数据中的进入对象<code>currentPointerData.pointerEnter</code>和即将要进入的对象<code>newEnterTarget</code>二者的共同父节点。然后如前边说的那样，从旧的进入对象到共有父节点，逐个执行离开事件，并从<code>hovered</code>中移除，此操作不含共有父节点；接下来从新的进入对象到共有父节点，逐个执行进入事件，并将其加入<code>hovered</code>，此操作不包含共有父节点。</li>
+</ul>
+<h2 id="PointerInputModule"><a href="#PointerInputModule" class="headerlink" title="PointerInputModule"></a>PointerInputModule</h2><p>由于在旧的代码中，<code>PointerInputModule</code>衍生出<code>StandaloneInputModule</code>和<code>TouchInputModule</code>两个类，因此很多公用的方法都放在<code>PointerInputModule</code>中处理，同时给两个子类使用。后来的版本<code>TouchInputModule</code>已弃用，且原本有<code>TouchInputModule</code>承担的逻辑也都合并到<code>StandaloneInputModule</code>中处理（将触摸点击同样视为鼠标按键，二者有不同的id类型，逻辑基本一致）。这么一来，<code>PointerInputModule</code>的内容基本是只服务于<code>StandaloneInputModule</code>。我们选择从<code>StandaloneInputModule</code>入手，二者一起研究，当使用到<code>PointerInputModule</code>中的方法时，我们再跳回来看。此处只是提一下其中的一些成员定义：</p>
+<ul>
+<li><code>Dictionary&lt;int, PointerEventData&gt; m_PointerData</code>：键是<code>pointerId</code>或者鼠标按键的枚举值<code>InputButton</code> 值是<code>PointerEventData</code>。它是用来产生并记录与按键或点击相对应的EventData的字典。</li>
+</ul>
+<p>除此之外，还有三个嵌套类，逻辑层层封装：</p>
+<ul>
+<li><code>MouseButtonEventData</code>：鼠标按键的事件及状态，内包含了一个<code>PointerEventData</code> 和一个<code>FramePressState</code>值，及一组判断鼠标按键是否按下或松开的方法。</li>
+<li><code>ButtonState</code>：按键的状态，是对<code>MouseButtonEventData</code>更外一层的封装，内部包含了一个鼠标按键的id<code>InputButton</code> 和一个<code>MouseButtonEventData</code> 。</li>
+<li><code>MouseState</code>：封装了一组<code>ButtonState</code>对象（一个List），提供了一组<code>ButtonState</code>的set和get方法，以及判断鼠标的所有按键中，这一帧内是否有按下或松开的方法。</li>
+</ul>
+<h2 id="StandaloneInputModule"><a href="#StandaloneInputModule" class="headerlink" title="StandaloneInputModule"></a>StandaloneInputModule</h2><p>内容也很多，我们直接从<code>UpdateModule()</code>和<code>Process()</code>入手，顺藤摸瓜，捋一捋它的这些成员和方法：</p>
+<h3 id="UpdateModule"><a href="#UpdateModule" class="headerlink" title="UpdateModule"></a>UpdateModule</h3><p><code>UpdateModule()</code>是在<code>EventSystem</code>中每帧调用的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public override void UpdateModule()</span><br><span class="line">&#123;</span><br><span class="line">    m_LastMousePosition &#x3D; m_MousePosition;</span><br><span class="line">    m_MousePosition &#x3D; input.mousePosition;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>涉及到了它的两个成员字段，根据字面意思很明确了：更新和获取鼠标位置。</p>
+<h3 id="Process"><a href="#Process" class="headerlink" title="Process"></a>Process</h3><p>重点是<code>Process()</code>，也是在每帧调用，这其中包含了绝大多数的逻辑：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public override void Process()</span><br><span class="line">&#123;</span><br><span class="line">    bool usedEvent &#x3D; SendUpdateEventToSelectedObject();</span><br><span class="line"></span><br><span class="line">    if (eventSystem.sendNavigationEvents)</span><br><span class="line">    &#123;</span><br><span class="line">        if (!usedEvent)</span><br><span class="line">            usedEvent |&#x3D; SendMoveEventToSelectedObject();</span><br><span class="line"></span><br><span class="line">        if (!usedEvent)</span><br><span class="line">            SendSubmitEventToSelectedObject();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; touch needs to take precedence because of the mouse emulation layer</span><br><span class="line">    if (!ProcessTouchEvents() &amp;&amp; input.mousePresent)</span><br><span class="line">        ProcessMouseEvent();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结合上边的代码：首先是<code>SendUpdateEventToSelectedObject()</code>，处理update更新事件。并把返回值赋给了<code>usedEvent</code>，即事件是否已使用（或者说能否被下一个步骤使用）。接下来如果<code>eventSystem.sendNavigationEvents</code>为真，判断和更新<code>usedEvent</code>的值，发送move和submit的事件。最后一步，处理触摸事件<code>ProcessTouchEvents()</code>，如果返回<code>false</code>且有鼠标显示，则处理鼠标事件<code>ProcessMouseEvent()</code>。</p>
+<h3 id="SendUpdateEventToSelectedObject"><a href="#SendUpdateEventToSelectedObject" class="headerlink" title="SendUpdateEventToSelectedObject"></a>SendUpdateEventToSelectedObject</h3><p><code>SendUpdateEventToSelectedObject()</code>定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">protected bool SendUpdateEventToSelectedObject()</span><br><span class="line">&#123;</span><br><span class="line">    if (eventSystem.currentSelectedGameObject &#x3D;&#x3D; null)</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    var data &#x3D; GetBaseEventData();</span><br><span class="line">    ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.updateSelectedHandler);</span><br><span class="line">    return data.used;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>发送其它事件的函数定义与此大同小异（可能会包含更多的逻辑判断，但是基本框架步骤都是如此），首先获取（产生）事件<code>GetBaseEventData()</code>，执行事件<code>ExecuteEvents.Execute(...)</code>，如果当前选中的对象<code>eventSystem.currentSelectedGameObject</code>实现了<code>IUpdateSelectedHandle</code>，则会调用更新的方法<code>OnUpdateSelected()</code>。最后返回事件是否已被使用。</p>
+<p><code>SendMoveEventToSelectedObject()</code>，会根据按键判断移动方向<code>GetRawMoveVector()</code>，根据连续移动的状态<code>ConsecutiveMoveCount</code>进行一些判断和过滤，最后在传递事件时使用的是<code>AxisEventData</code>。发送完成之后会更新事件used的状态。</p>
+<p>SendSubmitEventToSelectedObject()，对应提交submit和取消cancel事件，没有任何更多的复杂逻辑，发送完成后也会更新事件used的状态，注意move和submit都是当<code>eventSystem.sendNavigationEvents</code>为真时才会发送。</p>
+<p>最后来重点看一下关于触摸和鼠标点击的处理：</p>
+<h3 id="ProcessTouchEvents"><a href="#ProcessTouchEvents" class="headerlink" title="ProcessTouchEvents"></a>ProcessTouchEvents</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">private bool ProcessTouchEvents()</span><br><span class="line">&#123;</span><br><span class="line">    for (int i &#x3D; 0; i &lt; input.touchCount; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        Touch touch &#x3D; input.GetTouch(i);</span><br><span class="line"></span><br><span class="line">        if (touch.type &#x3D;&#x3D; TouchType.Indirect)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        bool released;</span><br><span class="line">        bool pressed;</span><br><span class="line">        var pointer &#x3D; GetTouchPointerEventData(touch, out pressed, out released);</span><br><span class="line"></span><br><span class="line">        ProcessTouchPress(pointer, pressed, released);</span><br><span class="line"></span><br><span class="line">        if (!released)</span><br><span class="line">        &#123;</span><br><span class="line">            ProcessMove(pointer);</span><br><span class="line">            ProcessDrag(pointer);</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">            RemovePointerData(pointer);</span><br><span class="line">    &#125;</span><br><span class="line">    return input.touchCount &gt; 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>遍历所有的触摸，如果<code>touch.type</code>不为<code>Indirect</code>（这一状态是由更底层的api获取到的），则继续处理，做一些事情，最后返回当前点击数。</p>
+<p>我们来看对每个点击所做的事情，<code>GetTouchPointerEventData</code>获取对应的<code>PointerEventData</code>，并且同时会取到其是否是按下或释放的状态。其实现如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">protected PointerEventData GetTouchPointerEventData(Touch input, out bool pressed, out bool released)</span><br><span class="line">&#123;</span><br><span class="line">    PointerEventData pointerData;</span><br><span class="line">    var created &#x3D; GetPointerData(input.fingerId, out pointerData, true);</span><br><span class="line"></span><br><span class="line">    pointerData.Reset();</span><br><span class="line"></span><br><span class="line">    pressed &#x3D; created || (input.phase &#x3D;&#x3D; TouchPhase.Began);</span><br><span class="line">    released &#x3D; (input.phase &#x3D;&#x3D; TouchPhase.Canceled) || (input.phase &#x3D;&#x3D; TouchPhase.Ended);</span><br><span class="line"></span><br><span class="line">    if (created)</span><br><span class="line">        pointerData.position &#x3D; input.position;</span><br><span class="line"></span><br><span class="line">    if (pressed)</span><br><span class="line">        pointerData.delta &#x3D; Vector2.zero;</span><br><span class="line">    else</span><br><span class="line">        pointerData.delta &#x3D; input.position - pointerData.position;</span><br><span class="line"></span><br><span class="line">    pointerData.position &#x3D; input.position;</span><br><span class="line"></span><br><span class="line">    pointerData.button &#x3D; PointerEventData.InputButton.Left;</span><br><span class="line"></span><br><span class="line">    eventSystem.RaycastAll(pointerData, m_RaycastResultCache);</span><br><span class="line"></span><br><span class="line">    var raycast &#x3D; FindFirstRaycast(m_RaycastResultCache);</span><br><span class="line">    pointerData.pointerCurrentRaycast &#x3D; raycast;</span><br><span class="line">    m_RaycastResultCache.Clear();</span><br><span class="line">    return pointerData;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取（产生）<code>PointerEventData</code>，判断其状态，并且要判断它是否是新创建的<code>created</code>，<code>input.phase</code>表示当前触摸事件位于的阶段（<code>Began</code>，<code>Moved</code>，<code>Stationary</code>，<code>Ended</code>和<code>Canceled</code> ，也是由底层的api获取的）。根据是否新建以及触摸的阶段来对其进行的一些初始化工作或值的更新。最后是一些射线投射的内容，使用当前事件做射线投射，获取第一个投射结果并更新<code>pointerData.pointerCurrentRaycast</code>。关于射线投射的内容会在后边的章节展开讨论。</p>
+<p>回到刚才的<code>ProcessTouchEvents</code>，获取了点击事件数据后，紧接着会调用<code>ProcessTouchPress</code>，处理按下和释放：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line">protected void ProcessTouchPress(PointerEventData pointerEvent, bool pressed, bool released)</span><br><span class="line">&#123;</span><br><span class="line">    var currentOverGo &#x3D; pointerEvent.pointerCurrentRaycast.gameObject;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; PointerDown notification</span><br><span class="line">    if (pressed)</span><br><span class="line">    &#123;</span><br><span class="line">        pointerEvent.eligibleForClick &#x3D; true;</span><br><span class="line">        pointerEvent.delta &#x3D; Vector2.zero;</span><br><span class="line">        pointerEvent.dragging &#x3D; false;</span><br><span class="line">        pointerEvent.useDragThreshold &#x3D; true;</span><br><span class="line">        pointerEvent.pressPosition &#x3D; pointerEvent.position;</span><br><span class="line">        pointerEvent.pointerPressRaycast &#x3D; pointerEvent.pointerCurrentRaycast;</span><br><span class="line"></span><br><span class="line">        DeselectIfSelectionChanged(currentOverGo, pointerEvent);</span><br><span class="line"></span><br><span class="line">        if (pointerEvent.pointerEnter !&#x3D; currentOverGo)</span><br><span class="line">        &#123;</span><br><span class="line">            &#x2F;&#x2F; send a pointer enter to the touched element if it isn&#39;t the one to select...</span><br><span class="line">            HandlePointerExitAndEnter(pointerEvent, currentOverGo);</span><br><span class="line">            pointerEvent.pointerEnter &#x3D; currentOverGo;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; search for the control that will receive the press</span><br><span class="line">        &#x2F;&#x2F; if we can&#39;t find a press handler set the press</span><br><span class="line">        &#x2F;&#x2F; handler to be what would receive a click.</span><br><span class="line">        var newPressed &#x3D; ExecuteEvents.ExecuteHierarchy(currentOverGo, pointerEvent, ExecuteEvents.pointerDownHandler);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; didnt find a press handler... search for a click handler</span><br><span class="line">        if (newPressed &#x3D;&#x3D; null)</span><br><span class="line">            newPressed &#x3D; ExecuteEvents.GetEventHandler&lt;IPointerClickHandler&gt;(currentOverGo);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Debug.Log(&quot;Pressed: &quot; + newPressed);</span><br><span class="line"></span><br><span class="line">        float time &#x3D; Time.unscaledTime;</span><br><span class="line"></span><br><span class="line">        if (newPressed &#x3D;&#x3D; pointerEvent.lastPress)</span><br><span class="line">        &#123;</span><br><span class="line">            var diffTime &#x3D; time - pointerEvent.clickTime;</span><br><span class="line">            if (diffTime &lt; 0.3f)</span><br><span class="line">                ++pointerEvent.clickCount;</span><br><span class="line">            else</span><br><span class="line">                pointerEvent.clickCount &#x3D; 1;</span><br><span class="line"></span><br><span class="line">            pointerEvent.clickTime &#x3D; time;</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            pointerEvent.clickCount &#x3D; 1;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        pointerEvent.pointerPress &#x3D; newPressed;</span><br><span class="line">        pointerEvent.rawPointerPress &#x3D; currentOverGo;</span><br><span class="line"></span><br><span class="line">        pointerEvent.clickTime &#x3D; time;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Save the drag handler as well</span><br><span class="line">        pointerEvent.pointerDrag &#x3D; ExecuteEvents.GetEventHandler&lt;IDragHandler&gt;(currentOverGo);</span><br><span class="line"></span><br><span class="line">        if (pointerEvent.pointerDrag !&#x3D; null)</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.initializePotentialDrag);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; PointerUp notification</span><br><span class="line">    if (released)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Debug.Log(&quot;Executing pressup on: &quot; + pointer.pointerPress);</span><br><span class="line">        ExecuteEvents.Execute(pointerEvent.pointerPress, pointerEvent, ExecuteEvents.pointerUpHandler);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Debug.Log(&quot;KeyCode: &quot; + pointer.eventData.keyCode);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; see if we mouse up on the same element that we clicked on...</span><br><span class="line">        var pointerUpHandler &#x3D; ExecuteEvents.GetEventHandler&lt;IPointerClickHandler&gt;(currentOverGo);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; PointerClick and Drop events</span><br><span class="line">        if (pointerEvent.pointerPress &#x3D;&#x3D; pointerUpHandler &amp;&amp; pointerEvent.eligibleForClick)</span><br><span class="line">        &#123;</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerPress, pointerEvent, ExecuteEvents.pointerClickHandler);</span><br><span class="line">        &#125;</span><br><span class="line">        else if (pointerEvent.pointerDrag !&#x3D; null &amp;&amp; pointerEvent.dragging)</span><br><span class="line">        &#123;</span><br><span class="line">            ExecuteEvents.ExecuteHierarchy(currentOverGo, pointerEvent, ExecuteEvents.dropHandler);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        pointerEvent.eligibleForClick &#x3D; false;</span><br><span class="line">        pointerEvent.pointerPress &#x3D; null;</span><br><span class="line">        pointerEvent.rawPointerPress &#x3D; null;</span><br><span class="line"></span><br><span class="line">        if (pointerEvent.pointerDrag !&#x3D; null &amp;&amp; pointerEvent.dragging)</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.endDragHandler);</span><br><span class="line"></span><br><span class="line">        pointerEvent.dragging &#x3D; false;</span><br><span class="line">        pointerEvent.pointerDrag &#x3D; null;</span><br><span class="line"></span><br><span class="line">        if (pointerEvent.pointerDrag !&#x3D; null)</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.endDragHandler);</span><br><span class="line"></span><br><span class="line">        pointerEvent.pointerDrag &#x3D; null;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; send exit events as we need to simulate this on touch up on touch device</span><br><span class="line">        ExecuteEvents.ExecuteHierarchy(pointerEvent.pointerEnter, pointerEvent, ExecuteEvents.pointerExitHandler);</span><br><span class="line">        pointerEvent.pointerEnter &#x3D; null;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码比较长，可以划分为两部分：处理按下和处理释放。当判断点击状态为按下时，做了以下的事情：</p>
+<ul>
+<li>初始化<code>pointerEvent</code>；</li>
+<li>处理enter和exit事件，清除旧的选择对象selected，更新新的选择对象，并在<code>HandlePointerExitAndEnter(...)</code>中触发enter和exit的事件；</li>
+<li>处理pointerDown的事件，这里使用的是<code>ExecuteHierarchy</code>，即会对从当前对象所在的树状结构中自下而上第一个可以响应该事件的对象执行该事件，后边讲到<code>ExecuteEvents</code>时还会再提到；</li>
+<li>如果没有对象响应pointerDown，则会尝试执行click事件，也是会自下而上找一遍；</li>
+<li>如果响应pointerDown的对象<code>newPressed</code>与上一帧的是同一对象，则处理连续点击的逻辑，竟然有一个写死的<code>0.3f</code>，然后是更新数据；</li>
+<li>最后执行一个初始化潜在拖拽的事件；</li>
+</ul>
+<p>在处理松开时，主要处理的是以下的逻辑：</p>
+<ul>
+<li><p>处理pointerUp的事件；</p>
+</li>
+<li><p>如果响应pointerUp的对象<code>pointerUpHandler</code>与按下对象相同且当前事件可用于点击，则执行click事件</p>
+</li>
+<li><p>如果没有click事件，则判断是否有drag的对象以及当前是否是<code>dragging</code>，如有则执行drop事件；</p>
+</li>
+<li><p>更新一波数据，主要是清除；</p>
+</li>
+<li><p>执行endDrag并清除一些数据；</p>
+</li>
+<li><p>执行exit并清除一些数据；</p>
+</li>
+</ul>
+<p>再回到<code>ProcessTouchEvents</code>，如果不是松开状态（<code>released</code>）则处理移动move和拖动drag，否则清除数据。以下是<code>ProcessMove</code>和<code>ProcessDrag</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">protected virtual void ProcessMove(PointerEventData pointerEvent)</span><br><span class="line">&#123;</span><br><span class="line">    var targetGO &#x3D; (Cursor.lockState &#x3D;&#x3D; CursorLockMode.Locked ? null : pointerEvent.pointerCurrentRaycast.gameObject);</span><br><span class="line">    HandlePointerExitAndEnter(pointerEvent, targetGO);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected virtual void ProcessDrag(PointerEventData pointerEvent)</span><br><span class="line">&#123;</span><br><span class="line">    if (!pointerEvent.IsPointerMoving() ||</span><br><span class="line">        Cursor.lockState &#x3D;&#x3D; CursorLockMode.Locked ||</span><br><span class="line">        pointerEvent.pointerDrag &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    if (!pointerEvent.dragging</span><br><span class="line">        &amp;&amp; ShouldStartDrag(pointerEvent.pressPosition, pointerEvent.position, eventSystem.pixelDragThreshold, pointerEvent.useDragThreshold))</span><br><span class="line">    &#123;</span><br><span class="line">        ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.beginDragHandler);</span><br><span class="line">        pointerEvent.dragging &#x3D; true;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Drag notification</span><br><span class="line">    if (pointerEvent.dragging)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Before doing drag we should cancel any pointer down state</span><br><span class="line">        &#x2F;&#x2F; And clear selection!</span><br><span class="line">        if (pointerEvent.pointerPress !&#x3D; pointerEvent.pointerDrag)</span><br><span class="line">        &#123;</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerPress, pointerEvent, ExecuteEvents.pointerUpHandler);</span><br><span class="line"></span><br><span class="line">            pointerEvent.eligibleForClick &#x3D; false;</span><br><span class="line">            pointerEvent.pointerPress &#x3D; null;</span><br><span class="line">            pointerEvent.rawPointerPress &#x3D; null;</span><br><span class="line">        &#125;</span><br><span class="line">        ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.dragHandler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>move处理鼠标指针未按下时的状态，逻辑很简单，光标<code>lockState</code>如果是锁定状态，则以<code>null</code>为目标对象，否则是当前click的对象为目标对象。然后执行一次<code>HandlePointerExitAndEnter</code>。</p>
+<p>drag处理按下后移动的逻辑，首先判断如果不符合拖动，如点击点没有移动等则直接返回；接下来判断是否要开始拖动，触发的事件是beginDrag；最后如果是dragging状态，如果按下对象和拖动的对象不同，则需要为拖动进行一次初始化，然后执行onDrag的事件。</p>
+<p><code>ProcessMove</code>和<code>ProcessDrag</code>是触摸点击和鼠标点击公用的逻辑。</p>
+<p>现在需要回到<code>Process()</code>，当<code>ProcessTouchEvents()</code>返回了<code>false</code>且<code>input.mousePresent</code>为<code>true</code>时，处理鼠标事件<code>ProcessMouseEvent()</code>。</p>
+<h3 id="ProcessMouseEvent"><a href="#ProcessMouseEvent" class="headerlink" title="ProcessMouseEvent"></a>ProcessMouseEvent</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">protected void ProcessMouseEvent(int id)</span><br><span class="line">&#123;</span><br><span class="line">    var mouseData &#x3D; GetMousePointerEventData(id);</span><br><span class="line">    var leftButtonData &#x3D; mouseData.GetButtonState(PointerEventData.InputButton.Left).eventData;</span><br><span class="line"></span><br><span class="line">    if (ForceAutoSelect())</span><br><span class="line">        eventSystem.SetSelectedGameObject(leftButtonData.buttonData.pointerCurrentRaycast.gameObject, leftButtonData.buttonData);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Process the first mouse button fully</span><br><span class="line">    ProcessMousePress(leftButtonData);</span><br><span class="line">    ProcessMove(leftButtonData.buttonData);</span><br><span class="line">    ProcessDrag(leftButtonData.buttonData);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Now process right &#x2F; middle clicks</span><br><span class="line">    ProcessMousePress(mouseData.GetButtonState(PointerEventData.InputButton.Right).eventData);</span><br><span class="line">    ProcessDrag(mouseData.GetButtonState(PointerEventData.InputButton.Right).eventData.buttonData);</span><br><span class="line">    ProcessMousePress(mouseData.GetButtonState(PointerEventData.InputButton.Middle).eventData);</span><br><span class="line">    ProcessDrag(mouseData.GetButtonState(PointerEventData.InputButton.Middle).eventData.buttonData);</span><br><span class="line"></span><br><span class="line">    if (!Mathf.Approximately(leftButtonData.buttonData.scrollDelta.sqrMagnitude, 0.0f))</span><br><span class="line">    &#123;</span><br><span class="line">        var scrollHandler &#x3D; ExecuteEvents.GetEventHandler&lt;IScrollHandler&gt;(leftButtonData.buttonData.pointerCurrentRaycast.gameObject);</span><br><span class="line">        ExecuteEvents.ExecuteHierarchy(scrollHandler, leftButtonData.buttonData, ExecuteEvents.scrollHandler);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与触摸点击的处理相似，需要依次处理左键、右键和中键。首先用<code>id</code>（默认参数0）获取<code>MouseState mouseData</code>，然后从中获取<code>ButtonState leftButtonData</code> ，这两个都是之前说到的内嵌类。处理左键，首先是鼠标按下/松开<code>ProcessMousePress()</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line">protected void ProcessMousePress(MouseButtonEventData data)</span><br><span class="line">&#123;</span><br><span class="line">    var pointerEvent &#x3D; data.buttonData;</span><br><span class="line">    var currentOverGo &#x3D; pointerEvent.pointerCurrentRaycast.gameObject;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; PointerDown notification</span><br><span class="line">    if (data.PressedThisFrame())</span><br><span class="line">    &#123;</span><br><span class="line">        pointerEvent.eligibleForClick &#x3D; true;</span><br><span class="line">        pointerEvent.delta &#x3D; Vector2.zero;</span><br><span class="line">        pointerEvent.dragging &#x3D; false;</span><br><span class="line">        pointerEvent.useDragThreshold &#x3D; true;</span><br><span class="line">        pointerEvent.pressPosition &#x3D; pointerEvent.position;</span><br><span class="line">        pointerEvent.pointerPressRaycast &#x3D; pointerEvent.pointerCurrentRaycast;</span><br><span class="line"></span><br><span class="line">        DeselectIfSelectionChanged(currentOverGo, pointerEvent);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; search for the control that will receive the press</span><br><span class="line">        &#x2F;&#x2F; if we can&#39;t find a press handler set the press</span><br><span class="line">        &#x2F;&#x2F; handler to be what would receive a click.</span><br><span class="line">        var newPressed &#x3D; ExecuteEvents.ExecuteHierarchy(currentOverGo, pointerEvent, ExecuteEvents.pointerDownHandler);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; didnt find a press handler... search for a click handler</span><br><span class="line">        if (newPressed &#x3D;&#x3D; null)</span><br><span class="line">            newPressed &#x3D; ExecuteEvents.GetEventHandler&lt;IPointerClickHandler&gt;(currentOverGo);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Debug.Log(&quot;Pressed: &quot; + newPressed);</span><br><span class="line"></span><br><span class="line">        float time &#x3D; Time.unscaledTime;</span><br><span class="line"></span><br><span class="line">        if (newPressed &#x3D;&#x3D; pointerEvent.lastPress)</span><br><span class="line">        &#123;</span><br><span class="line">            var diffTime &#x3D; time - pointerEvent.clickTime;</span><br><span class="line">            if (diffTime &lt; 0.3f)</span><br><span class="line">                ++pointerEvent.clickCount;</span><br><span class="line">            else</span><br><span class="line">                pointerEvent.clickCount &#x3D; 1;</span><br><span class="line"></span><br><span class="line">            pointerEvent.clickTime &#x3D; time;</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            pointerEvent.clickCount &#x3D; 1;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        pointerEvent.pointerPress &#x3D; newPressed;</span><br><span class="line">        pointerEvent.rawPointerPress &#x3D; currentOverGo;</span><br><span class="line"></span><br><span class="line">        pointerEvent.clickTime &#x3D; time;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Save the drag handler as well</span><br><span class="line">        pointerEvent.pointerDrag &#x3D; ExecuteEvents.GetEventHandler&lt;IDragHandler&gt;(currentOverGo);</span><br><span class="line"></span><br><span class="line">        if (pointerEvent.pointerDrag !&#x3D; null)</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.initializePotentialDrag);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; PointerUp notification</span><br><span class="line">    if (data.ReleasedThisFrame())</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Debug.Log(&quot;Executing pressup on: &quot; + pointer.pointerPress);</span><br><span class="line">        ExecuteEvents.Execute(pointerEvent.pointerPress, pointerEvent, ExecuteEvents.pointerUpHandler);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Debug.Log(&quot;KeyCode: &quot; + pointer.eventData.keyCode);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; see if we mouse up on the same element that we clicked on...</span><br><span class="line">        var pointerUpHandler &#x3D; ExecuteEvents.GetEventHandler&lt;IPointerClickHandler&gt;(currentOverGo);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; PointerClick and Drop events</span><br><span class="line">        if (pointerEvent.pointerPress &#x3D;&#x3D; pointerUpHandler &amp;&amp; pointerEvent.eligibleForClick)</span><br><span class="line">        &#123;</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerPress, pointerEvent, ExecuteEvents.pointerClickHandler);</span><br><span class="line">        &#125;</span><br><span class="line">        else if (pointerEvent.pointerDrag !&#x3D; null &amp;&amp; pointerEvent.dragging)</span><br><span class="line">        &#123;</span><br><span class="line">            ExecuteEvents.ExecuteHierarchy(currentOverGo, pointerEvent, ExecuteEvents.dropHandler);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        pointerEvent.eligibleForClick &#x3D; false;</span><br><span class="line">        pointerEvent.pointerPress &#x3D; null;</span><br><span class="line">        pointerEvent.rawPointerPress &#x3D; null;</span><br><span class="line"></span><br><span class="line">        if (pointerEvent.pointerDrag !&#x3D; null &amp;&amp; pointerEvent.dragging)</span><br><span class="line">            ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.endDragHandler);</span><br><span class="line"></span><br><span class="line">        pointerEvent.dragging &#x3D; false;</span><br><span class="line">        pointerEvent.pointerDrag &#x3D; null;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; redo pointer enter &#x2F; exit to refresh state</span><br><span class="line">        &#x2F;&#x2F; so that if we moused over somethign that ignored it before</span><br><span class="line">        &#x2F;&#x2F; due to having pressed on something else</span><br><span class="line">        &#x2F;&#x2F; it now gets it.</span><br><span class="line">        if (currentOverGo !&#x3D; pointerEvent.pointerEnter)</span><br><span class="line">        &#123;</span><br><span class="line">            HandlePointerExitAndEnter(pointerEvent, null);</span><br><span class="line">            HandlePointerExitAndEnter(pointerEvent, currentOverGo);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与<code>ProcessTouchEvents()</code>很相似，不再赘述。接下来是move和drag，与触摸处理完全一致。接下来是处理右键和中键。三个键都处理之后，如果<code>scrollDelta</code>的值大于0，执行scroll事件。</p>
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+              <a href="/tags/Input/" rel="tag"># Input</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-04-22-game-instruction-notes/" rel="prev" title="游戏新手引导系统总结">
+      <i class="fa fa-chevron-left"></i> 游戏新手引导系统总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-05-26-unity-3d-ugui-source-code-06/" rel="next" title="Unity3D UGUI 源码学习 Raycaster">
+      Unity3D UGUI 源码学习 Raycaster <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#BaseInput"><span class="nav-number">1.</span> <span class="nav-text">BaseInput</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EventData"><span class="nav-number">2.</span> <span class="nav-text">EventData</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AbstractEventData"><span class="nav-number">2.1.</span> <span class="nav-text">AbstractEventData</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BaseEventData"><span class="nav-number">2.2.</span> <span class="nav-text">BaseEventData</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PointerEventData"><span class="nav-number">2.3.</span> <span class="nav-text">PointerEventData</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AxisEventData"><span class="nav-number">2.4.</span> <span class="nav-text">AxisEventData</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BaseInputModule"><span class="nav-number">3.</span> <span class="nav-text">BaseInputModule</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#重要的成员"><span class="nav-number">3.1.</span> <span class="nav-text">重要的成员</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重要的方法"><span class="nav-number">3.2.</span> <span class="nav-text">重要的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PointerInputModule"><span class="nav-number">4.</span> <span class="nav-text">PointerInputModule</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#StandaloneInputModule"><span class="nav-number">5.</span> <span class="nav-text">StandaloneInputModule</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#UpdateModule"><span class="nav-number">5.1.</span> <span class="nav-text">UpdateModule</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Process"><span class="nav-number">5.2.</span> <span class="nav-text">Process</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SendUpdateEventToSelectedObject"><span class="nav-number">5.3.</span> <span class="nav-text">SendUpdateEventToSelectedObject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ProcessTouchEvents"><span class="nav-number">5.4.</span> <span class="nav-text">ProcessTouchEvents</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ProcessMouseEvent"><span class="nav-number">5.5.</span> <span class="nav-text">ProcessMouseEvent</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">6.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '99e9a3e6ae4e40a5f80c59c74efcbd0b',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

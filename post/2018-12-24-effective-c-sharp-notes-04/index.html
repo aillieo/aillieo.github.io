@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="阅读《Effective C#》一书的总结，第四部分，使用框架。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Effective C#》笔记 使用框架">
+<meta property="og:url" content="http://aillieo.cn/post/2018-12-24-effective-c-sharp-notes-04/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="阅读《Effective C#》一书的总结，第四部分，使用框架。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-24T02:30:31.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.079Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="事件">
+<meta property="article:tag" content="覆写">
+<meta property="article:tag" content="IComparable">
+<meta property="article:tag" content="IComparer">
+<meta property="article:tag" content="ICloneable">
+<meta property="article:tag" content="PLINQ">
+<meta property="article:tag" content="并行算法">
+<meta property="article:tag" content="并行">
+<meta property="article:tag" content="异常">
+<meta property="article:tag" content="I&#x2F;O密集">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-12-24-effective-c-sharp-notes-04/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>《Effective C#》笔记 使用框架 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-12-24-effective-c-sharp-notes-04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《Effective C#》笔记 使用框架
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-24 10:30:31" itemprop="dateCreated datePublished" datetime="2018-12-24T10:30:31+08:00">2018-12-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/" itemprop="url" rel="index"><span itemprop="name">C&#35;</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/Effective-C-35/" itemprop="url" rel="index"><span itemprop="name">Effective C&#35;</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>阅读《Effective C#》一书的总结，第四部分，使用框架。</p>
+<a id="more"></a>
+
+<h2 id="Working-with-the-Framework"><a href="#Working-with-the-Framework" class="headerlink" title="Working with the Framework"></a>Working with the Framework</h2><h3 id="30-使用覆写而不是事件处理函数"><a href="#30-使用覆写而不是事件处理函数" class="headerlink" title="30 使用覆写而不是事件处理函数"></a>30 使用覆写而不是事件处理函数</h3><p>.NET类处理系统中触发的事件，有两种方法：使用事件处理函数或覆写基类中的虚方法。在派生类中，只应该覆写虚方法，而事件处理函数则应该仅用在不相关对象的交互中；</p>
+<p>如果事件处理函数中抛出了异常，那么事件处理函数链上的后续函数则无法得到调用（委托的多播，可参考条目24）；</p>
+<p>从效率角度考虑，覆写比事件处理函数更快。事件构建于多播委托之上，任何的事件源都可以支持多个侦听者。事件处理机制与处理器相比将执行更多的工作，如坚持事件、判断是否有处理函数挂接于其上。如有责必须便利整个调用列表，执行其中的每个方法。运行时判断是否存在事件处理函数并遍历调用每一个要比调用一个虚函数花费更多的时间；</p>
+<p>覆写虚方法代码更容易维护，事件处理函数需要同时维护事件处理函数本身以及挂接该事件的代码；</p>
+<p>使用事件处理函数而非覆写基类方法的原因：</p>
+<ol>
+<li>覆写只能用在派生类中；</li>
+<li>事件是在运行时绑定的，灵活性更好；</li>
+<li>可以为同一个事件提供多个事件处理函数；</li>
+</ol>
+<h3 id="31-使用IComparable和IComparer实现顺序关系"><a href="#31-使用IComparable和IComparer实现顺序关系" class="headerlink" title="31 使用IComparable和IComparer实现顺序关系"></a>31 使用IComparable<T>和IComparer<T>实现顺序关系</h3><p>应使用泛型版本的<code>IComparable&lt;T&gt;</code>。非泛型的<code>IComparable</code>接口只包含一个方法<code>CompareTo()</code>，遵循C类库<code>strcmp</code>函数的传统。.NET中很多旧的API依然使用<code>IComparable</code>接口，它接受的参数类型时System.Object，因此必须在比较时检查参数的类型，传入的参数必须装箱拆箱。</p>
+<p>使用非泛型版本<code>IComparable</code>的理由：</p>
+<ol>
+<li>兼容旧的API；</li>
+<li>便于实现反射的逻辑（反射中使用泛型难度大大增加）；</li>
+</ol>
+<p>实现<code>IComparable</code>时，请使用显示接口实现，并提供一个强类型版本的重载。强类型的重载不仅提高性能，还能够降低使用者误用<code>.CompareTo()</code>方法的可能（这里的性能提升并不能在.NET的<code>Sort</code>方法中体现出来，因为<code>Sort</code>方法通过接口指针访问<code>CompareTo()</code>方法）；</p>
+<p>下边是一个同时实现了<code>IComparable&lt;T&gt;</code>和<code>IComparable</code>，并且重载了标准关系操作符的类的示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">public struct Customer : IComparable&lt;Customer&gt;, IComparable</span><br><span class="line">&#123;</span><br><span class="line">    private readonly string name;</span><br><span class="line">    public Customer(string name)</span><br><span class="line">    &#123;</span><br><span class="line">        this.name &#x3D; name;</span><br><span class="line">    &#125;</span><br><span class="line">        </span><br><span class="line">    #region IComparable&lt;Customer&gt; Members</span><br><span class="line">    public int CompareTo(Customer other)</span><br><span class="line">    &#123;</span><br><span class="line">        return name.CompareTo(other.name);</span><br><span class="line">    &#125;</span><br><span class="line">    #endregion</span><br><span class="line">    </span><br><span class="line">    #region IComparable Members</span><br><span class="line">    int IComparable.CompareTo(object obj)</span><br><span class="line">    &#123;</span><br><span class="line">        if (!(obj is Customer))</span><br><span class="line">            throw new ArgumentException(</span><br><span class="line">                &quot;Argument is not a Customer&quot;, &quot;obj&quot;);</span><br><span class="line">        Customer otherCustomer &#x3D; (Customer)obj;</span><br><span class="line">        return this.CompareTo(otherCustomer);</span><br><span class="line">    &#125;</span><br><span class="line">    #endregion</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; Relational Operators.</span><br><span class="line">    public static bool operator &lt;(Customer left, Customer right)</span><br><span class="line">    &#123;</span><br><span class="line">        return left.CompareTo(right) &lt; 0;</span><br><span class="line">    &#125;</span><br><span class="line">    public static bool operator &lt;&#x3D;(Customer left, Customer right)</span><br><span class="line">    &#123;</span><br><span class="line">        return left.CompareTo(right) &lt;&#x3D; 0;</span><br><span class="line">    &#125;</span><br><span class="line">    public static bool operator &gt;(Customer left, Customer right)</span><br><span class="line">    &#123;</span><br><span class="line">        return left.CompareTo(right) &gt; 0;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static bool operator &gt;&#x3D;(Customer left, Customer right)</span><br><span class="line">    &#123;</span><br><span class="line">        return left.CompareTo(right) &gt;&#x3D; 0;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>自定义的排序，可以通过<code>Comparison&lt;T&gt;</code>委托来实现，通常做法是在类型中创建一个静态属性，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public static Comparison&lt;Customer&gt; CompareByReview</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        return (left,right) &#x3D;&gt;</span><br><span class="line">            left.revenue.CompareTo(right.revenue);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>更早的类库中会通过<code>IComparer</code>来获取此类型的比较功能，下边是示例代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public struct Customer : IComparable&lt;Customer&gt;, IComparable</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; ... 略去重复代码</span><br><span class="line"></span><br><span class="line">    private static RevenueComparer revComp &#x3D; null;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; return an object that implements IComparer</span><br><span class="line">    &#x2F;&#x2F; use lazy evaluation to create just one.</span><br><span class="line">    public static IComparer&lt;Customer&gt; RevenueCompare</span><br><span class="line">    &#123;</span><br><span class="line">        get</span><br><span class="line">        &#123;</span><br><span class="line">            if (revComp &#x3D;&#x3D; null)</span><br><span class="line">                revComp &#x3D; new RevenueComparer();</span><br><span class="line">            return revComp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Class to compare customers by revenue.</span><br><span class="line">    &#x2F;&#x2F; This is always used via the interface pointer,</span><br><span class="line">    &#x2F;&#x2F; so only provide the interface override.</span><br><span class="line">    private class RevenueComparer : IComparer&lt;Customer&gt;</span><br><span class="line">    #region IComparer&lt;Customer&gt; Members</span><br><span class="line">    int IComparer&lt;Customer&gt;.Compare(Customer left,</span><br><span class="line">    &#123;</span><br><span class="line">        return left.revenue.CompareTo(right.revenue);</span><br><span class="line">    &#125;</span><br><span class="line">    #endregion</span><br></pre></td></tr></table></figure>
+
+<h3 id="32-避免使用ICloneable接口"><a href="#32-避免使用ICloneable接口" class="headerlink" title="32 避免使用ICloneable接口"></a>32 避免使用ICloneable接口</h3><p>一旦某个类型实现了<code>ICloneable</code>接口，那么其派生类也必须同样实现<code>ICloneable</code>，该类型的所有成员也必须支持<code>ICloneable</code>，或者提供其它方式来创建一个副本；</p>
+<p>所有仅包含内建类型（int等）的值类型（struct）都不需要支持<code>ICloneable</code>，赋值语句就能完整地复制结构中所有的值，且比<code>clone()</code>更加高效；</p>
+<p>一种基类与衍生类的复制的实现可以参考以下的方式，基类不实现<code>ICloneable</code>，而是提供一个受保护的复制构造函数，让衍生类可以复制属于基类中的那一部分，叶子类则应该都是密封的，根据需要实现<code>ICloneable</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">class BaseType</span><br><span class="line">&#123;</span><br><span class="line">    private string label;</span><br><span class="line">    private int[] values;</span><br><span class="line">    protected BaseType()</span><br><span class="line">    &#123;</span><br><span class="line">        label &#x3D; &quot;class name&quot;;</span><br><span class="line">        values &#x3D; new int[10];</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F; Used by derived values to clone</span><br><span class="line">    protected BaseType(BaseType right)</span><br><span class="line">    &#123;</span><br><span class="line">        label &#x3D; right.label;</span><br><span class="line">        values &#x3D; right.values.Clone() as int[];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">sealed class Derived : BaseType, ICloneable</span><br><span class="line">&#123;</span><br><span class="line">    private double[] dValues &#x3D; new double[10];</span><br><span class="line">    public Derived()</span><br><span class="line">    &#123;</span><br><span class="line">        dValues &#x3D; new double[10];</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;&#x2F; Construct a copy</span><br><span class="line">    &#x2F;&#x2F; using the base class copy ctor</span><br><span class="line">    private Derived(Derived right) : base(right)</span><br><span class="line">    &#123;</span><br><span class="line">        dValues &#x3D; right.dValues.Clone() as double[];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public object Clone()</span><br><span class="line">    &#123;</span><br><span class="line">        Derived rVal &#x3D; new Derived(this);</span><br><span class="line">        return rVal;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="33-仅用new修饰符处理基类更新"><a href="#33-仅用new修饰符处理基类更新" class="headerlink" title="33 仅用new修饰符处理基类更新"></a>33 仅用new修饰符处理基类更新</h3><p><code>new</code>修饰符的滥用会造成对象调用方法的二义性；</p>
+<p><code>new</code>修饰符只是用来解决升级基类所造成的基类方法和衍生类方法冲突的问题；</p>
+<h3 id="34-避免重载基类中定义的方法"><a href="#34-避免重载基类中定义的方法" class="headerlink" title="34 避免重载基类中定义的方法"></a>34 避免重载基类中定义的方法</h3><p>与条目33类似，重载基类中的方法会使使用者产生疑惑，在使用时可能需要额外的强制类型转换才能得到希望的结果；</p>
+<h3 id="35-PLINQ如何实现并行算法"><a href="#35-PLINQ如何实现并行算法" class="headerlink" title="35 PLINQ如何实现并行算法"></a>35 PLINQ如何实现并行算法</h3><p>首先是一组示例，获取源数据中小于150的数字的阶乘：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 使用方法调用语法来查询：</span><br><span class="line">var nums &#x3D; data.Where(m &#x3D;&gt; m &lt; 150).</span><br><span class="line">    Select(n &#x3D;&gt; Factorial(n));</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 增加&#96;AsParallel()&#96;使其成为并行查询：</span><br><span class="line">var numsParallel &#x3D; data.AsParallel().</span><br><span class="line">    Where(m &#x3D;&gt; m &lt; 150).Select(n &#x3D;&gt; Factorial(n));</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 使用查询语法来查询：</span><br><span class="line">var nums &#x3D; from n in data</span><br><span class="line">           where n &lt; 150</span><br><span class="line">           select Factorial(n);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 并行版的查询语法：</span><br><span class="line">var numsParallel &#x3D; from n in data.AsParallel()</span><br><span class="line">                   where n &lt; 150</span><br><span class="line">                   select Factorial(n);</span><br></pre></td></tr></table></figure>
+
+<p><code>AsParallel()</code>的后续操作会以多线程形式在多个核中执行，其返回的是一个<code>IParallelEnumerable</code>而不是<code>IEnumerable</code>；</p>
+<p>并行查询始于一个分区（partitioning）操作。PLINQ的分区操作有4种策略：</p>
+<ul>
+<li>范围分区（range partitioning）： 把输入元素按照任务的数目平分，然后平分给每个任务。只有在输入序列支持索引，并报告其中具体元素个数时，才能使用范围分区（如List<T>、数组等实现了IList<T>接口的数据源上）；</li>
+<li>区块分区（chunk partitioning）：在每个任务请求更多工作时，这个算法将给该任务一个“区块”的输入元素。拆分区块的内部算法会随着时间推移而变化，可以理解为一开始区块的尺寸比较小，接下来随着工作进行，区块的大小可能增加，这样可以降低线程引入的额外开销，增加吞吐量。区块大小还可能随着查询处理的时间和where子句中过滤掉的元素数量而变化。其总体目标时尽可能让所有的任务同时完成，进而提高整体的吞吐量；</li>
+<li>条带分区（striped partitioning）：属于一种特殊的范围分区，对处理序列开头部分的一些元素进行了优化。每个工作线程将跳过N个元素，然后处理接下来的M个元素，处理完M个元素之后，这个工作线程会再次跳过接下来的N个元素。条带分区能够避免对整个查询执行TakeWhile()和SkipWhile()时所需要的线程同步。此外该算法用来寻找下一块待处理元素的计算也非常简单；</li>
+<li>散列分区（Hash partitioning）：专门用来处理Join、GroupJoin、GroupBy、Distinct、Except、Union和Intersect操作。这些操作代价高昂，用一个专门的分区算法能提高其并行程度。散列分区能保证所有生成同样散列码的元素都由同一个任务处理。这就降低了任务之间交互通信带来的性能损失；</li>
+</ul>
+<p>除了分区算法之外，PLINQ还使用了3种不同的算法来让任务并行执行：</p>
+<ul>
+<li>管道（Pipelining）：默认使用的算法，该算法中使用一个线程用来处理枚举（foreach循环或查询序列），其它多个线程用来处理对序列中的各个元素的查询。在请求序列中的一个新元素时，该元素将由一个不同的线程处理；</li>
+<li>停止并进行（Stop&amp;Go）：进行枚举的线程将联结所有运行查询表达式的线程。在请求某个查询完整的执行结果（如调用ToList()、ToArray()或需要完整的结果来进行下一步操作如排序）时，将用到该方法。停止并进行会略微提升一些性能，但却以占用更多的内存为代价；</li>
+<li>反向枚举（Inverted Enumeration）：反向枚举并不会生成结果，而是在每个查询表达式的结果上执行一些操作；</li>
+</ul>
+<p>PLINQ会尝试为你编写的查询创建出最好的实现，用最少的工作和最短的时间来生成你需要的结果。需要对底层的不同实现有一定的理解，才能尽量确保发挥底层技术的最大功效；</p>
+<p>对于并行算法，使用多处理器带来的程序性能提升受限于程序的顺序执行部分（Amdahl定律），可以使用<code>AsOrdered()</code>或<code>AsUnordered()</code>来告知PLINQ结果序列中的顺序是否重要；</p>
+<p>有时算法依赖于一些副作用（side effects）而无法并行执行，此时可以使用<code>ParallelEnumerable.AsSequential()</code>扩展方法来强制顺序执行；</p>
+<p>ParallelEnumerable还包含了一些方法，用于控制PLINQ如何执行并行查询：</p>
+<ul>
+<li><code>WithExecutionMode()</code>可以用来强制并行执行。默认情况下PLINQ仅会在可以预料到并行会提高性能的查询中应用并行算法；</li>
+<li><code>WithDegreeOfParallelism()</code>可以用来指定并行算法中将用到的线程数目；</li>
+<li><code>WithMergeOptions()</code>可以用来控制PLINQ如何在查询中缓存结果；</li>
+</ul>
+<h3 id="36-理解PLINQ在I-O密集场景中的应用"><a href="#36-理解PLINQ在I-O密集场景中的应用" class="headerlink" title="36 理解PLINQ在I/O密集场景中的应用"></a>36 理解PLINQ在I/O密集场景中的应用</h3><p>并行任务库不仅可以优化CPU密集操作，也可以在I/O密集场景中发挥作用。可以使用方法调用或LINQ查询语法来使用并行执行模型，通常I/O密集的并行执行行为会比CPU核数更多的线程，因为I/O密集的线程将花费更多的时间来等待外部的事件；</p>
+<p>一个简单的示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">foreach (var url in urls)</span><br><span class="line">&#123;</span><br><span class="line">    var result &#x3D; new WebClient().DownloadData(url);</span><br><span class="line">    UseResult(result);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>DownloadData</code>将发出一个同步的web请求并等待接收到所有的数据。可以使用并行的for循环将其改为并行执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Parallel.ForEach(urls, url &#x3D;&gt;</span><br><span class="line">&#123;</span><br><span class="line">    var result &#x3D; new WebClient().DownloadData(url);</span><br><span class="line">    UseResult(result);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>也可以使用PLINQ和查询语法实现同样的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var results &#x3D; from url in urls.AsParallel()</span><br><span class="line">                select new WebClient().DownloadData(url);</span><br><span class="line">results.ForAll(result &#x3D;&gt; UseResult(result));</span><br></pre></td></tr></table></figure>
+
+<p>PLINQ执行方式将使用固定数目的线程，而<code>Parallel.ForEach</code>将调整线程的数量来增加吞吐量；</p>
+<p>上述代码虽然使用了多个线程来并行执行任务，但程序的其它部分仍需等待所有的web请求结束才能继续其它的工作。并行任务库还支持这样的机制：执行一系列的I/O密集操作，同时对其结果进行处理，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">urls.RunAsync(</span><br><span class="line">    url &#x3D;&gt; startDownload(url),</span><br><span class="line">    task &#x3D;&gt; finishDownload(task.AsyncState.ToString(),</span><br><span class="line">    task.Result));</span><br></pre></td></tr></table></figure>
+
+<p>其中涉及到的函数的定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">public static void RunAsync&lt;T, TResult&gt;(</span><br><span class="line">    this IEnumerable&lt;T&gt; taskParms,</span><br><span class="line">    Func&lt;T, Task&lt;TResult&gt;&gt; taskStarter,</span><br><span class="line">    Action&lt;Task&lt;TResult&gt;&gt; taskFinisher)</span><br><span class="line">&#123;</span><br><span class="line">    taskParms.Select(parm &#x3D;&gt; taskStarter(parm)).</span><br><span class="line">        AsParallel().</span><br><span class="line">        ForAll(t &#x3D;&gt; t.ContinueWith(t2 &#x3D;&gt; taskFinisher(t2)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static void finishDownload(string url, byte[] bytes)</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(&quot;Read &#123;0&#125; bytes from &#123;1&#125;&quot;,</span><br><span class="line">        bytes.Length, url);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static Task&lt;byte[]&gt; startDownload(string url)</span><br><span class="line">&#123;</span><br><span class="line">    var tcs &#x3D; new TaskCompletionSource&lt;byte[]&gt;(url);</span><br><span class="line">    var wc &#x3D; new WebClient();</span><br><span class="line">    wc.DownloadDataCompleted +&#x3D; (sender, e) &#x3D;&gt;</span><br><span class="line">    &#123;</span><br><span class="line">        if (e.UserState &#x3D;&#x3D; tcs)</span><br><span class="line">        &#123;</span><br><span class="line">            if (e.Cancelled)</span><br><span class="line">                tcs.TrySetCanceled();</span><br><span class="line">            else if (e.Error !&#x3D; null)</span><br><span class="line">                tcs.TrySetException(e.Error);</span><br><span class="line">            else</span><br><span class="line">                tcs.TrySetResult(e.Result);</span><br><span class="line">        &#125; </span><br><span class="line">    &#125;;</span><br><span class="line">    wc.DownloadDataAsync(new Uri(url), tcs);</span><br><span class="line">    return tcs.Task;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用并行任务库和PLINQ，和可支持多种异步模式的Task类，配合I/O密集操作或者混合了I/O和CPU密集的操作来执行。</p>
+<h3 id="37-注意并行算法中的异常"><a href="#37-注意并行算法中的异常" class="headerlink" title="37 注意并行算法中的异常"></a>37 注意并行算法中的异常</h3><p>注意事项：</p>
+<ul>
+<li>后台线程中发生的异常会在不同方面增加复杂性；</li>
+<li>异常不能穿过线程边界保留调用栈，在异常传递到开始线程的方法时，线程就会终止；</li>
+<li>调用线程无法捕获这个错误，也不能进行什么处理；</li>
+<li>如果并行算法需要支持在错误时回滚，那么就需要更多的精力来了解已经做出了哪些修改以及如何从错误中恢复；</li>
+</ul>
+<p>并行操作使用一个新的<code>AggregateException</code>类型来处理并行操作中的异常。它将作为一个容器，在其<code>InnerExceptions</code>属性中包含了并行操作中生成的所有异常。通常有两种做法来处理这些异常：</p>
+<ol>
+<li>在外层处理子任务抛出的异常；</li>
+<li>在后台线程中处理异常以保证没有异常会离开此线程；</li>
+</ol>
+<p>第一种做法，需要注意<code>InnerExceptions</code>中也可能会包含<code>AggregateException</code>对象，对于可能出现的异常必须区分对待，可以处理和恢复的直接处理，其它的再向外层抛出。上一条目中的<code>RunAsync()</code>方法若考虑异常则可以写为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">try</span><br><span class="line">&#123;</span><br><span class="line">    urls.RunAsync(</span><br><span class="line">        url &#x3D;&gt; startDownload(url),</span><br><span class="line">        task &#x3D;&gt; finishDownload(task.AsyncState.ToString(),</span><br><span class="line">        task.Result));</span><br><span class="line">&#125;</span><br><span class="line">catch (AggregateException problems)</span><br><span class="line">&#123;</span><br><span class="line">    var handlers &#x3D; new Dictionary&lt;Type, Action&lt;Exception&gt;&gt;();</span><br><span class="line">    handlers.Add(typeof(WebException),</span><br><span class="line">        ex &#x3D;&gt; Console.WriteLine(ex.Message));</span><br><span class="line">    if (!HandleAggregateError(problems, handlers))</span><br><span class="line">        throw;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static bool HandleAggregateError(</span><br><span class="line">    AggregateException aggregate,</span><br><span class="line">    Dictionary&lt;Type, Action&lt;Exception&gt;&gt; exceptionHandlers)</span><br><span class="line">&#123;</span><br><span class="line">    foreach (var exception in aggregate.InnerExceptions)</span><br><span class="line">        if (exception is AggregateException)</span><br><span class="line">            return HandleAggregateError(</span><br><span class="line">                exception as AggregateException,</span><br><span class="line">                exceptionHandlers);</span><br><span class="line">            else if (exceptionHandlers.ContainsKey(</span><br><span class="line">                exception.GetType()))</span><br><span class="line">            &#123;</span><br><span class="line">                exceptionHandlers[exception.GetType()]</span><br><span class="line">                    (exception);</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">                return false;</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二种做法，为保证没有异常离开线程，必须修改执行后台任务的代码，即是说使用<code>TaskCompletionSource&lt;&gt;</code>时永远不要调用<code>TrySetException()</code>方法，而是必须保证每个任务都会调用到<code>TrySetResult()</code>，表示任务完成：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private static Task&lt;byte[]&gt; startDownload(string url)</span><br><span class="line">&#123;</span><br><span class="line">    var tcs &#x3D; new TaskCompletionSource&lt;byte[]&gt;(url);</span><br><span class="line">    var wc &#x3D; new WebClient();</span><br><span class="line">    wc.DownloadDataCompleted +&#x3D; (sender, e) &#x3D;&gt;</span><br><span class="line">    &#123;</span><br><span class="line">        if (e.UserState &#x3D;&#x3D; tcs)</span><br><span class="line">        &#123;</span><br><span class="line">            if (e.Cancelled)</span><br><span class="line">                tcs.TrySetCanceled();</span><br><span class="line">            else if (e.Error !&#x3D; null)</span><br><span class="line">            &#123;</span><br><span class="line">                if (e.Error is WebException)                    tcs.TrySetResult(new byte[0]);                else                    tcs.TrySetResult(e.Result);</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">                tcs.TrySetException(e.Error);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">    wc.DownloadDataAsync(new Uri(url), tcs);</span><br><span class="line">    return tcs.Task;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意，这里的异常仍是分为两类。当出现异常是<code>WebException</code>时，则认为是读取到0字节的数据（在后台线程中可以处理），而其它的异常则还是需要抛出<code>AggregateException</code>（致命错误，必须外部处理）。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/5360961/" target="_blank" rel="noopener">《C#高效编程 改进C#代码的50个行之有效的办法》</a></p>
+<p><a href="https://docs.microsoft.com/zh-cn/dotnet/standard/parallel-programming/parallel-linq-plinq" target="_blank" rel="noopener">https://docs.microsoft.com/zh-cn/dotnet/standard/parallel-programming/parallel-linq-plinq</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-35/" rel="tag"># C&#35;</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-12-21-reflection-on-career-01/" rel="prev" title="一些记录和思考">
+      <i class="fa fa-chevron-left"></i> 一些记录和思考
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2019-03-01-game-instruction-notes-02/" rel="next" title="游戏新手引导系统总结">
+      游戏新手引导系统总结 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Working-with-the-Framework"><span class="nav-number">1.</span> <span class="nav-text">Working with the Framework</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#30-使用覆写而不是事件处理函数"><span class="nav-number">1.1.</span> <span class="nav-text">30 使用覆写而不是事件处理函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#31-使用IComparable和IComparer实现顺序关系"><span class="nav-number">1.2.</span> <span class="nav-text">31 使用IComparable和IComparer实现顺序关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#32-避免使用ICloneable接口"><span class="nav-number">1.3.</span> <span class="nav-text">32 避免使用ICloneable接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#33-仅用new修饰符处理基类更新"><span class="nav-number">1.4.</span> <span class="nav-text">33 仅用new修饰符处理基类更新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#34-避免重载基类中定义的方法"><span class="nav-number">1.5.</span> <span class="nav-text">34 避免重载基类中定义的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#35-PLINQ如何实现并行算法"><span class="nav-number">1.6.</span> <span class="nav-text">35 PLINQ如何实现并行算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#36-理解PLINQ在I-O密集场景中的应用"><span class="nav-number">1.7.</span> <span class="nav-text">36 理解PLINQ在I&#x2F;O密集场景中的应用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#37-注意并行算法中的异常"><span class="nav-number">1.8.</span> <span class="nav-text">37 注意并行算法中的异常</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">2.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'cd958154b7cbc03b4a50cc30af519948',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在cocos2d-x 渲染系统 （一）中讲到引擎主循环中遍历UI节点树，生成渲染命令RenderCommand，并放入渲染队列中，在遍历结束后按照顺序执行渲染命令。本文以TrianglesCommand为例，解析渲染命令的执行过程，文章依旧基于cocos2d-x v3.13。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cocos2d-x 渲染系统 （二）">
+<meta property="og:url" content="http://aillieo.cn/post/2017-02-04-cocos2d-x-rendering-system-02/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="在cocos2d-x 渲染系统 （一）中讲到引擎主循环中遍历UI节点树，生成渲染命令RenderCommand，并放入渲染队列中，在遍历结束后按照顺序执行渲染命令。本文以TrianglesCommand为例，解析渲染命令的执行过程，文章依旧基于cocos2d-x v3.13。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-02-04T09:56:18.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.042Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="OpenGL ES">
+<meta property="article:tag" content="cocos2d-x">
+<meta property="article:tag" content="render">
+<meta property="article:tag" content="VAO">
+<meta property="article:tag" content="VBO">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-02-04-cocos2d-x-rendering-system-02/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>cocos2d-x 渲染系统 （二） | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-02-04-cocos2d-x-rendering-system-02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          cocos2d-x 渲染系统 （二）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-02-04 17:56:18" itemprop="dateCreated datePublished" datetime="2017-02-04T17:56:18+08:00">2017-02-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/cocos2d-x/" itemprop="url" rel="index"><span itemprop="name">cocos2d-x</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在<a href="../2016-11-05-cocos2d-x-rendering-system-01">cocos2d-x 渲染系统 （一）</a>中讲到引擎主循环中遍历UI节点树，生成渲染命令RenderCommand，并放入渲染队列中，在遍历结束后按照顺序执行渲染命令。本文以TrianglesCommand为例，解析渲染命令的执行过程，文章依旧基于cocos2d-x v3.13。</p>
+<a id="more"></a>
+
+<p>在研究TrianglesCommand之前，需要了解一些OpenGL以及cocos2d-x中的概念，首先来看应用程序如何把需要渲染的顶点数据发送给OpenGL服务端。</p>
+<h2 id="VBO和VAO"><a href="#VBO和VAO" class="headerlink" title="VBO和VAO"></a>VBO和VAO</h2><p>VBO和VAO是OpenGL中非常重要的概念。</p>
+<p>VBO即顶点缓存对象（Vertex Buffer Object， VBO），是显存中的一块高速内存缓冲区，用来存储顶点的所有信息。每个VBO对象有一个ID，并且OpenGL在GPU中保存有VBO的ID和其对应的显存地址或地址偏移。在初始化时，VBO自身并不区分其存储的是何种信息（位置坐标、颜色或纹理坐标等），而是在渲染时确定。</p>
+<p>VAO即顶点数组对象（Vertex Array Object， VAO），用于存储顶点绘制信息的对象。对应一个或数个VBO，记录关联了哪些VBO、及每个VBO中有哪些数据、这些数据的格式是怎样的。</p>
+<p>以下是OpenGL中涉及到的一些函数：</p>
+<h3 id="涉及到的OpenGL函数"><a href="#涉及到的OpenGL函数" class="headerlink" title="涉及到的OpenGL函数"></a>涉及到的OpenGL函数</h3><p>更多更详细的内容可以参考<a href="https://www.khronos.org/opengles/sdk/docs/man/xhtml/" target="_blank" rel="noopener">官网API</a>，此处列出一些主要的：</p>
+<h4 id="glGenBuffers"><a href="#glGenBuffers" class="headerlink" title="glGenBuffers"></a>glGenBuffers</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glGenBuffers</span><span class="params">(	GLsizei n, GLuint * buffers)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>用于VBO的ID，<code>n</code>表示创建的VBO的ID的个数，<code>buffers</code>表示用于存放VBO的ID的数组。生成的VBO的ID会存放在<code>buffers</code>中，生成的ID未必是连续的整数，但都是未被使用的整数。只有在调用<code>glBindBuffer</code>之后，才会有VBO与生成的ID相关联。</p>
+<h4 id="glBindBuffer"><a href="#glBindBuffer" class="headerlink" title="glBindBuffer"></a>glBindBuffer</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glBindBuffer</span><span class="params">( GLenum target, GLuint <span class="built_in">buffer</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+<p><code>target</code>表示要绑定的VBO的类型，可以是<code>GL_ARRAY_BUFFER</code> 或<code>GL_ELEMENT_ARRAY_BUFFER</code>。<code>buffer</code>是要绑定的VBO的ID。</p>
+<p><code>glBindBuffer</code>将创建或使用一个已命名的VBO，将VBO绑定到一个target类型，则对应该target的旧的绑定将会解除。VBO的ID是无符号的整数，其中<code>0</code>是保留数，且对应不同类型的target，不存在默认的VBO。将target绑定为<code>0</code>将会解除与对应target绑定的VBO，并释放对应于该target的存储空间。VBO首次绑定后，VBO的状态是大小为0的使用方式为<code>GL_STATIC_DRAW</code> 的存储缓冲区。</p>
+<p>当非0的VBO绑定到target<code>GL_ARRAY_BUFFER</code>时，VBO将存储顶点数组，其内容可以为顶点位置坐标、颜色、纹理坐标等。当非0的VBO绑定到target<code>GL_ELEMENT_ARRAY_BUFFER</code>时，VBO将存储顶点的索引。</p>
+<h4 id="glBufferData"><a href="#glBufferData" class="headerlink" title="glBufferData"></a>glBufferData</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glBufferData</span><span class="params">( GLenum target, GLsizeiptr <span class="built_in">size</span>, <span class="keyword">const</span> GLvoid * data, GLenum usage)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>创建并初始化VBO的数据。<code>target</code>指定对应target的VBO。<code>size</code>指定VBO的新数据的存储空间的大小。<code>data</code>指向的数据是将要复制到缓冲区用于初始化的数据，如果没有要存储的数据则用<code>NULL</code>。<code>usage</code>指定数据将要以何种方式来使用，是一个枚举量，可以选的值有：<code>GL_STREAM_DRAW</code>、<code>GL_STATIC_DRAW</code>或<code>GL_DYNAMIC_DRAW</code>，各值的含义如下：</p>
+<ul>
+<li>GL_DYNAMIC_DRAW：多次指定，多次作为绘图和图像指定函数的源数据，缓冲区对象的数据不仅常常需要进行更新，而且使用频率也非常高</li>
+<li>GL_STATIC_DRAW：数据只指定一次，多次作为绘图和图像指定函数的源数据，缓冲区对象的数据只指定1次，但是这些数据被使用的频率很高</li>
+<li>GL_STREAM_DRAW：数据只指定一次，最多只有几次作为绘图和图像指定函数的源数据，缓冲区对象中的数据常常需要更新，但是在绘图或其他操作中使用这些数据的次数较少</li>
+</ul>
+<h4 id="glGenVertexArrays"><a href="#glGenVertexArrays" class="headerlink" title="glGenVertexArrays"></a>glGenVertexArrays</h4><p>这是OpenGL ES的扩展函数，在ios平台将使用以下函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">GLvoid <span class="title">glGenVertexArraysOES</span><span class="params">(GLsizei n, GLuint *arrays)</span></span></span><br></pre></td></tr></table></figure>
+
+<p><code>n</code>指定创建的VAO的个数，<code>arrays</code>指向用于存放VAO的ID的数组。存放于<code>arrays</code>的数组会被标记为已使用，此标记仅供<code>glGenVertexArrays</code>使用，只有在完成与VAO的绑定之后才可以查询其状态或类型。</p>
+<h4 id="GL-bindVAO"><a href="#GL-bindVAO" class="headerlink" title="GL::bindVAO"></a>GL::bindVAO</h4><p>是cocos2d-x中实现的函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">bindVAO</span><span class="params">(GLuint vaoId)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Configuration::getInstance()-&gt;supportsShareableVAO())</span><br><span class="line">    &#123;</span><br><span class="line">    </span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> CC_ENABLE_GL_STATE_CACHE</span></span><br><span class="line">        <span class="keyword">if</span> (s_VAO != vaoId)</span><br><span class="line">        &#123;</span><br><span class="line">            s_VAO = vaoId;</span><br><span class="line">            glBindVertexArray(vaoId);</span><br><span class="line">        &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">        glBindVertexArray(vaoId);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span> <span class="comment">// CC_ENABLE_GL_STATE_CACHE</span></span></span><br><span class="line">    </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对是否支持VAO进行判断，实际上调用的是<code>glBindVertexArray</code>。</p>
+<h4 id="glBindVertexArray"><a href="#glBindVertexArray" class="headerlink" title="glBindVertexArray"></a>glBindVertexArray</h4><p>这是OpenGL ES的扩展函数，在ios平台将使用以下函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">GLvoid <span class="title">glBindVertexArrayOES</span><span class="params">(GLuint <span class="built_in">array</span>)</span></span></span><br></pre></td></tr></table></figure>
+<p><code>array</code>是将要绑定的VAO的ID。如果是<code>0</code>则表示对当前的VAO解除绑定。如果对应于<code>array</code>没有已存在的VAO则会在第一次绑定时创建一个。</p>
+<h4 id="glVertexAttribPointer"><a href="#glVertexAttribPointer" class="headerlink" title="glVertexAttribPointer"></a>glVertexAttribPointer</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glVertexAttribPointer</span><span class="params">(	GLuint index, GLint <span class="built_in">size</span>, GLenum type, GLboolean normalized, GLsizei stride, <span class="keyword">const</span> GLvoid * pointer)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>用于指定渲染时索引值为 <code>index</code>的顶点attribute数组的数据格式和位置。</p>
+<p><code>index</code>是要修改的顶点attribute的索引，<code>size</code>指定每个顶点attribute中分量的个数，可以为1、2、3或4，初始值为4。<code>type</code>指定了数组中数据类型，可以取的值有<code>GL_BYTE</code>、 <code>GL_UNSIGNED_BYTE</code>、 <code>GL_SHORT</code> 、<code>GL_UNSIGNED_SHORT</code>、 <code>GL_FIXED</code> 或<code>GL_FLOAT</code>，初始值是<code>GL_FLOAT</code>。<code>normalized</code>是一个布尔值，若为真（<code>GL_TRUE</code>）则在获取数据时会将定点数据（fixed-point data）的值正交化（映射到[-1,1]或[0,1]），否则（<code>GL_FALSE</code>）仅直接转化为定点数据。<code>stride</code>指定连续顶点attribute之间的偏移量。如果为0，那么认为顶点attribute是紧密排列在一起的，初始值为0。<code>pointer</code>是指向数组中首个顶点attribute的第一个分量的指针，初始值为0。</p>
+<p>如果一个名称非0的VBO被绑定至target<code>GL_ARRAY_BUFFER</code>且此时指定了一个顶点attribute数组，那么<code>pointer</code>被当做该VBO数据存储区的字节偏移量。并且，缓冲对象绑定（<code>GL_ARRAY_BUFFER_BINDING</code>）被存为索引为<code>index</code>的顶点attribute数组客户端状态（<code>GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING</code>）。</p>
+<p>当指定一个顶点attribute数组时，除了当前的顶点数组缓冲对象绑定，<code>size</code>、 <code>type</code>、 <code>normalized</code>、 <code>stride</code> 和 <code>pointer</code> 也会被存为客户端状态。</p>
+<p>要启用或者禁用顶点attribute数组，调用<code>glEnableVertexAttribArray</code>和<code>glDisableVertexAttribArray</code>传入参数<code>index</code>。在启用后，当<code>glDrawArrays</code>或者<code>glDrawElements</code>被调用时，顶点attribute数组会被使用。</p>
+<p><code>glVertexAttribPointer</code>通常是由GL客户端（应用程序）来实现。</p>
+<h4 id="glEnableVertexAttribArray"><a href="#glEnableVertexAttribArray" class="headerlink" title="glEnableVertexAttribArray"></a>glEnableVertexAttribArray</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glEnableVertexAttribArray</span><span class="params">(	GLuint index)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>启用一个通用的顶点attribute数组，<code>index</code>是对应的顶点attribute的索引。默认状态下所有的attribute数组都是未启用的，在启用之后则可使用<code>glDrawArrays</code>或<code>glDrawElements</code>等访问顶点attribute数组中的数值。<br>与之相对应的还有<code>glDisableVertexAttribArray</code>，功能相反，不再赘述。</p>
+<h4 id="glMapBuffer"><a href="#glMapBuffer" class="headerlink" title="glMapBuffer"></a>glMapBuffer</h4><p>将VBO映射到指定的内存。在ios平台将使用以下函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">GLvoid <span class="title">glMapBufferOES</span> <span class="params">(GLenum target, GLenum access)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>target</code> 指定VBO的target类型， <code>access</code>: 指定缓冲区对象中数据映射后的读写策略，可选值为：<code>GL_READ_ONLY</code> 、<code>GL_WRITE_ONLY</code>或 <code>GL_READ_WRITE</code>。如果映射成功，返回指向的缓存的地址，失败则返回<code>NULL</code>。</p>
+<p>与此相对应的还有<code>glUnmapBuffer</code>，用于释放VBO与GL客户端地址空间的关系。</p>
+<h4 id="glDrawElements"><a href="#glDrawElements" class="headerlink" title="glDrawElements"></a>glDrawElements</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">glDrawElements</span><span class="params">( GLenum mode, GLsizei count, GLenum type, <span class="keyword">const</span> GLvoid * indices)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>绘制单元。<code>mode</code>指定要绘制图元的类型，可选值为<code>GL_POINTS</code> 、<code>GL_LINE_STRIP</code>、 <code>GL_LINE_LOOP</code>、<code>GL_LINES</code>、 <code>GL_TRIANGLE_STRIP</code> 、<code>GL_TRIANGLE_FAN</code>和 <code>GL_TRIANGLES</code>。<code>count</code>将要绘制的元素个数。<code>type</code>为索引值的类型，可以是<code>GL_UNSIGNED_BYTE</code> 或<code>GL_UNSIGNED_SHORT</code>。<code>indices</code>是指向索引的指针。</p>
+<p><code>glDrawElements</code>函数能够通过较少的函数调用绘制多个几何图元，调用此函数前需要使用<code>glVertexAttribPointer</code>来预先定义顶点attribute数组。</p>
+<p>在调用<code>glDrawElements</code>时，会从一个启用的数组中从<code>indices</code>开始，按次序使用<code>count</code>个元素，组建一系列的几何图元。组建何种图元或将数组中的元素按何种形式组建则由<code>mode</code>决定。如果启用的有一个以上的数组，则每个都会使用。启用或禁用数组使用<code>glEnableVertexAttribArray</code>和 <code>glDisableVertexAttribArray</code>。</p>
+<h3 id="VBO和VAO的初始化"><a href="#VBO和VAO的初始化" class="headerlink" title="VBO和VAO的初始化"></a>VBO和VAO的初始化</h3><p>参看cocos2d-x源代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::setupBuffer</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(Configuration::getInstance()-&gt;supportsShareableVAO())</span><br><span class="line">    &#123;</span><br><span class="line">        setupVBOAndVAO();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        setupVBO();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::setupVBOAndVAO</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//generate vbo and vao for trianglesCommand</span></span><br><span class="line">    glGenVertexArrays(<span class="number">1</span>, &amp;_buffersVAO);</span><br><span class="line">    GL::bindVAO(_buffersVAO);</span><br><span class="line"></span><br><span class="line">    glGenBuffers(<span class="number">2</span>, &amp;_buffersVBO[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">    glBindBuffer(GL_ARRAY_BUFFER, _buffersVBO[<span class="number">0</span>]);</span><br><span class="line">    glBufferData(GL_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_verts[<span class="number">0</span>]) * VBO_SIZE, _verts, GL_DYNAMIC_DRAW);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// vertices</span></span><br><span class="line">    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_POSITION);</span><br><span class="line">    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="keyword">sizeof</span>(V3F_C4B_T2F), (GLvoid*) offsetof( V3F_C4B_T2F, vertices));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// colors</span></span><br><span class="line">    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_COLOR);</span><br><span class="line">    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_COLOR, <span class="number">4</span>, GL_UNSIGNED_BYTE, GL_TRUE, <span class="keyword">sizeof</span>(V3F_C4B_T2F), (GLvoid*) offsetof( V3F_C4B_T2F, colors));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// tex coords</span></span><br><span class="line">    glEnableVertexAttribArray(GLProgram::VERTEX_ATTRIB_TEX_COORD);</span><br><span class="line">    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORD, <span class="number">2</span>, GL_FLOAT, GL_FALSE, <span class="keyword">sizeof</span>(V3F_C4B_T2F), (GLvoid*) offsetof( V3F_C4B_T2F, texCoords));</span><br><span class="line"></span><br><span class="line">    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffersVBO[<span class="number">1</span>]);</span><br><span class="line">    glBufferData(GL_ELEMENT_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_indices[<span class="number">0</span>]) * INDEX_VBO_SIZE, _indices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Must unbind the VAO before changing the element buffer.</span></span><br><span class="line">    GL::bindVAO(<span class="number">0</span>);</span><br><span class="line">    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line">    glBindBuffer(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    CHECK_GL_ERROR_DEBUG();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::setupVBO</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    glGenBuffers(<span class="number">2</span>, &amp;_buffersVBO[<span class="number">0</span>]);</span><br><span class="line">    mapBuffers();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::mapBuffers</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// Avoid changing the element buffer for whatever VAO might be bound.</span></span><br><span class="line">    GL::bindVAO(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    glBindBuffer(GL_ARRAY_BUFFER, _buffersVBO[<span class="number">0</span>]);</span><br><span class="line">    glBufferData(GL_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_verts[<span class="number">0</span>]) * VBO_SIZE, _verts, GL_DYNAMIC_DRAW);</span><br><span class="line">    </span><br><span class="line">    glBindBuffer(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffersVBO[<span class="number">1</span>]);</span><br><span class="line">    glBufferData(GL_ELEMENT_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_indices[<span class="number">0</span>]) * INDEX_VBO_SIZE, _indices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line">    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    CHECK_GL_ERROR_DEBUG();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在以上代码中，在Renderer初始化Buffer时，根据实现是否支持VAO，采用不同策略。</p>
+<ul>
+<li>如果支持VAO：创建一个VAO和一个VBO，将VBO分别绑定到target<code>GL_ARRAY_BUFFER</code>并用<code>_verts</code>初始化。启用三个attribute数组，分别对应的是顶点的位置坐标、颜色、纹理坐标，指定这些attribute在VBO中的存储位置及偏移。创建一个VBO，绑定<code>GL_ELEMENT_ARRAY_BUFFER</code>并用<code>_indices</code>初始化。最后将VAO和VBO解除绑定；</li>
+<li>如果不支持VAO：创建两个VBO，绑定VBO到两个target（<code>GL_ARRAY_BUFFER</code>和<code>GL_ELEMENT_ARRAY_BUFFER</code>），分别使用<code>_verts</code>和<code>_indices</code>来初始化两个VBO（与使用VAO不同，VBO中保存的数据是什么内容则会在渲染时指定）</li>
+</ul>
+<p>在每帧的渲染过程中，也会根据是否支持VAO采用不同的策略。以TrianglesCommand为例，分析RenderCommand执行过程。</p>
+<h2 id="TrianglesCommand"><a href="#TrianglesCommand" class="headerlink" title="TrianglesCommand"></a>TrianglesCommand</h2><p>cocos2d-x v3.13源码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** </span></span><br><span class="line"><span class="comment"> Command used to render one or more Triangles, which is similar to QuadCommand.</span></span><br><span class="line"><span class="comment"> Every TrianglesCommand will have generate material ID by give textureID, glProgramState, Blend function</span></span><br><span class="line"><span class="comment"> if the material id is the same, these TrianglesCommands could be batched to save draw call.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CC_DLL</span> <span class="title">TrianglesCommand</span> :</span> <span class="keyword">public</span> RenderCommand</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">/**The structure of Triangles. */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">Triangles</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">        <span class="comment">/**Vertex data pointer.*/</span></span><br><span class="line">        V3F_C4B_T2F* verts;</span><br><span class="line">        <span class="comment">/**Index data pointer.*/</span></span><br><span class="line">        <span class="keyword">unsigned</span> short* indices;</span><br><span class="line">        <span class="comment">/**The number of vertices.*/</span></span><br><span class="line">        <span class="keyword">int</span> vertCount;</span><br><span class="line">        <span class="comment">/**The number of indices.*/</span></span><br><span class="line">        <span class="keyword">int</span> indexCount;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="comment">/**Constructor.*/</span></span><br><span class="line">    TrianglesCommand();</span><br><span class="line">    <span class="comment">/**Destructor.*/</span></span><br><span class="line">    ~TrianglesCommand();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/** Initializes the command.</span></span><br><span class="line"><span class="comment">     @param globalOrder GlobalZOrder of the command.</span></span><br><span class="line"><span class="comment">     @param textureID The openGL handle of the used texture.</span></span><br><span class="line"><span class="comment">     @param glProgramState The specified glProgram and its uniform.</span></span><br><span class="line"><span class="comment">     @param blendType Blend function for the command.</span></span><br><span class="line"><span class="comment">     @param triangles Rendered triangles for the command.</span></span><br><span class="line"><span class="comment">     @param mv ModelView matrix for the command.</span></span><br><span class="line"><span class="comment">     @param flags to indicate that the command is using 3D rendering or not.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">(<span class="keyword">float</span> globalOrder, GLuint textureID, GLProgramState* glProgramState, BlendFunc blendType, <span class="keyword">const</span> Triangles&amp; triangles,<span class="keyword">const</span> Mat4&amp; mv, <span class="keyword">uint32_t</span> flags)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">(<span class="keyword">float</span> globalOrder, Texture2D* textureID, GLProgramState* glProgramState, BlendFunc blendType, <span class="keyword">const</span> Triangles&amp; triangles, <span class="keyword">const</span> Mat4&amp; mv, <span class="keyword">uint32_t</span> flags)</span></span>;</span><br><span class="line">    <span class="comment">/**Apply the texture, shaders, programs, blend functions to GPU pipeline.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">useMaterial</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">    <span class="comment">/**Get the material id of command.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> <span class="keyword">uint32_t</span> <span class="title">getMaterialID</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _materialID; &#125;</span><br><span class="line">    <span class="comment">/**Get the openGL texture handle.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> GLuint <span class="title">getTextureID</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _textureID; &#125;</span><br><span class="line">    <span class="comment">/**Get a const reference of triangles.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> <span class="keyword">const</span> Triangles&amp; <span class="title">getTriangles</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _triangles; &#125;</span><br><span class="line">    <span class="comment">/**Get the vertex count in the triangles.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> <span class="keyword">ssize_t</span> <span class="title">getVertexCount</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _triangles.vertCount; &#125;</span><br><span class="line">    <span class="comment">/**Get the index count of the triangles.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> <span class="keyword">ssize_t</span> <span class="title">getIndexCount</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _triangles.indexCount; &#125;</span><br><span class="line">    <span class="comment">/**Get the vertex data pointer.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> <span class="keyword">const</span> V3F_C4B_T2F* <span class="title">getVertices</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _triangles.verts; &#125;</span><br><span class="line">    <span class="comment">/**Get the index data pointer.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> <span class="keyword">const</span> <span class="keyword">unsigned</span> short* <span class="title">getIndices</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _triangles.indices; &#125;</span><br><span class="line">    <span class="comment">/**Get the glprogramstate.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> GLProgramState* <span class="title">getGLProgramState</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _glProgramState; &#125;</span><br><span class="line">    <span class="comment">/**Get the blend function.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> BlendFunc <span class="title">getBlendType</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _blendType; &#125;</span><br><span class="line">    <span class="comment">/**Get the model view matrix.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">inline</span> <span class="keyword">const</span> Mat4&amp; <span class="title">getModelView</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _mv; &#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">    <span class="comment">/**Generate the material ID by textureID, glProgramState, and blend function.*/</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">generateMaterialID</span><span class="params">()</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**Generated material id.*/</span></span><br><span class="line">    <span class="keyword">uint32_t</span> _materialID;</span><br><span class="line">    <span class="comment">/**OpenGL handle for texture.*/</span></span><br><span class="line">    GLuint _textureID;</span><br><span class="line">    <span class="comment">/**GLprogramstate for the command. encapsulate shaders and uniforms.*/</span></span><br><span class="line">    GLProgramState* _glProgramState;</span><br><span class="line">    <span class="comment">/**The GLProgram used by GLProgramState*/</span></span><br><span class="line">    GLProgram* _glProgram;</span><br><span class="line">    <span class="comment">/**Blend function when rendering the triangles.*/</span></span><br><span class="line">    BlendFunc _blendType;</span><br><span class="line">    <span class="comment">/**Rendered triangles.*/</span></span><br><span class="line">    Triangles _triangles;</span><br><span class="line">    <span class="comment">/**Model view matrix when rendering the triangles.*/</span></span><br><span class="line">    Mat4 _mv;</span><br><span class="line"></span><br><span class="line">    GLuint _alphaTextureID; <span class="comment">// ANDROID ETC1 ALPHA supports.</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>包含了Triangles结构体的定义，贴图_textureID，_glProgram，混合函数_blendType，模型视图矩阵_mv，使用贴图、着色程序状态、混合函数、顶点数据、变换矩阵等参数的初始化函数，材质ID（MaterialID），访问各私有成员的inline函数等，其中涉及到的几个概念：</p>
+<h3 id="Triangles结构体"><a href="#Triangles结构体" class="headerlink" title="Triangles结构体"></a>Triangles结构体</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**The structure of Triangles. */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Triangles</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">        <span class="comment">/**Vertex data pointer.*/</span></span><br><span class="line">        V3F_C4B_T2F* verts;</span><br><span class="line">        <span class="comment">/**Index data pointer.*/</span></span><br><span class="line">        <span class="keyword">unsigned</span> short* indices;</span><br><span class="line">        <span class="comment">/**The number of vertices.*/</span></span><br><span class="line">        <span class="keyword">int</span> vertCount;</span><br><span class="line">        <span class="comment">/**The number of indices.*/</span></span><br><span class="line">        <span class="keyword">int</span> indexCount;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>存储绘制的顶点的信息，包括存储顶点attribute数据的数组、存储顶点索引的数组、顶点的个数、顶点索引的个数。其中顶点的attribute数据使用<code>V3F_C4B_T2F</code>结构体来存储。</p>
+<h3 id="V3F-C4B-T2F结构体"><a href="#V3F-C4B-T2F结构体" class="headerlink" title="V3F_C4B_T2F结构体"></a>V3F_C4B_T2F结构体</h3><p>如下边的代码所示，<code>V3F_C4B_T2F</code>结构体用来存储顶点的信息，包括顶点坐标、颜色、纹理坐标。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** @struct V3F_C4B_T2F</span></span><br><span class="line"><span class="comment"> * A Vec2 with a vertex point, a tex coord point and a color 4B.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">CC_DLL</span> <span class="title">V3F_C4B_T2F</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="comment">/// vertices (3F)</span></span><br><span class="line">    Vec3     vertices;            <span class="comment">// 12 bytes</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/// colors (4B)</span></span><br><span class="line">    Color4B      colors;              <span class="comment">// 4 bytes</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// tex coords (2F)</span></span><br><span class="line">    Tex2F        texCoords;           <span class="comment">// 8 bytes</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>其中纹理坐标实际上是2个浮点型数值：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** @struct Tex2F</span></span><br><span class="line"><span class="comment"> * A TEXCOORD composed of 2 floats: u, y</span></span><br><span class="line"><span class="comment"> * @since v3.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">CC_DLL</span> <span class="title">Tex2F</span> &#123;</span></span><br><span class="line">    Tex2F(<span class="keyword">float</span> _u, <span class="keyword">float</span> _v): u(_u), v(_v) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    Tex2F(): u(<span class="number">0.f</span>), v(<span class="number">0.f</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    GLfloat u;</span><br><span class="line">    GLfloat v;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>V3F_C4B_T2F</code>结构体的形式可以看做是一个数组，其定义了应用程序中顶点数据的格式，同时也是向OpenGL传递以及在显存中存储的顶点attribute数据的格式：</p>
+
+<table>
+<thead>
+<tr>
+<th colspan = "3" style="text-align:center">vertices</th>
+<th colspan = "4" style="text-align:center">colors</th>
+<th colspan = "2" style="text-align:center">texCoords</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">x</td>
+<td style="text-align:center">y</td>
+<td style="text-align:center">z</td>
+<td style="text-align:center">r</td>
+<td style="text-align:center">g</td>
+<td style="text-align:center">b</td>
+<td style="text-align:center">a</td>
+<td style="text-align:center">s</td>
+<td style="text-align:center">t</td>
+</tr>
+</tbody>
+</table>
+
+
+<h3 id="索引-indices"><a href="#索引-indices" class="headerlink" title="索引 indices"></a>索引 indices</h3><p>VBO有两个target，<code>GL_ARRAY_BUFFER</code>和<code>GL_ELEMENT_ARRAY_BUFFER</code>，即顶点的信息和顶点的索引是分开存储（为了更高效利用存储空间），在<code>Triangles</code>结构体中，<code>indices</code>是一个unsigned short型的数组，直接存储索引信息，并用<code>indexCount</code>记录数组的长度。</p>
+<h3 id="MaterialID"><a href="#MaterialID" class="headerlink" title="MaterialID"></a>MaterialID</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">TrianglesCommand::generateMaterialID</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// do not batch if using custom uniforms (since we cannot batch) it</span></span><br><span class="line">    <span class="keyword">if</span>(_glProgramState-&gt;getUniformCount() &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        _materialID = Renderer::MATERIAL_ID_DO_NOT_BATCH;</span><br><span class="line">        setSkipBatching(<span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> glProgram = (<span class="keyword">int</span>)_glProgram-&gt;getProgram();</span><br><span class="line">        <span class="keyword">int</span> intArray[<span class="number">4</span>] = &#123; glProgram, (<span class="keyword">int</span>)_textureID, (<span class="keyword">int</span>)_blendType.src, (<span class="keyword">int</span>)_blendType.dst&#125;;</span><br><span class="line">        _materialID = XXH32((<span class="keyword">const</span> <span class="keyword">void</span>*)intArray, <span class="keyword">sizeof</span>(intArray), <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>TrianglesCommand</code>在初始化时会调用<code>generateMaterialID</code>生成材质ID。生成材质ID保存到<code>_materialID</code>。在生成材质ID时，如果包含有自定义的着色器全局uniform，则此<code>TrianglesCommand</code>不参与批量绘制。否则生成材质ID，<code>U32 XXH32(const void* input, int len, U32 seed)</code>是一个哈希函数，用于根据不同的着色程序、纹理、混合函数生成的独特的材质ID。</p>
+<p>两个<code>TrianglesCommand</code>当且仅当着色程序、纹理、混合函数都相同的时候，材质ID才会相等。如果两个对象渲染顺序相邻，且材质ID相同，就可以合并批量渲染。</p>
+<h3 id="处理RenderCommand"><a href="#处理RenderCommand" class="headerlink" title="处理RenderCommand"></a>处理RenderCommand</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::processRenderCommand</span><span class="params">(RenderCommand* command)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> commandType = command-&gt;getType();</span><br><span class="line">    <span class="keyword">if</span>( RenderCommand::Type::TRIANGLES_COMMAND == commandType)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// ...略去无关代码</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">auto</span> cmd = <span class="keyword">static_cast</span>&lt;TrianglesCommand*&gt;(command);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// flush own queue when buffer is full</span></span><br><span class="line">        <span class="keyword">if</span>(_filledVertex + cmd-&gt;getVertexCount() &gt; VBO_SIZE || _filledIndex + cmd-&gt;getIndexCount() &gt; INDEX_VBO_SIZE)</span><br><span class="line">        &#123;</span><br><span class="line">            CCASSERT(cmd-&gt;getVertexCount()&gt;= <span class="number">0</span> &amp;&amp; cmd-&gt;getVertexCount() &lt; VBO_SIZE, <span class="string">"VBO for vertex is not big enough, please break the data down or use customized render command"</span>);</span><br><span class="line">            CCASSERT(cmd-&gt;getIndexCount()&gt;= <span class="number">0</span> &amp;&amp; cmd-&gt;getIndexCount() &lt; INDEX_VBO_SIZE, <span class="string">"VBO for index is not big enough, please break the data down or use customized render command"</span>);</span><br><span class="line">            drawBatchedTriangles();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// queue it</span></span><br><span class="line">        _queuedTriangleCommands.push_back(cmd);</span><br><span class="line">        _filledIndex += cmd-&gt;getIndexCount();</span><br><span class="line">        _filledVertex += cmd-&gt;getVertexCount();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (RenderCommand::Type::MESH_COMMAND == commandType)</span><br><span class="line">    &#123;</span><br><span class="line">        flush2D();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ...略去无关代码</span></span><br><span class="line">      </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(RenderCommand::Type::GROUP_COMMAND == commandType)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">flush</span>();</span><br><span class="line">      </span><br><span class="line">       <span class="comment">// ...略去无关代码</span></span><br><span class="line">      </span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">       <span class="comment">// ...略去无关代码</span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        CCLOGERROR(<span class="string">"Unknown commands in renderQueue"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::flush</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    flush2D();</span><br><span class="line">    flush3D();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::flush2D</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    flushTriangles();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::flushTriangles</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    drawBatchedTriangles();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由以上代码易知，在两种情况下会调用<code>drawBatchedTriangles()</code>：VBO的buffer写满或新接收到的<code>RenderCommand</code>类型不为<code>TrianglesCommand</code>。</p>
+<h3 id="处理TrianglesCommand"><a href="#处理TrianglesCommand" class="headerlink" title="处理TrianglesCommand"></a>处理TrianglesCommand</h3><p>调用<code>Renderer::drawBatchedTriangles()</code>，此时在<code>_queuedTriangleCommands</code>中应存储有待渲染的<code>TrianglesCommand</code>：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::drawBatchedTriangles</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(_queuedTriangleCommands.empty())</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    CCGL_DEBUG_INSERT_EVENT_MARKER(<span class="string">"RENDERER_BATCH_TRIANGLES"</span>);</span><br><span class="line"></span><br><span class="line">    _filledVertex = <span class="number">0</span>;</span><br><span class="line">    _filledIndex = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/************** 1: Setup up vertices/indices *************/</span></span><br><span class="line"></span><br><span class="line">    _triBatchesToDraw[<span class="number">0</span>].offset = <span class="number">0</span>;</span><br><span class="line">    _triBatchesToDraw[<span class="number">0</span>].indicesToDraw = <span class="number">0</span>;</span><br><span class="line">    _triBatchesToDraw[<span class="number">0</span>].cmd = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> batchesTotal = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> prevMaterialID = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">bool</span> firstCommand = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">auto</span> it = <span class="built_in">std</span>::<span class="built_in">begin</span>(_queuedTriangleCommands); it != <span class="built_in">std</span>::<span class="built_in">end</span>(_queuedTriangleCommands); ++it)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">auto</span>&amp; cmd = *it;</span><br><span class="line">        <span class="keyword">auto</span> currentMaterialID = cmd-&gt;getMaterialID();</span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">bool</span> batchable = !cmd-&gt;isSkipBatching();</span><br><span class="line"></span><br><span class="line">        fillVerticesAndIndices(cmd);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// in the same batch ?</span></span><br><span class="line">        <span class="keyword">if</span> (batchable &amp;&amp; (prevMaterialID == currentMaterialID || firstCommand))</span><br><span class="line">        &#123;</span><br><span class="line">            CC_ASSERT(firstCommand || _triBatchesToDraw[batchesTotal].cmd-&gt;getMaterialID() == cmd-&gt;getMaterialID() &amp;&amp; <span class="string">"argh... error in logic"</span>);</span><br><span class="line">            _triBatchesToDraw[batchesTotal].indicesToDraw += cmd-&gt;getIndexCount();</span><br><span class="line">            _triBatchesToDraw[batchesTotal].cmd = cmd;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">// is this the first one?</span></span><br><span class="line">            <span class="keyword">if</span> (!firstCommand) &#123;</span><br><span class="line">                batchesTotal++;</span><br><span class="line">                _triBatchesToDraw[batchesTotal].offset = _triBatchesToDraw[batchesTotal<span class="number">-1</span>].offset + _triBatchesToDraw[batchesTotal<span class="number">-1</span>].indicesToDraw;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            _triBatchesToDraw[batchesTotal].cmd = cmd;</span><br><span class="line">            _triBatchesToDraw[batchesTotal].indicesToDraw = (<span class="keyword">int</span>) cmd-&gt;getIndexCount();</span><br><span class="line"></span><br><span class="line">            <span class="comment">// is this a single batch ? Prevent creating a batch group then</span></span><br><span class="line">            <span class="keyword">if</span> (!batchable)</span><br><span class="line">                currentMaterialID = <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// capacity full ?</span></span><br><span class="line">        <span class="keyword">if</span> (batchesTotal + <span class="number">1</span> &gt;= _triBatchesToDrawCapacity) &#123;</span><br><span class="line">            _triBatchesToDrawCapacity *= <span class="number">1.4</span>;</span><br><span class="line">            _triBatchesToDraw = (TriBatchToDraw*) <span class="built_in">realloc</span>(_triBatchesToDraw, <span class="keyword">sizeof</span>(_triBatchesToDraw[<span class="number">0</span>]) * _triBatchesToDrawCapacity);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        prevMaterialID = currentMaterialID;</span><br><span class="line">        firstCommand = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    batchesTotal++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/************** 2: Copy vertices/indices to GL objects *************/</span></span><br><span class="line">    <span class="keyword">auto</span> conf = Configuration::getInstance();</span><br><span class="line">    <span class="keyword">if</span> (conf-&gt;supportsShareableVAO() &amp;&amp; conf-&gt;supportsMapBuffer())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//Bind VAO</span></span><br><span class="line">        GL::bindVAO(_buffersVAO);</span><br><span class="line">        <span class="comment">//Set VBO data</span></span><br><span class="line">        glBindBuffer(GL_ARRAY_BUFFER, _buffersVBO[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">        glBufferData(GL_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_verts[<span class="number">0</span>]) * _filledVertex, <span class="literal">nullptr</span>, GL_STATIC_DRAW);</span><br><span class="line">        <span class="keyword">void</span> *buf = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);</span><br><span class="line">        <span class="built_in">memcpy</span>(buf, _verts, <span class="keyword">sizeof</span>(_verts[<span class="number">0</span>]) * _filledVertex);</span><br><span class="line">        glUnmapBuffer(GL_ARRAY_BUFFER);</span><br><span class="line"></span><br><span class="line">        glBindBuffer(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line">        </span><br><span class="line">        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffersVBO[<span class="number">1</span>]);</span><br><span class="line">        glBufferData(GL_ELEMENT_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_indices[<span class="number">0</span>]) * _filledIndex, _indices, GL_STATIC_DRAW);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// Client Side Arrays</span></span><br><span class="line">#define kQuadSize <span class="keyword">sizeof</span>(_verts[<span class="number">0</span>])</span><br><span class="line">        glBindBuffer(GL_ARRAY_BUFFER, _buffersVBO[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">        glBufferData(GL_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_verts[<span class="number">0</span>]) * _filledVertex , _verts, GL_DYNAMIC_DRAW);</span><br><span class="line"></span><br><span class="line">        GL::enableVertexAttribs(GL::VERTEX_ATTRIB_FLAG_POS_COLOR_TEX);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// vertices</span></span><br><span class="line">        glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, <span class="number">3</span>, GL_FLOAT, GL_FALSE, kQuadSize, (GLvoid*) offsetof(V3F_C4B_T2F, vertices));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// colors</span></span><br><span class="line">        glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_COLOR, <span class="number">4</span>, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (GLvoid*) offsetof(V3F_C4B_T2F, colors));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// tex coords</span></span><br><span class="line">        glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORD, <span class="number">2</span>, GL_FLOAT, GL_FALSE, kQuadSize, (GLvoid*) offsetof(V3F_C4B_T2F, texCoords));</span><br><span class="line"></span><br><span class="line">        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffersVBO[<span class="number">1</span>]);</span><br><span class="line">        glBufferData(GL_ELEMENT_ARRAY_BUFFER, <span class="keyword">sizeof</span>(_indices[<span class="number">0</span>]) * _filledIndex, _indices, GL_STATIC_DRAW);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/************** 3: Draw *************/</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;batchesTotal; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        CC_ASSERT(_triBatchesToDraw[i].cmd &amp;&amp; <span class="string">"Invalid batch"</span>);</span><br><span class="line">        _triBatchesToDraw[i].cmd-&gt;useMaterial();</span><br><span class="line">        glDrawElements(GL_TRIANGLES, (GLsizei) _triBatchesToDraw[i].indicesToDraw, GL_UNSIGNED_SHORT, (GLvoid*) (_triBatchesToDraw[i].offset*<span class="keyword">sizeof</span>(_indices[<span class="number">0</span>])) );</span><br><span class="line">        _drawnBatches++;</span><br><span class="line">        _drawnVertices += _triBatchesToDraw[i].indicesToDraw;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/************** 4: Cleanup *************/</span></span><br><span class="line">    <span class="keyword">if</span> (Configuration::getInstance()-&gt;supportsShareableVAO())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//Unbind VAO</span></span><br><span class="line">        GL::bindVAO(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        glBindBuffer(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line">        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    _queuedTriangleCommands.<span class="built_in">clear</span>();</span><br><span class="line">    _filledVertex = <span class="number">0</span>;</span><br><span class="line">    _filledIndex = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由以上代码不难看出，整个渲染过程可以划分为四个阶段：</p>
+<p>[1]准备顶点和索引信息 -&gt; [2]将顶点和索引信息传给GL对象 -&gt; [3]绘制 -&gt; [4]清理</p>
+<h4 id="准备顶点和索引信息"><a href="#准备顶点和索引信息" class="headerlink" title="准备顶点和索引信息"></a>准备顶点和索引信息</h4><p>遍历<code>_queuedTriangleCommands</code>中的<code>TrianglesCommand</code>，调用<code>fillVerticesAndIndices</code>，将所有的顶点信息和索引的信息复制到<code>_verts[]</code>和<code>_indices[]</code>，并累加记录顶点和索引的个数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Renderer::fillVerticesAndIndices</span><span class="params">(<span class="keyword">const</span> TrianglesCommand* cmd)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;_verts[_filledVertex], cmd-&gt;getVertices(), <span class="keyword">sizeof</span>(V3F_C4B_T2F) * cmd-&gt;getVertexCount());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fill vertex, and convert them to world coordinates</span></span><br><span class="line">    <span class="keyword">const</span> Mat4&amp; modelView = cmd-&gt;getModelView();</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">ssize_t</span> i=<span class="number">0</span>; i &lt; cmd-&gt;getVertexCount(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        modelView.transformPoint(&amp;(_verts[i + _filledVertex].vertices));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fill index</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">unsigned</span> short* indices = cmd-&gt;getIndices();</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">ssize_t</span> i=<span class="number">0</span>; i&lt; cmd-&gt;getIndexCount(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        _indices[_filledIndex + i] = _filledVertex + indices[i];</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    _filledVertex += cmd-&gt;getVertexCount();</span><br><span class="line">    _filledIndex += cmd-&gt;getIndexCount();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据材质ID对<code>TrianglesCommand</code>进行判断，如果符合批量绘制的条件则存入<code>_triBatchesToDraw[]</code>。</p>
+<h4 id="将顶点和索引信息传给GL对象"><a href="#将顶点和索引信息传给GL对象" class="headerlink" title="将顶点和索引信息传给GL对象"></a>将顶点和索引信息传给GL对象</h4><p>传递顶点和索引信息，根据实现是否支持VAO，采用不同策略：</p>
+<ul>
+<li>如果支持VAO：绑定VAO，绑定<code>GL_ARRAY_BUFFER</code>的VBO，为VBO申请空间并指定数据传输方式为<code>GL_STATIC_DRAW</code>，将<code>_verts[]</code>的值写给VBO对应的内存；绑定<code>GL_ELEMENT_ARRAY_BUFFER</code>的VBO，并将索引信息<code>_indices[]</code>写入；</li>
+<li>如果不支持VAO：绑定<code>GL_ARRAY_BUFFER</code>的VBO，将<code>_verts[]</code>中的顶点信息写入，开启用于存储位置坐标、颜色及纹理坐标的顶点attribute的数组，绑定attribute数组中对应位置坐标、颜色及纹理坐标的存储位置并制定数据格式；绑定<code>GL_ELEMENT_ARRAY_BUFFER</code>的VBO，并将索引信息<code>_indices[]</code>写入；</li>
+</ul>
+<p>可见当使用VAO时，使用<code>glVertexAttribPointer</code>绑定数组及制定数据格式的相关操作放在初始化过程中，而不是绘制阶段。VAO中保存了绘制状态信息（GL-context），从而减少了绘制时的花销，提高了渲染的效率。</p>
+<h4 id="绘制"><a href="#绘制" class="headerlink" title="绘制"></a>绘制</h4><p>对<code>_triBatchesToDraw[]</code>中存储的<code>TrianglesCommand</code>，逐个使用<code>glDrawElements</code>绘制。</p>
+<h4 id="清理"><a href="#清理" class="headerlink" title="清理"></a>清理</h4><p>结束VAO和VBO的绑定，清除<code>_queuedTriangleCommands[]</code>。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://github.com/cocos2d/cocos2d-x" target="_blank" rel="noopener">cocos2d-x v3.13 source code</a><br><a href="https://book.douban.com/subject/26214576/" target="_blank" rel="noopener">我所理解的cocos2d-x</a><br><a href="https://www.khronos.org/opengles/sdk/docs/man/xhtml/" target="_blank" rel="noopener">https://www.khronos.org/opengles/sdk/docs/man/xhtml/</a><br><a href="https://www.khronos.org/opengles/sdk/docs/man3/" target="_blank" rel="noopener">https://www.khronos.org/opengles/sdk/docs/man3/</a><br><a href="http://www.zwqxin.com/archives/opengl/vao-and-vbo-stuff.html" target="_blank" rel="noopener">http://www.zwqxin.com/archives/opengl/vao-and-vbo-stuff.html</a><br><a href="http://blog.csdn.net/bill_man/article/details/38314077" target="_blank" rel="noopener">http://blog.csdn.net/bill_man/article/details/38314077</a><br><a href="http://blog.csdn.net/h1051760124/article/details/41776931" target="_blank" rel="noopener">http://blog.csdn.net/h1051760124/article/details/41776931</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenGL-ES/" rel="tag"># OpenGL ES</a>
+              <a href="/tags/cocos2d-x/" rel="tag"># cocos2d-x</a>
+              <a href="/tags/render/" rel="tag"># render</a>
+              <a href="/tags/VAO/" rel="tag"># VAO</a>
+              <a href="/tags/VBO/" rel="tag"># VBO</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-01-24-svn-cheatsheet/" rel="prev" title="SVN Cheatsheet">
+      <i class="fa fa-chevron-left"></i> SVN Cheatsheet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-02-05-design-patterns-23/" rel="next" title="23种设计模式">
+      23种设计模式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#VBO和VAO"><span class="nav-number">1.</span> <span class="nav-text">VBO和VAO</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#涉及到的OpenGL函数"><span class="nav-number">1.1.</span> <span class="nav-text">涉及到的OpenGL函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#glGenBuffers"><span class="nav-number">1.1.1.</span> <span class="nav-text">glGenBuffers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glBindBuffer"><span class="nav-number">1.1.2.</span> <span class="nav-text">glBindBuffer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glBufferData"><span class="nav-number">1.1.3.</span> <span class="nav-text">glBufferData</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glGenVertexArrays"><span class="nav-number">1.1.4.</span> <span class="nav-text">glGenVertexArrays</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GL-bindVAO"><span class="nav-number">1.1.5.</span> <span class="nav-text">GL::bindVAO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glBindVertexArray"><span class="nav-number">1.1.6.</span> <span class="nav-text">glBindVertexArray</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glVertexAttribPointer"><span class="nav-number">1.1.7.</span> <span class="nav-text">glVertexAttribPointer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glEnableVertexAttribArray"><span class="nav-number">1.1.8.</span> <span class="nav-text">glEnableVertexAttribArray</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glMapBuffer"><span class="nav-number">1.1.9.</span> <span class="nav-text">glMapBuffer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#glDrawElements"><span class="nav-number">1.1.10.</span> <span class="nav-text">glDrawElements</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VBO和VAO的初始化"><span class="nav-number">1.2.</span> <span class="nav-text">VBO和VAO的初始化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TrianglesCommand"><span class="nav-number">2.</span> <span class="nav-text">TrianglesCommand</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Triangles结构体"><span class="nav-number">2.1.</span> <span class="nav-text">Triangles结构体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#V3F-C4B-T2F结构体"><span class="nav-number">2.2.</span> <span class="nav-text">V3F_C4B_T2F结构体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引-indices"><span class="nav-number">2.3.</span> <span class="nav-text">索引 indices</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MaterialID"><span class="nav-number">2.4.</span> <span class="nav-text">MaterialID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理RenderCommand"><span class="nav-number">2.5.</span> <span class="nav-text">处理RenderCommand</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理TrianglesCommand"><span class="nav-number">2.6.</span> <span class="nav-text">处理TrianglesCommand</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#准备顶点和索引信息"><span class="nav-number">2.6.1.</span> <span class="nav-text">准备顶点和索引信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#将顶点和索引信息传给GL对象"><span class="nav-number">2.6.2.</span> <span class="nav-text">将顶点和索引信息传给GL对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#绘制"><span class="nav-number">2.6.3.</span> <span class="nav-text">绘制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#清理"><span class="nav-number">2.6.4.</span> <span class="nav-text">清理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">3.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '103a87d19eca9be689f31c17cc7b221c',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

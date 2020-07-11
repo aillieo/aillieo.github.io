@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Layout相关的组件用于对各种UI组件（RectTransform）完成自动布局。开发者可以自由地进行放置UI组件，然后通过LayoutGroup等来控制自动布局，如调整宽高尺寸、等间距放置、水平或竖直对齐等。相关的类都位于Layout文件夹内。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 LayoutGroup">
+<meta property="og:url" content="http://aillieo.cn/post/2018-06-16-unity-3d-ugui-source-code-09/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="Layout相关的组件用于对各种UI组件（RectTransform）完成自动布局。开发者可以自由地进行放置UI组件，然后通过LayoutGroup等来控制自动布局，如调整宽高尺寸、等间距放置、水平或竖直对齐等。相关的类都位于Layout文件夹内。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-06-16T03:48:33.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.064Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="LayoutGroup">
+<meta property="article:tag" content="自动布局">
+<meta property="article:tag" content="unity3d">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="layout">
+<meta property="article:tag" content="LayoutElement">
+<meta property="article:tag" content="LayoutController">
+<meta property="article:tag" content="布局">
+<meta property="article:tag" content="horizontal">
+<meta property="article:tag" content="vertical">
+<meta property="article:tag" content="ContentSizeFitter">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-06-16-unity-3d-ugui-source-code-09/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 LayoutGroup | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-06-16-unity-3d-ugui-source-code-09/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 LayoutGroup
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-06-16 11:48:33" itemprop="dateCreated datePublished" datetime="2018-06-16T11:48:33+08:00">2018-06-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Layout相关的组件用于对各种UI组件（RectTransform）完成自动布局。开发者可以自由地进行放置UI组件，然后通过LayoutGroup等来控制自动布局，如调整宽高尺寸、等间距放置、水平或竖直对齐等。相关的类都位于Layout文件夹内。</p>
+<a id="more"></a>
+
+<h2 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h2><p>自动布局涉及到的接口主要以下的这些：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">public interface ILayoutElement</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; After this method is invoked, layout horizontal input properties should return up-to-date values.</span><br><span class="line">    &#x2F;&#x2F; Children will already have up-to-date layout horizontal inputs when this methods is called.</span><br><span class="line">    void CalculateLayoutInputHorizontal();</span><br><span class="line">    &#x2F;&#x2F; After this method is invoked, layout vertical input properties should return up-to-date values.</span><br><span class="line">    &#x2F;&#x2F; Children will already have up-to-date layout vertical inputs when this methods is called.</span><br><span class="line">    void CalculateLayoutInputVertical();</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Layout horizontal inputs</span><br><span class="line">    float minWidth &#123; get; &#125;</span><br><span class="line">    float preferredWidth &#123; get; &#125;</span><br><span class="line">    float flexibleWidth &#123; get; &#125;</span><br><span class="line">    &#x2F;&#x2F; Layout vertical inputs</span><br><span class="line">    float minHeight &#123; get; &#125;</span><br><span class="line">    float preferredHeight &#123; get; &#125;</span><br><span class="line">    float flexibleHeight &#123; get; &#125;</span><br><span class="line"></span><br><span class="line">    int layoutPriority &#123; get; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public interface ILayoutController</span><br><span class="line">&#123;</span><br><span class="line">    void SetLayoutHorizontal();</span><br><span class="line">    void SetLayoutVertical();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; An ILayoutGroup component should drive the RectTransforms of its children.</span><br><span class="line">public interface ILayoutGroup : ILayoutController</span><br><span class="line">&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; An ILayoutSelfController component should drive its own RectTransform.</span><br><span class="line">public interface ILayoutSelfController : ILayoutController</span><br><span class="line">&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; An ILayoutIgnorer component is ignored by the auto-layout system.</span><br><span class="line">public interface ILayoutIgnorer</span><br><span class="line">&#123;</span><br><span class="line">    bool ignoreLayout &#123; get; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结合注释，基本上意思也都很明了。自动布局相关几乎所有的类都会继承或间接继承<code>ILayoutElement</code>，从而成为自动布局系统的一部分，可以调用<code>CalculateLayoutInputXxx()</code>计算并更新各参数，如<code>minWidth</code>、<code>preferredWidth</code>等，从而获取到其在自动布局过程中所需要的输入参数。另一个重要的接口是<code>ILayoutController</code>，它提供了组件用于控制其子元素自动布局的方法<code>SetLayoutHorizontal()</code>和<code>SetLayoutVertical()</code>。</p>
+<p>在自动布局系统中，除了上边这些接口之外，还有一个在<code>CanvasUpdateRegistry.cs</code>中定义的接口<code>ICanvasElement</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public interface ICanvasElement</span><br><span class="line">&#123;</span><br><span class="line">    void Rebuild(CanvasUpdate executing);</span><br><span class="line">    Transform transform &#123; get; &#125;</span><br><span class="line">    void LayoutComplete();</span><br><span class="line">    void GraphicUpdateComplete();</span><br><span class="line">    &#x2F;&#x2F; due to unity overriding null check</span><br><span class="line">    &#x2F;&#x2F; we need this as something may not be null</span><br><span class="line">    &#x2F;&#x2F; but may be destroyed</span><br><span class="line">    bool IsDestroyed();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际上Canvas上的所有元素都会继承<code>ICanvasElement</code>，其<code>Rebuild</code>方法可以根据指定的阶段状态来执行重新构建动作。</p>
+<h2 id="类和抽象类"><a href="#类和抽象类" class="headerlink" title="类和抽象类"></a>类和抽象类</h2><p>自动布局系统中涉及到的主要的类和抽象类如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public abstract class LayoutGroup : UIBehaviour, ILayoutElement, ILayoutGroup</span><br><span class="line"></span><br><span class="line">public class LayoutElement : UIBehaviour, ILayoutElement, ILayoutIgnorer</span><br><span class="line"></span><br><span class="line">public abstract class HorizontalOrVerticalLayoutGroup : LayoutGroup</span><br><span class="line"></span><br><span class="line">public class GridLayoutGroup : LayoutGroup</span><br><span class="line"></span><br><span class="line">public class HorizontalLayoutGroup : HorizontalOrVerticalLayoutGroup</span><br><span class="line"></span><br><span class="line">public class VerticalLayoutGroup : HorizontalOrVerticalLayoutGroup</span><br></pre></td></tr></table></figure>
+
+<p><code>LayoutGroup</code>是自动布局的抽象基类，<code>LayoutElement</code>是自动布局控制的元素的基类，其它的都是衍生自<code>LayoutGroup</code>的类，如我们在Unity中常用的<code>HorizontalLayoutGroup</code>等。</p>
+<p>除了上边这些类，还有一个用于布局重建的包装类<code>LayoutRebuilder</code>，它实现了之前说到的接口<code>ICanvasElement</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class LayoutRebuilder : ICanvasElement</span><br></pre></td></tr></table></figure>
+
+<p>后边会详细说到<code>LayoutRebuilder</code>的作用。另外还有一个静态类<code>LayoutUtility</code>，提供了一些辅助完成自动布局的工具方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public static class LayoutUtility</span><br></pre></td></tr></table></figure>
+
+<p>最后还有两个实现了接口<code>ILayoutSelfController</code>的类，<code>AspectRatioFitter</code>和<code>ContentSizeFitter</code>，在文章的最后讨论：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">public class AspectRatioFitter : UIBehaviour, ILayoutSelfController</span><br><span class="line">public class ContentSizeFitter : UIBehaviour, ILayoutSelfController</span><br></pre></td></tr></table></figure>
+
+<h2 id="LayoutGroup"><a href="#LayoutGroup" class="headerlink" title="LayoutGroup"></a>LayoutGroup</h2><p>从<code>LayoutGroup</code>开始，一步一步看自动布局系统它是如何完成自动布局工作的。<code>LayoutGroup</code>是各种自动布局的基类。在UGUI的使用中，编辑器或者运行时，对于一个<code>LayoutGroup</code>，当激活它、调整它的<code>RectTransform</code>、增删它的子节点时，都会触发它的子节点的自动布局重建动作。我们可以先看一看<code>LayoutGroup</code>的这几个方法。</p>
+<h3 id="标记更新布局"><a href="#标记更新布局" class="headerlink" title="标记更新布局"></a>标记更新布局</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">protected override void OnEnable()</span><br><span class="line">&#123;</span><br><span class="line">    base.OnEnable();</span><br><span class="line">    SetDirty();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected override void OnRectTransformDimensionsChange()</span><br><span class="line">&#123;</span><br><span class="line">    base.OnRectTransformDimensionsChange();</span><br><span class="line">    if (isRootLayoutGroup)</span><br><span class="line">        SetDirty();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected virtual void OnTransformChildrenChanged()</span><br><span class="line">&#123;</span><br><span class="line">    SetDirty();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>共同点：它们都调用了一个<code>SetDirty</code>方法。注意<code>OnRectTransformDimensionsChange</code>中有一个<code>isRootLayoutGroup</code>的属性判断。只有该<code>LayoutGroup</code>没有受控于父节点的<code>ILayoutGroup</code>时才会触发<code>SetDirty</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">private bool isRootLayoutGroup</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        Transform parent &#x3D; transform.parent;</span><br><span class="line">        if (parent &#x3D;&#x3D; null)</span><br><span class="line">            return true;</span><br><span class="line">        return transform.parent.GetComponent(typeof(ILayoutGroup)) &#x3D;&#x3D; null;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>SetDirty</code>添加脏标记，核心内容其实是<code>LayoutRebuilder.MarkLayoutForRebuild(rectTransform)</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">protected void SetDirty()</span><br><span class="line">&#123;</span><br><span class="line">    if (!IsActive())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    if (!CanvasUpdateRegistry.IsRebuildingLayout())</span><br><span class="line">        LayoutRebuilder.MarkLayoutForRebuild(rectTransform);</span><br><span class="line">    else</span><br><span class="line">        StartCoroutine(DelayedSetDirty(rectTransform));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">IEnumerator DelayedSetDirty(RectTransform rectTransform)</span><br><span class="line">&#123;</span><br><span class="line">    yield return null;</span><br><span class="line">    LayoutRebuilder.MarkLayoutForRebuild(rectTransform);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>DelayedSetDirty</code>是一个协程方法，在下一帧调用<code>LayoutRebuilder.MarkLayoutForRebuild(rectTransform)</code>。来看<code>CanvasUpdateRegistry.IsRebuildingLayout()</code>的判断。<code>CanvasUpdateRegistry</code>这个类之前在<code>Graphics</code>的章节见到过，它是一个单例类，各UI向其注册更新事件，以在适当的时机被其调用更新对应的内容。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public static bool IsRebuildingLayout()</span><br><span class="line">&#123;</span><br><span class="line">    return instance.m_PerformingLayoutUpdate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>后边会说到<code>m_PerformingLayoutUpdate</code>取值变化的过程（何时为false何时为true），以及<code>CanvasUpdateRegistry</code>如何调用<code>LayoutRebuilder</code>的<code>Rebuild</code>方法。在此之前先来看看<code>MarkLayoutForRebuild</code>是个什么东西：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">public static void MarkLayoutForRebuild(RectTransform rect)</span><br><span class="line">&#123;</span><br><span class="line">    if (rect &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var comps &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line">    RectTransform layoutRoot &#x3D; rect;</span><br><span class="line">    while (true)</span><br><span class="line">    &#123;</span><br><span class="line">        var parent &#x3D; layoutRoot.parent as RectTransform;</span><br><span class="line">        if (!ValidLayoutGroup(parent, comps))</span><br><span class="line">            break;</span><br><span class="line">        layoutRoot &#x3D; parent;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; We know the layout root is valid if it&#39;s not the same as the rect,</span><br><span class="line">    &#x2F;&#x2F; since we checked that above. But if they&#39;re the same we still need to check.</span><br><span class="line">    if (layoutRoot &#x3D;&#x3D; rect &amp;&amp; !ValidController(layoutRoot, comps))</span><br><span class="line">    &#123;</span><br><span class="line">        ListPool&lt;Component&gt;.Release(comps);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    MarkLayoutRootForRebuild(layoutRoot);</span><br><span class="line">    ListPool&lt;Component&gt;.Release(comps);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>大概的逻辑是从传入的rect开始，自下而上寻找，直到找到根部的LayoutGroup（即该LayoutGroup没有直接的父级LayoutGroup控制）。对根LayoutGroup调用<code>MarkLayoutRootForRebuild</code>。这其中涉及到一些静态方法，下边是它们的定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">private static bool ValidLayoutGroup(RectTransform parent, List&lt;Component&gt; comps)</span><br><span class="line">&#123;</span><br><span class="line">    if (parent &#x3D;&#x3D; null)</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    parent.GetComponents(typeof(ILayoutGroup), comps);</span><br><span class="line">    StripDisabledBehavioursFromList(comps);</span><br><span class="line">    var validCount &#x3D; comps.Count &gt; 0;</span><br><span class="line">    return validCount;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>用于验证某个<code>RectTransform</code>是否挂载有有效的LayoutGroup：获取所有的<code>ILayoutGroup</code>组件，剔除其中无效的（<code>isActiveAndEnabled</code>为false），如果剩余的还有LayoutGroup，它就是有效的。剔除的方法定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">static void StripDisabledBehavioursFromList(List&lt;Component&gt; components)</span><br><span class="line">&#123;</span><br><span class="line">    components.RemoveAll(e &#x3D;&gt; e is Behaviour &amp;&amp; !((Behaviour)e).isActiveAndEnabled);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>除了验证LayoutGroup之外，还会验证是否挂载有有效的<code>ILayoutController</code>，与前边的很相似：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">private static bool ValidController(RectTransform layoutRoot, List&lt;Component&gt; comps)</span><br><span class="line">&#123;</span><br><span class="line">    if (layoutRoot &#x3D;&#x3D; null)</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    layoutRoot.GetComponents(typeof(ILayoutController), comps);</span><br><span class="line">    StripDisabledBehavioursFromList(comps);</span><br><span class="line">    var valid &#x3D;  comps.Count &gt; 0;</span><br><span class="line">    return valid;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>经过重重验证的筛选，最终得到了所谓的<code>layoutRoot</code>，就对它执行下边的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">private static void MarkLayoutRootForRebuild(RectTransform controller)</span><br><span class="line">&#123;</span><br><span class="line">    if (controller &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var rebuilder &#x3D; s_Rebuilders.Get();</span><br><span class="line">    rebuilder.Initialize(controller);</span><br><span class="line">    if (!CanvasUpdateRegistry.TryRegisterCanvasElementForLayoutRebuild(rebuilder))</span><br><span class="line">        s_Rebuilders.Release(rebuilder);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先从池里取一个<code>LayoutRebuilder</code>，用<code>controller</code>来初始化它，然后把它注册给<code>CanvasUpdateRegistry</code>。这里调用的是<code>CanvasUpdateRegistry.TryRegisterCanvasElementForLayoutRebuild(...)</code>方法，如果之前有添加过相同的<code>rebuilder</code>，则会返回false，那么就立即释放掉<code>rebuilder</code>。</p>
+<h3 id="执行自动布局"><a href="#执行自动布局" class="headerlink" title="执行自动布局"></a>执行自动布局</h3><p>执行自动布局的动作主要是<code>CanvasUpdateRegistry</code>调用向其注册了布局重建的<code>LayoutRebuilder</code>对象的<code>Rebuild</code>方法。之前有说到<code>m_PerformingLayoutUpdate</code>，现在回来继续，来看<code>m_PerformingLayoutUpdate</code>是何时发生变化的，主要的逻辑是在<code>PerformUpdate</code>方法内（当<code>CanvasUpdateRegistry</code>被创建时，其<code>PerformUpdate</code>会被添加到<code>Canvas.willRenderCanvases</code>里）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">private static readonly Comparison&lt;ICanvasElement&gt; s_SortLayoutFunction &#x3D; SortLayoutList;</span><br><span class="line">private void PerformUpdate()</span><br><span class="line">&#123;</span><br><span class="line">    CleanInvalidItems();</span><br><span class="line"></span><br><span class="line">    m_PerformingLayoutUpdate &#x3D; true;</span><br><span class="line"></span><br><span class="line">    m_LayoutRebuildQueue.Sort(s_SortLayoutFunction);</span><br><span class="line">    for (int i &#x3D; 0; i &lt;&#x3D; (int)CanvasUpdate.PostLayout; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        for (int j &#x3D; 0; j &lt; m_LayoutRebuildQueue.Count; j++)</span><br><span class="line">        &#123;</span><br><span class="line">            var rebuild &#x3D; instance.m_LayoutRebuildQueue[j];</span><br><span class="line">            try</span><br><span class="line">            &#123;</span><br><span class="line">                if (ObjectValidForUpdate(rebuild))</span><br><span class="line">                    rebuild.Rebuild((CanvasUpdate)i);</span><br><span class="line">            &#125;</span><br><span class="line">            catch (Exception e)</span><br><span class="line">            &#123;</span><br><span class="line">                Debug.LogException(e, rebuild.transform);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    for (int i &#x3D; 0; i &lt; m_LayoutRebuildQueue.Count; ++i)</span><br><span class="line">        m_LayoutRebuildQueue[i].LayoutComplete();</span><br><span class="line"></span><br><span class="line">    instance.m_LayoutRebuildQueue.Clear();</span><br><span class="line">    m_PerformingLayoutUpdate &#x3D; false;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; ... 略去无关代码</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>处理Layout相关的代码在函数内的前半部分，首先将<code>m_PerformingLayoutUpdate</code>置为true，然后对<code>m_LayoutRebuildQueue</code>进行排序，然后是两层for循环，外层是<code>CanvasUpdate</code>即更新阶段从0到<code>PostLayout</code>（<code>Prelayout</code>，<code>Layout</code>和<code>PostLayout</code>），内层才是队列中的各元素，逐个调用<code>Rebuild</code>方法，并传入参数是更新阶段的枚举值。</p>
+<p>排序使用的是静态方法<code>SortLayoutList</code>，其定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">private static int SortLayoutList(ICanvasElement x, ICanvasElement y)</span><br><span class="line">&#123;</span><br><span class="line">    Transform t1 &#x3D; x.transform;</span><br><span class="line">    Transform t2 &#x3D; y.transform;</span><br><span class="line"></span><br><span class="line">    return ParentCount(t1) - ParentCount(t2);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static int ParentCount(Transform child)</span><br><span class="line">&#123;</span><br><span class="line">    if (child &#x3D;&#x3D; null)</span><br><span class="line">        return 0;</span><br><span class="line"></span><br><span class="line">    var parent &#x3D; child.parent;</span><br><span class="line">    int count &#x3D; 0;</span><br><span class="line">    while (parent !&#x3D; null)</span><br><span class="line">    &#123;</span><br><span class="line">        count++;</span><br><span class="line">        parent &#x3D; parent.parent;</span><br><span class="line">    &#125;</span><br><span class="line">    return count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>优先重建<code>ParentCount</code>值小的<code>LayoutRebuilder</code>，即在场景树上更靠近根节点的LayoutGroup。<code>CanvasUpdateRegistry</code>调用各rebuilder的<code>Rebuild</code>方法来执行重建动作，然后调用布局重建完成的回调<code>LayoutComplete</code>。<code>LayoutComplete</code>的内容就是释放掉rebuilder放回池里，我们重点看<code>Rebuild</code>的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">public void Rebuild(CanvasUpdate executing)</span><br><span class="line">&#123;</span><br><span class="line">    switch (executing)</span><br><span class="line">    &#123;</span><br><span class="line">        case CanvasUpdate.Layout:</span><br><span class="line">            &#x2F;&#x2F; It&#39;s unfortunate that we&#39;ll perform the same GetComponents querys for the tree 2 times,</span><br><span class="line">            &#x2F;&#x2F; but each tree have to be fully iterated before going to the next action,</span><br><span class="line">            &#x2F;&#x2F; so reusing the results would entail storing results in a Dictionary or similar,</span><br><span class="line">            &#x2F;&#x2F; which is probably a bigger overhead than performing GetComponents multiple times.</span><br><span class="line">            PerformLayoutCalculation(m_ToRebuild, e &#x3D;&gt; (e as ILayoutElement).CalculateLayoutInputHorizontal());</span><br><span class="line">            PerformLayoutControl(m_ToRebuild, e &#x3D;&gt; (e as ILayoutController).SetLayoutHorizontal());</span><br><span class="line">            PerformLayoutCalculation(m_ToRebuild, e &#x3D;&gt; (e as ILayoutElement).CalculateLayoutInputVertical());</span><br><span class="line">            PerformLayoutControl(m_ToRebuild, e &#x3D;&gt; (e as ILayoutController).SetLayoutVertical());</span><br><span class="line">            break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只处理<code>CanvasUpdate.Layout</code>阶段的重建动作，核心内容四行代码，涉及到两个函数<code>PerformLayoutCalculation</code>和<code>PerformLayoutControl</code>，分别用于计算参数和设置尺寸，先水平方向后竖直方向。下边是<code>PerformLayoutCalculation</code>和<code>PerformLayoutControl</code>的定义，前边的注释中提到了在这两个方法中会重复调用相同的<code>GetComponents</code>，虽然开销会比较大但无法避免，把结果缓存起来（使用Dictionary等）会有更多的额外性能开销。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">private void PerformLayoutCalculation(RectTransform rect, UnityAction&lt;Component&gt; action)</span><br><span class="line">&#123;</span><br><span class="line">    if (rect &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var components &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line">    rect.GetComponents(typeof(ILayoutElement), components);</span><br><span class="line">    StripDisabledBehavioursFromList(components);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; If there are no controllers on this rect we can skip this entire sub-tree</span><br><span class="line">    &#x2F;&#x2F; We don&#39;t need to consider controllers on children deeper in the sub-tree either,</span><br><span class="line">    &#x2F;&#x2F; since they will be their own roots.</span><br><span class="line">    if (components.Count &gt; 0  || rect.GetComponent(typeof(ILayoutGroup)))</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Layout calculations needs to executed bottom up with children being done before their parents,</span><br><span class="line">        &#x2F;&#x2F; because the parent calculated sizes rely on the sizes of the children.</span><br><span class="line"></span><br><span class="line">        for (int i &#x3D; 0; i &lt; rect.childCount; i++)</span><br><span class="line">            PerformLayoutCalculation(rect.GetChild(i) as RectTransform, action);</span><br><span class="line"></span><br><span class="line">        for (int i &#x3D; 0; i &lt; components.Count; i++)</span><br><span class="line">            action(components[i]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ListPool&lt;Component&gt;.Release(components);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>PerformLayoutCalculation</code>需要传入两个参数，一个<code>RectTransform</code>和一个<code>UnityAction&lt;Component&gt;</code>。函数内部也会对子节点递归调用<code>PerformLayoutCalculation</code>，在完成子孙结点的控制之后，最后再处理自己身上的各<code>ILayoutElement</code>组件。<code>action</code>的内容正是<code>CalculateLayoutInputXxx</code>，如水平方向是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">e &#x3D;&gt; (e as ILayoutElement).CalculateLayoutInputHorizontal()</span><br></pre></td></tr></table></figure>
+
+<p><code>ILayoutElement</code>负责提供接口<code>CalculateLayoutInputHorizontal</code>，详细的功能逻辑则由实现此接口的类来具体实现。竖直方向的计算同理。在执行完<code>CalculateLayoutInputXxx()</code>之后，该<code>ILayoutElement</code>中的各数值都是计算和更新后的状态了，此时可以该调用<code>ILayoutController</code>的<code>SetLayoutXxx</code>方法来更新布局。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">private void PerformLayoutControl(RectTransform rect, UnityAction&lt;Component&gt; action)</span><br><span class="line">&#123;</span><br><span class="line">    if (rect &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var components &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line">    rect.GetComponents(typeof(ILayoutController), components);</span><br><span class="line">    StripDisabledBehavioursFromList(components);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; If there are no controllers on this rect we can skip this entire sub-tree</span><br><span class="line">    &#x2F;&#x2F; We don&#39;t need to consider controllers on children deeper in the sub-tree either,</span><br><span class="line">    &#x2F;&#x2F; since they will be their own roots.</span><br><span class="line">    if (components.Count &gt; 0)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Layout control needs to executed top down with parents being done before their children,</span><br><span class="line">        &#x2F;&#x2F; because the children rely on the sizes of the parents.</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; First call layout controllers that may change their own RectTransform</span><br><span class="line">        for (int i &#x3D; 0; i &lt; components.Count; i++)</span><br><span class="line">            if (components[i] is ILayoutSelfController)</span><br><span class="line">                action(components[i]);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Then call the remaining, such as layout groups that change their children, taking their own RectTransform size into account.</span><br><span class="line">        for (int i &#x3D; 0; i &lt; components.Count; i++)</span><br><span class="line">            if (!(components[i] is ILayoutSelfController))</span><br><span class="line">                action(components[i]);</span><br><span class="line"></span><br><span class="line">        for (int i &#x3D; 0; i &lt; rect.childCount; i++)</span><br><span class="line">            PerformLayoutControl(rect.GetChild(i) as RectTransform, action);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ListPool&lt;Component&gt;.Release(components);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>PerformLayoutControl</code>同样是传入两个参数，<code>RectTransform</code>和一个<code>UnityAction&lt;Component&gt;</code>，在方法中，获取<code>rect</code>所有的<code>ILayoutController</code>组件，先对其中所有的<code>ILayoutSelfController</code>调用传入的<code>action</code>，接下来对其中的非<code>ILayoutSelfController</code>执行<code>action</code>，最后对<code>rect</code>的子节点递归地调用<code>PerformLayoutControl</code>。真正的逻辑就藏在<code>action</code>里边，以水平方向的参数计算方法为例，<code>action</code>是一个lambda表达式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">e &#x3D;&gt; (e as ILayoutController).SetLayoutHorizontal()</span><br></pre></td></tr></table></figure>
+
+<p>此处调用的就是<code>SetLayoutXxx</code>。</p>
+<h2 id="CalculateLayoutInputXxx"><a href="#CalculateLayoutInputXxx" class="headerlink" title="CalculateLayoutInputXxx"></a>CalculateLayoutInputXxx</h2><p>这是<code>ILayoutElement</code>提供的方法，对应水平方向和竖直方向分别是<code>CalculateLayoutInputHorizontal</code>和<code>CalculateLayoutInputVertical</code>。暂以水平方向为例，当调用<code>CalculateLayoutInputHorizontal</code>之后，<code>ILayoutElement</code>的水平方向各个参数都可以取到更新后的值，如<code>minWidth</code>，<code>preferredWidth</code>，<code>flexibleWidth</code>。这三个值含义如下：</p>
+<ul>
+<li>minWidth：需要为此对象分配的最小宽度</li>
+<li>preferredWidth：如果空间充足的话，应当为此对象分配的宽度</li>
+<li>flexibleWidth：如果有多余的空间的话，可以为此对象额外分配的相对宽度</li>
+</ul>
+<p>具体这三个参数是如何被计算出来并更新的，我们从<code>LayoutGroup</code>开始，恰好<code>LayoutGroup</code>自己就有<code>CalculateLayoutInputHorizontal</code>的一个实现。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; ILayoutElement Interface</span><br><span class="line">public virtual void CalculateLayoutInputHorizontal()</span><br><span class="line">&#123;</span><br><span class="line">    m_RectChildren.Clear();</span><br><span class="line">    var toIgnoreList &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line">    for (int i &#x3D; 0; i &lt; rectTransform.childCount; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        var rect &#x3D; rectTransform.GetChild(i) as RectTransform;</span><br><span class="line">        if (rect &#x3D;&#x3D; null || !rect.gameObject.activeInHierarchy)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        rect.GetComponents(typeof(ILayoutIgnorer), toIgnoreList);</span><br><span class="line"></span><br><span class="line">        if (toIgnoreList.Count &#x3D;&#x3D; 0)</span><br><span class="line">        &#123;</span><br><span class="line">            m_RectChildren.Add(rect);</span><br><span class="line">            continue;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        for (int j &#x3D; 0; j &lt; toIgnoreList.Count; j++)</span><br><span class="line">        &#123;</span><br><span class="line">            var ignorer &#x3D; (ILayoutIgnorer)toIgnoreList[j];</span><br><span class="line">            if (!ignorer.ignoreLayout)</span><br><span class="line">            &#123;</span><br><span class="line">                m_RectChildren.Add(rect);</span><br><span class="line">                break;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ListPool&lt;Component&gt;.Release(toIgnoreList);</span><br><span class="line">    m_Tracker.Clear();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意这里<code>ILayoutIgnorer</code>接口，<code>LayoutElement</code>实现了此接口，可以将<code>ignoreLayout</code>属性设为true，则表示该对象不参与其父级的自动布局。上边的方法中，挂载<code>LayoutGroup</code>组件的对象遍历自己的子节点，剔除<code>ignoreLayout</code>全部为true的子节点。最后将有效的自己点放入<code>m_RectChildren</code>。</p>
+<p>似乎没有做什么具体的计算，只是更新了有效的子节点，接下来有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public virtual float minWidth &#123; get &#123; return GetTotalMinSize(0); &#125; &#125;</span><br><span class="line">public virtual float preferredWidth &#123; get &#123; return GetTotalPreferredSize(0); &#125; &#125;</span><br><span class="line">public virtual float flexibleWidth &#123; get &#123; return GetTotalFlexibleSize(0); &#125; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这三个值都是存在Vector2里的，索引<code>0</code>表示水平方向：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">protected float GetTotalMinSize(int axis)</span><br><span class="line">&#123;</span><br><span class="line">    return m_TotalMinSize[axis];</span><br><span class="line">&#125;</span><br><span class="line">protected float GetTotalPreferredSize(int axis)</span><br><span class="line">&#123;</span><br><span class="line">    return m_TotalPreferredSize[axis];</span><br><span class="line">&#125;</span><br><span class="line">protected float GetTotalFlexibleSize(int axis)</span><br><span class="line">&#123;</span><br><span class="line">    return m_TotalFlexibleSize[axis];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这些Vector2的值是如何更新的呢，在<code>LayoutGroup</code>里有这么一个方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">protected void SetLayoutInputForAxis(float totalMin, float totalPreferred, float totalFlexible, int axis)</span><br><span class="line">&#123;</span><br><span class="line">    m_TotalMinSize[axis] &#x3D; totalMin;</span><br><span class="line">    m_TotalPreferredSize[axis] &#x3D; totalPreferred;</span><br><span class="line">    m_TotalFlexibleSize[axis] &#x3D; totalFlexible;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法是唯一有可能更新三个Vector2的值的地方了，查看一下引用，果然发现，在<code>LayoutGroup</code>的衍生的抽象类<code>HorizontalOrVerticalLayoutGroup</code>里有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">protected void CalcAlongAxis(int axis, bool isVertical)</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; .. 略去无关代码</span><br><span class="line">    SetLayoutInputForAxis(totalMin, totalPreferred, totalFlexible, axis);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而这个<code>CalcAlongAxis</code>是在哪被调用的呢，查看引用，终于看到了<code>HorizontalOrVerticalLayoutGroup</code>的衍生类，熟悉的<code>HorizontalLayoutGroup</code>，有这么个方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public override void CalculateLayoutInputHorizontal()</span><br><span class="line">&#123;</span><br><span class="line">    base.CalculateLayoutInputHorizontal();</span><br><span class="line">    CalcAlongAxis(0, false);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这么一来就一切了然了。当<code>HorizontalLayoutGroup</code>重建时，会调用<code>CalculateLayoutInputHorizontal</code>方法，方法内部首先调用基类的同名方法，更新有效的子节点列表，然后<code>CalcAlongAxis</code>进行一系列的加加减减计算，把三个属性（<code>minWidth</code>等）的值更新到对应的Vector2（<code>m_TotalMinSize</code>等）里，然后通过<code>minWidth</code>这样的属性就可以获取到更新后的值了。</p>
+<p>回过头来看<code>CalcAlongAxis</code>都进行了哪些加加减减：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">protected void CalcAlongAxis(int axis, bool isVertical)</span><br><span class="line">&#123;</span><br><span class="line">    float combinedPadding &#x3D; (axis &#x3D;&#x3D; 0 ? padding.horizontal : padding.vertical);</span><br><span class="line">    bool controlSize &#x3D; (axis &#x3D;&#x3D; 0 ? m_ChildControlWidth : m_ChildControlHeight);</span><br><span class="line">    bool childForceExpandSize &#x3D; (axis &#x3D;&#x3D; 0 ? childForceExpandWidth : childForceExpandHeight);</span><br><span class="line"></span><br><span class="line">    float totalMin &#x3D; combinedPadding;</span><br><span class="line">    float totalPreferred &#x3D; combinedPadding;</span><br><span class="line">    float totalFlexible &#x3D; 0;</span><br><span class="line"></span><br><span class="line">    bool alongOtherAxis &#x3D; (isVertical ^ (axis &#x3D;&#x3D; 1));</span><br><span class="line">    for (int i &#x3D; 0; i &lt; rectChildren.Count; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        RectTransform child &#x3D; rectChildren[i];</span><br><span class="line">        float min, preferred, flexible;</span><br><span class="line">        GetChildSizes(child, axis, controlSize, childForceExpandSize, out min, out preferred, out flexible);</span><br><span class="line"></span><br><span class="line">        if (alongOtherAxis)</span><br><span class="line">        &#123;</span><br><span class="line">            totalMin &#x3D; Mathf.Max(min + combinedPadding, totalMin);</span><br><span class="line">            totalPreferred &#x3D; Mathf.Max(preferred + combinedPadding, totalPreferred);</span><br><span class="line">            totalFlexible &#x3D; Mathf.Max(flexible, totalFlexible);</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            totalMin +&#x3D; min + spacing;</span><br><span class="line">            totalPreferred +&#x3D; preferred + spacing;</span><br><span class="line"></span><br><span class="line">            &#x2F;&#x2F; Increment flexible size with element&#39;s flexible size.</span><br><span class="line">            totalFlexible +&#x3D; flexible;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (!alongOtherAxis &amp;&amp; rectChildren.Count &gt; 0)</span><br><span class="line">    &#123;</span><br><span class="line">        totalMin -&#x3D; spacing;</span><br><span class="line">        totalPreferred -&#x3D; spacing;</span><br><span class="line">    &#125;</span><br><span class="line">    totalPreferred &#x3D; Mathf.Max(totalMin, totalPreferred);</span><br><span class="line">    SetLayoutInputForAxis(totalMin, totalPreferred, totalFlexible, axis);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>第一个要注意的点就是参数，<code>axis</code>表示调用该方法是为了计算更新水平方向<code>0</code>还是竖直方向<code>1</code>的输入参数，而<code>isVertical</code>这是指当前的Layout是为了控制水平方向<code>false</code>还是竖直方向<code>true</code>；</p>
+</li>
+<li><p>函数内部，首先是获取padding值，是否控制子节点尺寸，是否控制子节点间隔；</p>
+</li>
+<li><p>初始化<code>totalMin</code>，<code>totalPreferred</code>和<code>totalFlexible</code>三个值；</p>
+</li>
+<li><p>获取<code>alongOtherAxis</code>，<code>axis</code>和<code>isVertical</code>表示的方向不相同时，此值为true；</p>
+</li>
+<li><p>遍历<code>rectChildren</code>（即之前基类中的<code>m_RectChildren</code>），使用<code>GetChildSizes</code>获取三个out参数<code>min</code>，<code>preferred</code>和<code>flexible</code>。<code>GetChildSizes</code>内容比较深，稍后详述；</p>
+</li>
+<li><p>接下来会用到一个<code>spacing</code>参数，是一开始指定好的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[SerializeField] protected float m_Spacing &#x3D; 0;</span><br><span class="line">public float spacing &#123; get &#123; return m_Spacing; &#125; set &#123; SetProperty(ref m_Spacing, value); &#125; &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>根据计算的方向与Layout自身控制的方向是否一致来更新<code>totalMin</code>，<code>totalPreferred</code>和<code>totalFlexible</code>；如果方向是一致的，那么三个<code>totalXxx</code>的值都要加上当前遍历的子节点的这三个值（及<code>spacing</code>）；</p>
+</li>
+<li><p>遍历结束后，如果计算方向与Layout控制的方向一致，且子元素数量大于0，则减去一次<code>spacing</code>；</p>
+</li>
+<li><p>对<code>totalPreferred</code>进行修正，应当不小于<code>totalMin</code>；</p>
+</li>
+<li><p>最后把计算得出的参数赋值给<code>LayoutGroup</code>中的三个Vector2成员</p>
+</li>
+</ul>
+<p>以上是大体流程，接下来展开<code>GetChildSizes</code>看看对于每个子节点，这三个值是怎么获取的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">private void GetChildSizes(RectTransform child, int axis, bool controlSize, bool childForceExpand,</span><br><span class="line">    out float min, out float preferred, out float flexible)</span><br><span class="line">&#123;</span><br><span class="line">    if (!controlSize)</span><br><span class="line">    &#123;</span><br><span class="line">        min &#x3D; child.sizeDelta[axis];</span><br><span class="line">        preferred &#x3D; min;</span><br><span class="line">        flexible &#x3D; 0;</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">    &#123;</span><br><span class="line">        min &#x3D; LayoutUtility.GetMinSize(child, axis);</span><br><span class="line">        preferred &#x3D; LayoutUtility.GetPreferredSize(child, axis);</span><br><span class="line">        flexible &#x3D; LayoutUtility.GetFlexibleSize(child, axis);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (childForceExpand)</span><br><span class="line">        flexible &#x3D; Mathf.Max(flexible, 1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要是分了两种情况，是否<code>controlSize</code>，如果是false，那么就取子节点真实的尺寸，<code>min</code>即是<code>sizeDelta</code>对应维度的值，<code>preferred</code>同<code>min</code>，<code>flexible</code>为0；如果是true，情况就比较复杂了。这里把获取这三个尺寸的逻辑封装到了<code>LayoutUtility</code>的静态方法里，稍后展开。最后注意的一点就是，如果<code>childForceExpand</code>，<code>flexible</code>会取到一个最大为1的值（这里应该就是把它设置为正数）。</p>
+<p>继续深入，打开<code>LayoutUtility</code>看到的是一环套一环：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public static float GetMinSize(RectTransform rect, int axis)</span><br><span class="line">&#123;</span><br><span class="line">    if (axis &#x3D;&#x3D; 0)</span><br><span class="line">        return GetMinWidth(rect);</span><br><span class="line">    return GetMinHeight(rect);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public static float GetPreferredSize(RectTransform rect, int axis)</span><br><span class="line">&#123;</span><br><span class="line">    if (axis &#x3D;&#x3D; 0)</span><br><span class="line">        return GetPreferredWidth(rect);</span><br><span class="line">    return GetPreferredHeight(rect);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public static float GetFlexibleSize(RectTransform rect, int axis)</span><br><span class="line">&#123;</span><br><span class="line">    if (axis &#x3D;&#x3D; 0)</span><br><span class="line">        return GetFlexibleWidth(rect);</span><br><span class="line">    return GetFlexibleHeight(rect);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们重点看水平方向，注意看默认值都是取得0：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public static float GetMinWidth(RectTransform rect)</span><br><span class="line">&#123;</span><br><span class="line">    return GetLayoutProperty(rect, e &#x3D;&gt; e.minWidth, 0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public static float GetPreferredWidth(RectTransform rect)</span><br><span class="line">&#123;</span><br><span class="line">    return Mathf.Max(GetLayoutProperty(rect, e &#x3D;&gt; e.minWidth, 0), GetLayoutProperty(rect, e &#x3D;&gt; e.preferredWidth, 0));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public static float GetFlexibleWidth(RectTransform rect)</span><br><span class="line">&#123;</span><br><span class="line">    return GetLayoutProperty(rect, e &#x3D;&gt; e.flexibleWidth, 0);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>终于快到头了，<code>GetLayoutProperty</code>注意这里的<code>property</code>是传入的一个lambda表达式，也就是上边的<code>e =&gt; e.minWidth</code>等，<code>rect</code>是我们关心的自动布局中的子节点：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">public static float GetLayoutProperty(RectTransform rect, System.Func&lt;ILayoutElement, float&gt; property, float defaultValue)</span><br><span class="line">&#123;</span><br><span class="line">    ILayoutElement dummy;</span><br><span class="line">    return GetLayoutProperty(rect, property, defaultValue, out dummy);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public static float GetLayoutProperty(RectTransform rect, System.Func&lt;ILayoutElement, float&gt; property, float defaultValue, out ILayoutElement source)</span><br><span class="line">&#123;</span><br><span class="line">    source &#x3D; null;</span><br><span class="line">    if (rect &#x3D;&#x3D; null)</span><br><span class="line">        return 0;</span><br><span class="line">    float min &#x3D; defaultValue;</span><br><span class="line">    int maxPriority &#x3D; System.Int32.MinValue;</span><br><span class="line">    var components &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line">    rect.GetComponents(typeof(ILayoutElement), components);</span><br><span class="line"></span><br><span class="line">    for (int i &#x3D; 0; i &lt; components.Count; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        var layoutComp &#x3D; components[i] as ILayoutElement;</span><br><span class="line">        if (layoutComp is Behaviour &amp;&amp; !((Behaviour)layoutComp).isActiveAndEnabled)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        int priority &#x3D; layoutComp.layoutPriority;</span><br><span class="line">        &#x2F;&#x2F; If this layout components has lower priority than a previously used, ignore it.</span><br><span class="line">        if (priority &lt; maxPriority)</span><br><span class="line">            continue;</span><br><span class="line">        float prop &#x3D; property(layoutComp);</span><br><span class="line">        &#x2F;&#x2F; If this layout property is set to a negative value, it means it should be ignored.</span><br><span class="line">        if (prop &lt; 0)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; If this layout component has higher priority than all previous ones,</span><br><span class="line">        &#x2F;&#x2F; overwrite with this one&#39;s value.</span><br><span class="line">        if (priority &gt; maxPriority)</span><br><span class="line">        &#123;</span><br><span class="line">            min &#x3D; prop;</span><br><span class="line">            maxPriority &#x3D; priority;</span><br><span class="line">            source &#x3D; layoutComp;</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F; If the layout component has the same priority as a previously used,</span><br><span class="line">        &#x2F;&#x2F; use the largest of the values with the same priority.</span><br><span class="line">        else if (prop &gt; min)</span><br><span class="line">        &#123;</span><br><span class="line">            min &#x3D; prop;</span><br><span class="line">            source &#x3D; layoutComp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ListPool&lt;Component&gt;.Release(components);</span><br><span class="line">    return min;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取这个节点上的所有<code>ILayoutElement</code>，遍历之，<code>float prop = property(layoutComp)</code>获取到我们要取的参数值，如<code>minWidth</code>，<code>preferredWidth</code>和<code>flexibleWidth</code>等，保存到<code>prop</code>，同时会把当前遍历到的<code>ILayoutElement</code>记录为<code>source</code>。如果遍历过程中遇到有优先级<code>priority</code>更高的或者尺寸更大的，则会替换掉旧值。</p>
+<p>值得一提的是，很多UI控件如<code>Image</code>、<code>Text</code>等也都实现了<code>ILayoutElement</code>，如何取到这三个值，这一逻辑也会由各控件自己去实现，截取<code>Image</code>中的一段代码如下，此处不展开讨论，留到后边<code>Image</code>的章节：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public virtual float minWidth &#123; get &#123; return 0; &#125; &#125;</span><br><span class="line"></span><br><span class="line">public virtual float preferredWidth</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        if (activeSprite &#x3D;&#x3D; null)</span><br><span class="line">            return 0;</span><br><span class="line">        if (type &#x3D;&#x3D; Type.Sliced || type &#x3D;&#x3D; Type.Tiled)</span><br><span class="line">            return Sprites.DataUtility.GetMinSize(activeSprite).x &#x2F; pixelsPerUnit;</span><br><span class="line">        return activeSprite.rect.size.x &#x2F; pixelsPerUnit;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public virtual float flexibleWidth &#123; get &#123; return -1; &#125; &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="SetLayoutXxx"><a href="#SetLayoutXxx" class="headerlink" title="SetLayoutXxx"></a>SetLayoutXxx</h2><p>在<code>CalculateLayoutInputXxx</code>之后，各<code>ILayoutElement</code>都可以取到正确的值，此时就该进行下一步了，根据这些值来自动布局所控制的子节点。水平方向和竖直方向分别是<code>SetLayoutHorizontal</code>和<code>SetLayoutVertical</code>，我们依旧看水平方向，在<code>HorizontalLayoutGroup</code>中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public override void SetLayoutHorizontal()</span><br><span class="line">&#123;</span><br><span class="line">    SetChildrenAlongAxis(0, false);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进一步看<code>SetChildrenAlongAxis</code>，就又回到它的父类<code>HorizontalOrVerticalLayoutGroup</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">protected void SetChildrenAlongAxis(int axis, bool isVertical)</span><br><span class="line">&#123;</span><br><span class="line">    float size &#x3D; rectTransform.rect.size[axis];</span><br><span class="line">    bool controlSize &#x3D; (axis &#x3D;&#x3D; 0 ? m_ChildControlWidth : m_ChildControlHeight);</span><br><span class="line">    bool childForceExpandSize &#x3D; (axis &#x3D;&#x3D; 0 ? childForceExpandWidth : childForceExpandHeight);</span><br><span class="line">    float alignmentOnAxis &#x3D; GetAlignmentOnAxis(axis);</span><br><span class="line"></span><br><span class="line">    bool alongOtherAxis &#x3D; (isVertical ^ (axis &#x3D;&#x3D; 1));</span><br><span class="line">    if (alongOtherAxis)</span><br><span class="line">    &#123;</span><br><span class="line">        float innerSize &#x3D; size - (axis &#x3D;&#x3D; 0 ? padding.horizontal : padding.vertical);</span><br><span class="line">        for (int i &#x3D; 0; i &lt; rectChildren.Count; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            RectTransform child &#x3D; rectChildren[i];</span><br><span class="line">            float min, preferred, flexible;</span><br><span class="line">            GetChildSizes(child, axis, controlSize, childForceExpandSize, out min, out preferred, out flexible);</span><br><span class="line"></span><br><span class="line">            float requiredSpace &#x3D; Mathf.Clamp(innerSize, min, flexible &gt; 0 ? size : preferred);</span><br><span class="line">            float startOffset &#x3D; GetStartOffset(axis, requiredSpace);</span><br><span class="line">            if (controlSize)</span><br><span class="line">            &#123;</span><br><span class="line">                SetChildAlongAxis(child, axis, startOffset, requiredSpace);</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">            &#123;</span><br><span class="line">                float offsetInCell &#x3D; (requiredSpace - child.sizeDelta[axis]) * alignmentOnAxis;</span><br><span class="line">                SetChildAlongAxis(child, axis, startOffset + offsetInCell);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">    &#123;</span><br><span class="line">        float pos &#x3D; (axis &#x3D;&#x3D; 0 ? padding.left : padding.top);</span><br><span class="line">        if (GetTotalFlexibleSize(axis) &#x3D;&#x3D; 0 &amp;&amp; GetTotalPreferredSize(axis) &lt; size)</span><br><span class="line">            pos &#x3D; GetStartOffset(axis, GetTotalPreferredSize(axis) - (axis &#x3D;&#x3D; 0 ? padding.horizontal : padding.vertical));</span><br><span class="line"></span><br><span class="line">        float minMaxLerp &#x3D; 0;</span><br><span class="line">        if (GetTotalMinSize(axis) !&#x3D; GetTotalPreferredSize(axis))</span><br><span class="line">            minMaxLerp &#x3D; Mathf.Clamp01((size - GetTotalMinSize(axis)) &#x2F; (GetTotalPreferredSize(axis) - GetTotalMinSize(axis)));</span><br><span class="line"></span><br><span class="line">        float itemFlexibleMultiplier &#x3D; 0;</span><br><span class="line">        if (size &gt; GetTotalPreferredSize(axis))</span><br><span class="line">        &#123;</span><br><span class="line">            if (GetTotalFlexibleSize(axis) &gt; 0)</span><br><span class="line">                itemFlexibleMultiplier &#x3D; (size - GetTotalPreferredSize(axis)) &#x2F; GetTotalFlexibleSize(axis);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        for (int i &#x3D; 0; i &lt; rectChildren.Count; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            RectTransform child &#x3D; rectChildren[i];</span><br><span class="line">            float min, preferred, flexible;</span><br><span class="line">            GetChildSizes(child, axis, controlSize, childForceExpandSize, out min, out preferred, out flexible);</span><br><span class="line"></span><br><span class="line">            float childSize &#x3D; Mathf.Lerp(min, preferred, minMaxLerp);</span><br><span class="line">            childSize +&#x3D; flexible * itemFlexibleMultiplier;</span><br><span class="line">            if (controlSize)</span><br><span class="line">            &#123;</span><br><span class="line">                SetChildAlongAxis(child, axis, pos, childSize);</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">            &#123;</span><br><span class="line">                float offsetInCell &#x3D; (childSize - child.sizeDelta[axis]) * alignmentOnAxis;</span><br><span class="line">                SetChildAlongAxis(child, axis, pos + offsetInCell);</span><br><span class="line">            &#125;</span><br><span class="line">            pos +&#x3D; childSize + spacing;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>依然是按照<code>alongOtherAxis</code>来处理不同逻辑，三个<code>GetTotalXxxSize</code>方法，还有<code>GetChildSizes</code>，都是前边已经很熟悉的套路了。还是来一步一步看：</p>
+<ul>
+<li><p>初始化参数：<code>size</code>，<code>controlSize</code>，<code>childForceExpandSize</code>以及一个<code>alignmentOnAxis</code>。最后这个浮点数值处理得很巧妙，其实是从<code>TextAnchor</code>这么一个枚举值中提取出来一个对应的轴向的浮点数的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">protected float GetAlignmentOnAxis(int axis)</span><br><span class="line">&#123;</span><br><span class="line">    if (axis &#x3D;&#x3D; 0)</span><br><span class="line">        return ((int)childAlignment % 3) * 0.5f;</span><br><span class="line">    else</span><br><span class="line">        return ((int)childAlignment &#x2F; 3) * 0.5f;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>附上<code>TextAnchor</code>的枚举定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public enum TextAnchor</span><br><span class="line">&#123;</span><br><span class="line">	UpperLeft,</span><br><span class="line">	UpperCenter,</span><br><span class="line">	UpperRight,</span><br><span class="line">	MiddleLeft,</span><br><span class="line">	MiddleCenter,</span><br><span class="line">	MiddleRight,</span><br><span class="line">	LowerLeft,</span><br><span class="line">	LowerCenter,</span><br><span class="line">	LowerRight</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过上边的取法，当输入的<code>axis</code>为0表示水平方向时，所有的<code>XxxLeft</code>，<code>XxxCenter</code>，<code>XxxRight</code>对应会取到<code>0</code>，<code>0.5</code>，<code>1</code>。处理竖直方向时也类似。</p>
+</li>
+<li><p>接下来做一个<code>alongOtherAxis</code>的判断，和前边<code>CalcAlongAxis</code>里一模一样；</p>
+</li>
+<li><p>根据<code>alongOtherAxis</code>的值区分两种情况，两种情况都是需要遍历<code>rectChildren</code>，且对各个子节点调用<code>SetChildAlongAxis</code>方法来最终设置子节点沿当前处理的轴向的位置；</p>
+</li>
+<li><p><code>alongOtherAxis</code>为true时，当前处理的轴向与该自动布局组件控制的方向是一致的，首先是初始化参数<code>pos</code>， <code>minMaxLerp</code>， <code>itemFlexibleMultiplier</code>。这三个值会被用来计算子节点的位置：</p>
+<ul>
+<li><code>pos</code>表示第一个子节点（即将放置的子节点）的起始位置，后边遍历的过程中这个值会逐渐递增；</li>
+<li><code>minMaxLerp</code>表示当<code>preferred</code>大于<code>min</code>时，将会根据该<code>LayoutGroup</code>的尺寸和<code>preferred</code>作比较，得出在<code>min</code>和<code>preferred</code>之间插值的系数，同时又有<code>Clamp01</code>以确保不会超过<code>preferred</code>；</li>
+<li><code>itemFlexibleMultiplier</code>表示如果<code>LayoutGroup</code>尺寸真的比<code>preferred</code>更大时，将对各子节点的尺寸方法的系数（前提是子节点的<code>flexible</code>为正数）</li>
+</ul>
+</li>
+<li><p>遍历子节点，根据上一步初始化的三个值，及子节点的尺寸参数，调用<code>SetChildAlongAxis</code>来控制子节点的位置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">protected void SetChildAlongAxis(RectTransform rect, int axis, float pos)</span><br><span class="line">&#123;</span><br><span class="line">    if (rect &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    m_Tracker.Add(this, rect,</span><br><span class="line">        DrivenTransformProperties.Anchors |</span><br><span class="line">        (axis &#x3D;&#x3D; 0 ? DrivenTransformProperties.AnchoredPositionX : DrivenTransformProperties.AnchoredPositionY));</span><br><span class="line"></span><br><span class="line">    rect.SetInsetAndSizeFromParentEdge(axis &#x3D;&#x3D; 0 ? RectTransform.Edge.Left : RectTransform.Edge.Top, pos, rect.sizeDelta[axis]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>m_Tracker.Add(...)</code>会对子节点做出限制，子节点的<code>RectTransform</code>尺寸参数将由父节点驱动；</p>
+</li>
+<li><p><code>alongOtherAxis</code>为false时，计算位置参数，并根据<code>controlSize</code>将各个子节点对齐；</p>
+</li>
+</ul>
+<h2 id="自控制布局"><a href="#自控制布局" class="headerlink" title="自控制布局"></a>自控制布局</h2><p>前边说到的各种LayoutGroup都是控制它们的子节点，后边这两位则是控制它们自己：<code>AspectRatioFitter</code>和<code>ContentSizeFitter</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">public class AspectRatioFitter : UIBehaviour, ILayoutSelfController</span><br><span class="line">public class ContentSizeFitter : UIBehaviour, ILayoutSelfController</span><br></pre></td></tr></table></figure>
+
+<h3 id="AspectRatioFitter"><a href="#AspectRatioFitter" class="headerlink" title="AspectRatioFitter"></a>AspectRatioFitter</h3><p>首先是定义了一个枚举类型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public enum AspectMode &#123; None, WidthControlsHeight, HeightControlsWidth, FitInParent, EnvelopeParent &#125;</span><br></pre></td></tr></table></figure>
+
+<p>其核心逻辑在<code>UpdateRect</code>，在<code>OnEnable</code>、<code>OnRectTransformDimensionsChange</code>等时机都会调用此方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">private void UpdateRect()</span><br><span class="line">&#123;</span><br><span class="line">    if (!IsActive())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    m_Tracker.Clear();</span><br><span class="line"></span><br><span class="line">    switch (m_AspectMode)</span><br><span class="line">    &#123;</span><br><span class="line">#if UNITY_EDITOR</span><br><span class="line">        case AspectMode.None:</span><br><span class="line">        &#123;</span><br><span class="line">            if (!Application.isPlaying)</span><br><span class="line">                m_AspectRatio &#x3D; Mathf.Clamp(rectTransform.rect.width &#x2F; rectTransform.rect.height, 0.001f, 1000f);</span><br><span class="line"></span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">#endif</span><br><span class="line">        case AspectMode.HeightControlsWidth:</span><br><span class="line">        &#123;</span><br><span class="line">            m_Tracker.Add(this, rectTransform, DrivenTransformProperties.SizeDeltaX);</span><br><span class="line">            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rectTransform.rect.height * m_AspectRatio);</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">        case AspectMode.WidthControlsHeight:</span><br><span class="line">        &#123;</span><br><span class="line">            m_Tracker.Add(this, rectTransform, DrivenTransformProperties.SizeDeltaY);</span><br><span class="line">            rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rectTransform.rect.width &#x2F; m_AspectRatio);</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">        case AspectMode.FitInParent:</span><br><span class="line">        case AspectMode.EnvelopeParent:</span><br><span class="line">        &#123;</span><br><span class="line">            m_Tracker.Add(this, rectTransform,</span><br><span class="line">                DrivenTransformProperties.Anchors |</span><br><span class="line">                DrivenTransformProperties.AnchoredPosition |</span><br><span class="line">                DrivenTransformProperties.SizeDeltaX |</span><br><span class="line">                DrivenTransformProperties.SizeDeltaY);</span><br><span class="line"></span><br><span class="line">            rectTransform.anchorMin &#x3D; Vector2.zero;</span><br><span class="line">            rectTransform.anchorMax &#x3D; Vector2.one;</span><br><span class="line">            rectTransform.anchoredPosition &#x3D; Vector2.zero;</span><br><span class="line"></span><br><span class="line">            Vector2 sizeDelta &#x3D; Vector2.zero;</span><br><span class="line">            Vector2 parentSize &#x3D; GetParentSize();</span><br><span class="line">            if ((parentSize.y * aspectRatio &lt; parentSize.x) ^ (m_AspectMode &#x3D;&#x3D; AspectMode.FitInParent))</span><br><span class="line">            &#123;</span><br><span class="line">                sizeDelta.y &#x3D; GetSizeDeltaToProduceSize(parentSize.x &#x2F; aspectRatio, 1);</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">            &#123;</span><br><span class="line">                sizeDelta.x &#x3D; GetSizeDeltaToProduceSize(parentSize.y * aspectRatio, 0);</span><br><span class="line">            &#125;</span><br><span class="line">            rectTransform.sizeDelta &#x3D; sizeDelta;</span><br><span class="line"></span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没有什么特别复杂的逻辑，根据当前的<code>m_AspectMode</code>调整自身的<code>rectTransform</code>的参数值，其中涉及到另外的两个方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">private float GetSizeDeltaToProduceSize(float size, int axis)</span><br><span class="line">&#123;</span><br><span class="line">    return size - GetParentSize()[axis] * (rectTransform.anchorMax[axis] - rectTransform.anchorMin[axis]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private Vector2 GetParentSize()</span><br><span class="line">&#123;</span><br><span class="line">    RectTransform parent &#x3D; rectTransform.parent as RectTransform;</span><br><span class="line">    if (!parent)</span><br><span class="line">        return Vector2.zero;</span><br><span class="line">    return parent.rect.size;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ContentSizeFitter"><a href="#ContentSizeFitter" class="headerlink" title="ContentSizeFitter"></a>ContentSizeFitter</h3><p>与<code>AspectRatioFitter</code>不同，当激活或发生变化时，会调用<code>SetDirty()</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">protected void SetDirty()</span><br><span class="line">&#123;</span><br><span class="line">    if (!IsActive())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    LayoutRebuilder.MarkLayoutForRebuild(rectTransform);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进而会有继承/实现自<code>ILayoutController</code>的<code>SetLayoutXxx</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public virtual void SetLayoutHorizontal()</span><br><span class="line">&#123;</span><br><span class="line">    m_Tracker.Clear();</span><br><span class="line">    HandleSelfFittingAlongAxis(0);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public virtual void SetLayoutVertical()</span><br><span class="line">&#123;</span><br><span class="line">    HandleSelfFittingAlongAxis(1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里才是<code>ContentSizeFitter</code>的核心逻辑：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">private void HandleSelfFittingAlongAxis(int axis)</span><br><span class="line">&#123;</span><br><span class="line">    FitMode fitting &#x3D; (axis &#x3D;&#x3D; 0 ? horizontalFit : verticalFit);</span><br><span class="line">    if (fitting &#x3D;&#x3D; FitMode.Unconstrained)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Keep a reference to the tracked transform, but don&#39;t control its properties:</span><br><span class="line">        m_Tracker.Add(this, rectTransform, DrivenTransformProperties.None);</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m_Tracker.Add(this, rectTransform, (axis &#x3D;&#x3D; 0 ? DrivenTransformProperties.SizeDeltaX : DrivenTransformProperties.SizeDeltaY));</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Set size to min or preferred size</span><br><span class="line">    if (fitting &#x3D;&#x3D; FitMode.MinSize)</span><br><span class="line">        rectTransform.SetSizeWithCurrentAnchors((RectTransform.Axis)axis, LayoutUtility.GetMinSize(m_Rect, axis));</span><br><span class="line">    else</span><br><span class="line">        rectTransform.SetSizeWithCurrentAnchors((RectTransform.Axis)axis, LayoutUtility.GetPreferredSize(m_Rect, axis));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于之前有调用过<code>CalculateLayoutInputXxx</code>，所以<code>LayoutUtility.GetMinSize</code>和<code>LayoutUtility.GetPreferredSize</code>是该节点更新之后的值，</p>
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-06-04-unity-3d-ugui-source-code-08/" rel="prev" title="Unity3D UGUI 源码学习 Selectable">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 Selectable
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-06-24-lua-notes-02/" rel="next" title="Lua笔记">
+      Lua笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#接口"><span class="nav-number">1.</span> <span class="nav-text">接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类和抽象类"><span class="nav-number">2.</span> <span class="nav-text">类和抽象类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LayoutGroup"><span class="nav-number">3.</span> <span class="nav-text">LayoutGroup</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#标记更新布局"><span class="nav-number">3.1.</span> <span class="nav-text">标记更新布局</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#执行自动布局"><span class="nav-number">3.2.</span> <span class="nav-text">执行自动布局</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CalculateLayoutInputXxx"><span class="nav-number">4.</span> <span class="nav-text">CalculateLayoutInputXxx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SetLayoutXxx"><span class="nav-number">5.</span> <span class="nav-text">SetLayoutXxx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自控制布局"><span class="nav-number">6.</span> <span class="nav-text">自控制布局</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AspectRatioFitter"><span class="nav-number">6.1.</span> <span class="nav-text">AspectRatioFitter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ContentSizeFitter"><span class="nav-number">6.2.</span> <span class="nav-text">ContentSizeFitter</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">7.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '691d1d10bea52cc046d01e695ad784f3',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

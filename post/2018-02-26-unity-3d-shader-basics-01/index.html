@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Unity Shader基础知识的学习记录。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity Shader基础（一）">
+<meta property="og:url" content="http://aillieo.cn/post/2018-02-26-unity-3d-shader-basics-01/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="Unity Shader基础知识的学习记录。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-26T06:55:50.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.057Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Unity3D">
+<meta property="article:tag" content="shader">
+<meta property="article:tag" content="shaderlab">
+<meta property="article:tag" content="subshader">
+<meta property="article:tag" content="pass">
+<meta property="article:tag" content="着色器">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-02-26-unity-3d-shader-basics-01/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity Shader基础（一） | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-02-26-unity-3d-shader-basics-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity Shader基础（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-26 14:55:50" itemprop="dateCreated datePublished" datetime="2018-02-26T14:55:50+08:00">2018-02-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/ShaderLab/" itemprop="url" rel="index"><span itemprop="name">ShaderLab</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Unity Shader基础知识的学习记录。</p>
+<a id="more"></a>
+
+<h2 id="unity中的shader"><a href="#unity中的shader" class="headerlink" title="unity中的shader"></a>unity中的shader</h2><p>Unity中的shader用来定义与渲染相关的各种代码（如顶点和片元着色器）、属性（如使用哪些纹理）和指令（渲染和标签设置等）。在使用shader时需要结合材质（Material）。通过材质我们可以调整shader的属性并将其赋给要渲染的模型。</p>
+<h3 id="传统的shader"><a href="#传统的shader" class="headerlink" title="传统的shader"></a>传统的shader</h3><p>Unity中shader和传统图形学shader不同之处</p>
+<table>
+<thead>
+<tr>
+<th>传统shader</th>
+<th>Unity shader</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只能编写特定类型的shader 如顶点或片元着色器</td>
+<td>可以同时在同一个文件里包含所需的顶点和片元着色器代码</td>
+</tr>
+<tr>
+<td>无法改变渲染设置</td>
+<td>可以通过特定指令开启混合、深度测试等</td>
+</tr>
+<tr>
+<td>编写冗长的代码来设置着色器的输入和输出，并保证其位置对应关系</td>
+<td>在特定语句块中声明属性，即可通过材质来改变这些属性，对于模型自身的属性Unity shader也可以直接访问</td>
+</tr>
+<tr>
+<td></td>
+<td>由于高度的封装，可编写的shader代码也会受到一些限制</td>
+</tr>
+</tbody></table>
+<h3 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h3><p>在Unity中，当创建shader时，会有以下四种选择：</p>
+<ul>
+<li>Standard Surface Shader</li>
+</ul>
+<p>基于物理的渲染（PBR），包含了标准光照模型的表面着色器。</p>
+<ul>
+<li>Unlit Shader</li>
+</ul>
+<p>不包含光照的最基本的顶点/片元着色器。</p>
+<ul>
+<li>Image Effect Shader</li>
+</ul>
+<p>用于实现屏幕后处理效果的模板。</p>
+<ul>
+<li>Compute Shader</li>
+</ul>
+<p>与渲染无关，利用GPU进行并行计算时使用。</p>
+<h2 id="ShaderLab"><a href="#ShaderLab" class="headerlink" title="ShaderLab"></a>ShaderLab</h2><p>ShaderLab是Unity提供的用来编写Unity shader的一种说明性语言。它使用一些嵌套在花括号内的语义（Syntax）来描述一个Unity shader文件的结构。<br>下边用一个简单的Unity shader来介绍Unity shader的结构及ShaderLab的用法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">Shader <span class="string">"Custom/NewSurfaceShader"</span> &#123;</span><br><span class="line">	Properties &#123;</span><br><span class="line">		_Color (<span class="string">"Color"</span>, Color) = (<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>,<span class="number">1</span>)</span><br><span class="line">		_MainTex (<span class="string">"Albedo (RGB)"</span>, <span class="number">2</span>D) = <span class="string">"white"</span> &#123;&#125;</span><br><span class="line">		_Glossiness (<span class="string">"Smoothness"</span>, Range(<span class="number">0</span>,<span class="number">1</span>)) = <span class="number">0.5</span></span><br><span class="line">		_Metallic (<span class="string">"Metallic"</span>, Range(<span class="number">0</span>,<span class="number">1</span>)) = <span class="number">0.0</span></span><br><span class="line">	&#125;</span><br><span class="line">	SubShader &#123;</span><br><span class="line">		Tags &#123; <span class="string">"RenderType"</span>=<span class="string">"Opaque"</span> &#125;</span><br><span class="line">		LOD <span class="number">200</span></span><br><span class="line">		</span><br><span class="line">		CGPROGRAM</span><br><span class="line">		<span class="comment">// Physically based Standard lighting model, and enable shadows on all light types</span></span><br><span class="line">		#pragma surface surf Standard fullforwardshadows</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Use shader model 3.0 target, to get nicer looking lighting</span></span><br><span class="line">		#pragma target <span class="number">3.0</span></span><br><span class="line"></span><br><span class="line">		sampler2D _MainTex;</span><br><span class="line"></span><br><span class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">Input</span> &#123;</span></span><br><span class="line">			float2 uv_MainTex;</span><br><span class="line">		&#125;;</span><br><span class="line"></span><br><span class="line">		half _Glossiness;</span><br><span class="line">		half _Metallic;</span><br><span class="line">		fixed4 _Color;</span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="keyword">void</span> <span class="title">surf</span> <span class="params">(Input IN, inout SurfaceOutputStandard o)</span> </span>&#123;</span><br><span class="line">			<span class="comment">// Albedo comes from a texture tinted by color</span></span><br><span class="line">			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;</span><br><span class="line">			o.Albedo = c.rgb;</span><br><span class="line">			<span class="comment">// Metallic and smoothness come from slider variables</span></span><br><span class="line">			o.Metallic = _Metallic;</span><br><span class="line">			o.Smoothness = _Glossiness;</span><br><span class="line">			o.Alpha = c.a;</span><br><span class="line">		&#125;</span><br><span class="line">		ENDCG</span><br><span class="line">	&#125;</span><br><span class="line">	FallBack <span class="string">"Diffuse"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中包含以下一些元素：</p>
+<h3 id="shader名称"><a href="#shader名称" class="headerlink" title="shader名称"></a>shader名称</h3><p>Unity shader的第一行用来为其指定名字。上述shader定义为<code>&quot;Custom/NewSurfaceShader&quot;</code>，表示位于<code>Custom</code>路径下，名为<code>NewSurfaceShader</code>。</p>
+<h3 id="Properties"><a href="#Properties" class="headerlink" title="Properties"></a>Properties</h3><p><code>Properties</code>块包含了一系列的属性，也是Unity shader和材质交流的途径。<code>Properties</code>块内定义方式一般为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Name(&quot;Display Name&quot;, PropertyType) &#x3D; defaultValue</span><br></pre></td></tr></table></figure>
+<p>其中各参数含义如下：</p>
+<table>
+<thead>
+<tr>
+<th>标记</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Name</td>
+<td>属性名，通常定义为以一个下划线开头</td>
+</tr>
+<tr>
+<td>Display Name</td>
+<td>该属性出现在材质的检视面板上时显示的名称</td>
+</tr>
+<tr>
+<td>PropertyType</td>
+<td>属性类型，可选的类型及默认值等见下表</td>
+</tr>
+<tr>
+<td>PropertyType</td>
+<td>属性类型，可选的类型及默认值的形式等见下表</td>
+</tr>
+<tr>
+<td>defaultValue</td>
+<td>属性的默认值</td>
+</tr>
+</tbody></table>
+<p>各属性类型及默认值形式表：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>默认值格式</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Int</td>
+<td>number</td>
+<td>_Int (“Int”, Int) = 2</td>
+</tr>
+<tr>
+<td>Float</td>
+<td>number</td>
+<td>_Float (“Float”, Float) = 1.5</td>
+</tr>
+<tr>
+<td>Range(min, max)</td>
+<td>number</td>
+<td>_Range(“Range”, Range(0.0,5.0)) = 3.1</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>(number,number,number,number)</td>
+<td>_Color (“Color”, Color) =(1,1,1,1)</td>
+</tr>
+<tr>
+<td>Vector</td>
+<td>(number,number,number,number)</td>
+<td>_Vector (“Vector”, Vector) = (2,3,6, 1)</td>
+</tr>
+<tr>
+<td>2D</td>
+<td>“defaulttexture” {}</td>
+<td>_2D (“2D”, 2D) = “” {}</td>
+</tr>
+<tr>
+<td>Cube</td>
+<td>“defaulttexture” {}</td>
+<td>_Cube (“Cube”, Cube) “white” {}</td>
+</tr>
+<tr>
+<td>3D</td>
+<td>“defaulttexture” {}</td>
+<td>_3D (“3D”, 3D) “black” {}</td>
+</tr>
+</tbody></table>
+<p>注意2D、Cube、3D这三种类型，默认值是由一个字符串和一个花括号来定义的。字符串可以是空字符串或者内置纹理的名称。花括号在旧的Unity版本中用来指定一些纹理属性，新版本（5.0以后）中这些纹理属性则需要在顶点着色器中编写。</p>
+<p>在Properties中声明这些属性的主要目的是为了在Inspector上显示出这些属性。即使没有在Properties中声明，CG代码片中也可以直接定义变量。</p>
+<h3 id="SubShader"><a href="#SubShader" class="headerlink" title="SubShader"></a>SubShader</h3><p>每个Unity shader中都必须包括至少一个SubShader。Unity加载此Unity shader时，会扫描所有的SubShader，然后选择第一个能在该目标平台执行的SubShader，如果都不支持的话就选择Fallback中指定的Unity shader。<br>SubShader的结构通常如下，包含了一些可选的标签Tags、状态设置CommonState以及一个或多个Pass：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Subshader &#123;</span><br><span class="line"></span><br><span class="line">    [Tags]</span><br><span class="line">    </span><br><span class="line">    [CommonState]</span><br><span class="line">    </span><br><span class="line">    Passdef</span><br><span class="line">    </span><br><span class="line">    [Passdef ...]</span><br><span class="line">    </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Tag"><a href="#Tag" class="headerlink" title="Tag"></a>Tag</h4><p>标签是一组键值对，键和值都是字符串，这些键值对是SubShader和渲染引擎之间沟通的桥梁。<br>SubShader支持的标签如下表：</p>
+<table>
+<thead>
+<tr>
+<th>标签类型</th>
+<th>说明</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Queue</td>
+<td>控制渲染顺序，指定该物体属于哪一个渲染队列，通过这种方式可以控制所有的透明物体在非透明物体之后渲染，也可以自定义使用的渲染队列来控制物体的渲染顺序</td>
+<td>Tag { “Queue” = “Transparent” }</td>
+</tr>
+<tr>
+<td>RenderType</td>
+<td>对着色器进行分类，例如这是一个不透明的着色器，或者是一个透明的着色器等</td>
+<td>Tag { “RenderType” = “Opaque” }</td>
+</tr>
+<tr>
+<td>DisableBatching</td>
+<td>一些SubShader在使用Unity的批处理功能时会出现问题，例如使用了模型空间下的坐标进行顶点动画时等。这时可以通过该标签来指明是否对该SubShader使用批处理</td>
+<td>Tag { “DisableBatching” = “True” }</td>
+</tr>
+<tr>
+<td>ForceNoShadowCasting</td>
+<td>控制使用该SubShader的物体是否会投射阴影</td>
+<td>Tag { “ForceNoShadowCasting” = “True” }</td>
+</tr>
+<tr>
+<td>IgnoreProjector</td>
+<td>如果该标签值为”True”，那么使用该SubShader的物体将不受Projector的影响，通常用于半透明物体</td>
+<td>Tag { “IgnoreProjector” = “True” }</td>
+</tr>
+<tr>
+<td>CanUseSpriteAtlas</td>
+<td>当该SubShader是用于精灵Sprite时，将该标签设置为”False”</td>
+<td>Tag { “CanUseSpriteAtlas” = “False” }</td>
+</tr>
+<tr>
+<td>PreviewType</td>
+<td>指明材质面板将如何预览该材质，默认为球形，可以改为”Plane”、”SkyBox”等</td>
+<td>Tag { “PreviewType” = “Plane” }</td>
+</tr>
+</tbody></table>
+<h4 id="CommonState"><a href="#CommonState" class="headerlink" title="CommonState"></a>CommonState</h4><p>SubShader中可以定义一组渲染状态（Render State），通常是一些渲染的开关选项，他们对整个SubShader内所有的Pass都有效，所以称CommonState。这些渲染状态也可以在每个Pass中分别定义，则只对每个Pass起效。</p>
+<p>渲染状态的指令可以指定显卡的各种状态，常见的一些渲染状态设置选项见下表：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>指令</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Cull</td>
+<td>Cull Back &#124; Front &#124; Off</td>
+<td>设置剔除模式</td>
+</tr>
+<tr>
+<td>ZTest</td>
+<td>ZTest Less &#124; Greater &#124; Equal &#124; LEqual &#124; GEqual &#124; NotEqual &#124; Always</td>
+<td>设置深度测试使用的函数</td>
+</tr>
+<tr>
+<td>ZWrite</td>
+<td>ZWrite On &#124; Off</td>
+<td>深度写入</td>
+</tr>
+<tr>
+<td>Blend</td>
+<td>Blend SrcFactor DstFactor</td>
+<td>开启并设置混合模式</td>
+</tr>
+</tbody></table>
+<h4 id="Pass"><a href="#Pass" class="headerlink" title="Pass"></a>Pass</h4><p>Pass分为以下三种：</p>
+<h5 id="常规Pass"><a href="#常规Pass" class="headerlink" title="常规Pass"></a>常规Pass</h5><p>Pass的语法通常如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Pass &#123; </span><br><span class="line">	[Name]</span><br><span class="line">	[Tags] </span><br><span class="line">	[RenderSetup]</span><br><span class="line">	&#x2F;&#x2F; other code</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先是定义Pass的名称，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Name &quot;MyPassName&quot;</span><br></pre></td></tr></table></figure>
+
+<p>有了这个名称就可以使用ShaderLab的UsePass命令来直接使用其它的Unity Shader中的Pass，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UsePass &quot;MyShader&#x2F;MYPASSNAME&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这样大大提高了代码的复用性，注意Unity内部会把所有的Pass名称转化为大写字母形式，因此在使用<code>UsePass</code>时必须使用大写形式的名字。</p>
+<p>名字之后是渲染状态的设置。SubShader中的渲染状态设置同样适用于Pass。除了上边提到的状态设置之外，Pass中还可以使用固定管线的着色器命令。</p>
+<p>Pass中同样可以设置标签，也是用来告知渲染引擎我们希望怎样来渲染物体。但是此处的标签与SubShader中使用的标签不同。以下是Pass中使用的标签类型：</p>
+<table>
+<thead>
+<tr>
+<th>标签</th>
+<th>说明</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LightMode</td>
+<td>定义该Pass在Unity的渲染流水线中的角色</td>
+<td>Tags {“LightMode” = “ForwardBase”}</td>
+</tr>
+<tr>
+<td>RequiredOptions</td>
+<td>用于指定当满足某些条件时才渲染该Pass，它的值是一个由空格分隔的字符串。目前，Unity支持的选项有：SoftVegetation。在后边的版本中可能会增加更多的选项</td>
+<td>Tags {“RequiredOptions” = “SoftVegetation”}</td>
+</tr>
+</tbody></table>
+<h5 id="Use-Pass"><a href="#Use-Pass" class="headerlink" title="Use Pass"></a>Use Pass</h5><p>可以使用该命令来复用其他UnityShader中的Pass。</p>
+<h5 id="Grab-Pass"><a href="#Grab-Pass" class="headerlink" title="Grab Pass"></a>Grab Pass</h5><p>该Pass负责抓取屏幕并将结果存储在一张纹理中，以用于后续的Pass处理。</p>
+<h3 id="着色器代码"><a href="#着色器代码" class="headerlink" title="着色器代码"></a>着色器代码</h3><p>由<code>CGPROGRAM</code>和<code>ENDCG</code>包围起来的，使用嵌套在ShaderLab语言中CG/HLSL编写的着色器代码。这些代码和标准的CG/HLSL语法几乎一样。可以用于编写Unity表面着色器或顶点/片元着色器，后边详细介绍。</p>
+<h3 id="Fallback"><a href="#Fallback" class="headerlink" title="Fallback"></a>Fallback</h3><p>Fallback指令紧跟在各个SubShader语义块后边，当上边所有的SubShader在这块显卡上都不能运行，那么就使用这个Fallback的shader，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Fallback &quot;VertexLit&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="编写Unity-shader"><a href="#编写Unity-shader" class="headerlink" title="编写Unity shader"></a>编写Unity shader</h2><p>当在Unity中编写和使用Unity shader时可以有三种选择，表面着色器（Surface Shader）、顶点/片元着色器和固定函数着色器。无论使用哪一种形式，真正意义上的Shader代码都是包含在ShaderLab语义块中的，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;MyShader&quot; &#123;</span><br><span class="line">	Properties &#123;</span><br><span class="line">		&#x2F;&#x2F; ...</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	SubShader &#123;</span><br><span class="line">		&#x2F;&#x2F; 真正意义上的Shader代码：</span><br><span class="line">		&#x2F;&#x2F; 表面着色器(Surface Shader)或者</span><br><span class="line">		&#x2F;&#x2F; 顶点&#x2F;片元着色器(Vertex&#x2F;Fragment Shader)或者</span><br><span class="line">		&#x2F;&#x2F; 固定函数着色器(Fixed Function Shader)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	SubShader &#123;</span><br><span class="line">		&#x2F;&#x2F; 与前一个SubShader类似</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="表面着色器"><a href="#表面着色器" class="headerlink" title="表面着色器"></a>表面着色器</h3><p>表面着色器是Unity自创的一种着色器代码类型，可以认为是Unity对顶点/片元着色器的更高一层的抽象，所需的代码量非常少，但是渲染的代价会比较大。使用表面着色器时，Unity会帮我们处理很多光照细节，以增加编写shader的便利性。</p>
+<p>以下是一个示例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Shader <span class="string">"Custom/Simple Surface Shader"</span> &#123;</span><br><span class="line">	SubShader &#123;</span><br><span class="line">		Tags &#123; <span class="string">"RenderType"</span> = <span class="string">"Opaque"</span> &#125;</span><br><span class="line">		CGPROGRAM</span><br><span class="line">		#pragma surface surf Lambert</span><br><span class="line">		struct Input &#123;</span><br><span class="line">			float4 color : COLOR;</span><br><span class="line">		&#125;;</span><br><span class="line">		<span class="function"><span class="keyword">void</span> <span class="title">surf</span> <span class="params">(Input IN, inout SurfaceOutput o)</span> </span>&#123;</span><br><span class="line">			o.Albedo = <span class="number">1</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		ENDCG</span><br><span class="line">	&#125;</span><br><span class="line">	Fallback <span class="string">"Diffuse"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>表面着色器被定义在SubShader语义块而非Pass语义块中的<code>CGPROGRAM</code>和<code>ENDCG</code>之间。这是因为表面着色器不需要开发者关心使用多少个Pass、每个Pass如何渲染等问题，这些工作Unity会在背后替我们完成。</p>
+<h3 id="顶点-片元着色器"><a href="#顶点-片元着色器" class="headerlink" title="顶点/片元着色器"></a>顶点/片元着色器</h3><p>可以使用CG/HLSL在Unity中编写顶点/片元着色器，他们会更复杂但是灵活性也更高，以下是一段示例代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Custom&#x2F;Simple VertexFragment Shader&quot; &#123;</span><br><span class="line">	SubShader &#123;</span><br><span class="line">		Pass &#123;</span><br><span class="line">			CGPROGRAM</span><br><span class="line"></span><br><span class="line">			#pragma vertext vert</span><br><span class="line">			#pragma fragment frag</span><br><span class="line"></span><br><span class="line">			float4 vert(float4 v : POSITION) : SV_POSITION &#123;</span><br><span class="line">				return mul (UNITY_MATRIX_MVP, v);</span><br><span class="line">			&#125;</span><br><span class="line">			</span><br><span class="line">			fixed4 frag() : SV_Target &#123;</span><br><span class="line">				return fixed4(1.0,0.0,0.0,1.0);</span><br><span class="line">			&#125;</span><br><span class="line">			ENDCG</span><br><span class="line">		&#125;	</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与表面着色器不同，顶点/片元着色器的代码是写在Pass语义块内，而非SubShader内的。这是因为我们需要自己定义每个Pass使用Shader的代码。虽然我们可能需要编写更多的代码，但是带来的好处是灵活性更高。更重要的是，我们可以控制渲染的实现细节。</p>
+<h3 id="固定函数着色器"><a href="#固定函数着色器" class="headerlink" title="固定函数着色器"></a>固定函数着色器</h3><p>之前的两种Unity Shader形式都使用了可编程管线。对于不支持可编程管线着色器的设备就需要使用固定函数着色器来完成渲染。这些着色器往往只可以完成一些非常简单的效果。以下是一个示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Shader &quot;Custom&#x2F;Simple Fixed Function Shader&quot; &#123;</span><br><span class="line">	Properties &#123;</span><br><span class="line">		_Color (&quot;Main Color&quot;, Color) &#x3D; (1,0.5,0.5,1)</span><br><span class="line">	&#125;</span><br><span class="line">	SubShader &#123;</span><br><span class="line">		Pass &#123;</span><br><span class="line">			Material &#123;</span><br><span class="line">				Diffuse [_Color]</span><br><span class="line">			&#125;</span><br><span class="line">			Lighting On</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>固定函数着色器的代码被定义在Pass语义块中，这些代码相当于Pass中的一些渲染设置。对于固定函数着色器，我们需要完全使用ShaderLab的语法（即使用ShaderLab的渲染设置命令）来编写，而不是CG/HLSL。</p>
+<h3 id="选择Unity-Shader的形式"><a href="#选择Unity-Shader的形式" class="headerlink" title="选择Unity Shader的形式"></a>选择Unity Shader的形式</h3><ul>
+<li>除非必须，尽量不要使用固定函数着色器</li>
+<li>如果需要和各种光源打交道，建议使用表面着色器，但是需要注意其在移动平台的性能表现</li>
+<li>如果涉及到的光照数目非常少，例如只有一个平行光，请选择顶点/片元着色器</li>
+<li>如果有很多的自定义渲染效果，请选择顶点/片元着色器</li>
+</ul>
+<h2 id="Unity-Shader的示例"><a href="#Unity-Shader的示例" class="headerlink" title="Unity Shader的示例"></a>Unity Shader的示例</h2><p>Unity3D文档中的一些shader的示例可用作参考学习：</p>
+<ul>
+<li><p>表面着色器</p>
+<p><a href="https://docs.unity3d.com/Manual/SL-SurfaceShaderExamples.html" target="_blank" rel="noopener">https://docs.unity3d.com/Manual/SL-SurfaceShaderExamples.html</a></p>
+</li>
+</ul>
+<ul>
+<li><p>自定义光照的表面着色器</p>
+<p><a href="https://docs.unity3d.com/Manual/SL-SurfaceShaderLightingExamples.html" target="_blank" rel="noopener">https://docs.unity3d.com/Manual/SL-SurfaceShaderLightingExamples.html</a></p>
+</li>
+</ul>
+<ul>
+<li><p>顶点/片元着色器</p>
+<p><a href="https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html" target="_blank" rel="noopener">https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html</a></p>
+</li>
+</ul>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/Manual/SL-Reference.html" target="_blank" rel="noopener">https://docs.unity3d.com/Manual/SL-Reference.html</a></p>
+<p><a href="https://book.douban.com/subject/26821639/" target="_blank" rel="noopener">《Unity Shader入门精要》</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/shader/" rel="tag"># shader</a>
+              <a href="/tags/ShaderLab/" rel="tag"># ShaderLab</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-01-31-lua-notes-01/" rel="prev" title="lua实现简单的栈和队列">
+      <i class="fa fa-chevron-left"></i> lua实现简单的栈和队列
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-02-27-unity-3d-shader-basics-02/" rel="next" title="Unity Shader基础（二）">
+      Unity Shader基础（二） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#unity中的shader"><span class="nav-number">1.</span> <span class="nav-text">unity中的shader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#传统的shader"><span class="nav-number">1.1.</span> <span class="nav-text">传统的shader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分类"><span class="nav-number">1.2.</span> <span class="nav-text">分类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ShaderLab"><span class="nav-number">2.</span> <span class="nav-text">ShaderLab</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#shader名称"><span class="nav-number">2.1.</span> <span class="nav-text">shader名称</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Properties"><span class="nav-number">2.2.</span> <span class="nav-text">Properties</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SubShader"><span class="nav-number">2.3.</span> <span class="nav-text">SubShader</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Tag"><span class="nav-number">2.3.1.</span> <span class="nav-text">Tag</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CommonState"><span class="nav-number">2.3.2.</span> <span class="nav-text">CommonState</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Pass"><span class="nav-number">2.3.3.</span> <span class="nav-text">Pass</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#常规Pass"><span class="nav-number">2.3.3.1.</span> <span class="nav-text">常规Pass</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Use-Pass"><span class="nav-number">2.3.3.2.</span> <span class="nav-text">Use Pass</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Grab-Pass"><span class="nav-number">2.3.3.3.</span> <span class="nav-text">Grab Pass</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#着色器代码"><span class="nav-number">2.4.</span> <span class="nav-text">着色器代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fallback"><span class="nav-number">2.5.</span> <span class="nav-text">Fallback</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编写Unity-shader"><span class="nav-number">3.</span> <span class="nav-text">编写Unity shader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#表面着色器"><span class="nav-number">3.1.</span> <span class="nav-text">表面着色器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#顶点-片元着色器"><span class="nav-number">3.2.</span> <span class="nav-text">顶点&#x2F;片元着色器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#固定函数着色器"><span class="nav-number">3.3.</span> <span class="nav-text">固定函数着色器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选择Unity-Shader的形式"><span class="nav-number">3.4.</span> <span class="nav-text">选择Unity Shader的形式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Unity-Shader的示例"><span class="nav-number">4.</span> <span class="nav-text">Unity Shader的示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'd6937af38d39c198ef7c39b1e535ece5',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

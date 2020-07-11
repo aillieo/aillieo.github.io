@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="除了上文的线性坐标变换之外，很多情况下还会有平移、绕原点之外点的旋转、透视投影等变换，这些属于仿射变换。在开始进入仿射变换之前，先看齐次坐标的概念。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="齐次坐标与仿射变换">
+<meta property="og:url" content="http://aillieo.cn/post/2017-03-12-homogeneous-coordinate-and-affine-transformation/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="除了上文的线性坐标变换之外，很多情况下还会有平移、绕原点之外点的旋转、透视投影等变换，这些属于仿射变换。在开始进入仿射变换之前，先看齐次坐标的概念。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2017-03-12-homogeneous-coordinate-and-affine-transformation/2017-03-12-homogeneous-coordinate-and-affine-transformation/fig_01.png">
+<meta property="og:image" content="http://aillieo.cn/post/2017-03-12-homogeneous-coordinate-and-affine-transformation/2017-03-12-homogeneous-coordinate-and-affine-transformation/fig_02.png">
+<meta property="article:published_time" content="2017-03-12T14:56:07.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.046Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="matrix">
+<meta property="article:tag" content="transformation">
+<meta property="article:tag" content="coordinate">
+<meta property="article:tag" content="affine">
+<meta property="article:tag" content="homogeneous">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2017-03-12-homogeneous-coordinate-and-affine-transformation/2017-03-12-homogeneous-coordinate-and-affine-transformation/fig_01.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-03-12-homogeneous-coordinate-and-affine-transformation/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>齐次坐标与仿射变换 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-03-12-homogeneous-coordinate-and-affine-transformation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          齐次坐标与仿射变换
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-12 22:56:07" itemprop="dateCreated datePublished" datetime="2017-03-12T22:56:07+08:00">2017-03-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Mathematics/" itemprop="url" rel="index"><span itemprop="name">Mathematics</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>除了上文的<a href="http://aillieo.cn/post/2017-03-07-linear-transformation-of-coordinate-system/">线性坐标变换</a>之外，很多情况下还会有平移、绕原点之外点的旋转、透视投影等变换，这些属于仿射变换。在开始进入仿射变换之前，先看齐次坐标的概念。</p>
+<a id="more"></a>
+
+<h2 id="齐次坐标"><a href="#齐次坐标" class="headerlink" title="齐次坐标"></a>齐次坐标</h2>
+
+尝试使用3D的矩阵来表示点的平移，把点$v$平移$\Delta v$。这需要对$v$和$\Delta v$的各个分量分别求和：
+$$
+v'=v+\Delta v = 
+\begin{bmatrix}
+(x+\Delta x) &
+(y+\Delta y) &
+(z+\Delta z) 
+\end{bmatrix}
+$$
+矩阵的乘法涉及对元素的相乘和相加，但并没有办法把$\Delta v$的分量放置在$3\times 3$矩阵里，使其与矢量$v$相乘后产生如$(x+\Delta x)$的和。
+
+为解决这一问题，引入齐次坐标的概念。使用齐次坐标时，原本$n$维矢量使用$n+1$维矢量来表示，增加的分量记为$w$。
+
+
+
+<h3 id="平面内的齐次坐标"><a href="#平面内的齐次坐标" class="headerlink" title="平面内的齐次坐标"></a>平面内的齐次坐标</h3><p>平面中齐次坐标的形式为$(x,y,w)$ ，想象在3D中$w=1$处的2D平面，实际的2D点$(x,y)$用齐次坐标表示为$(x,y,1)$，对于那些不在$w=1$平面上的点，则将它们投影到$w=1$平面上。所以齐次坐标$(x,y,w)$映射的2D点为$(x/w,y/w)$，如下图所示：</p>
+<p><img src="2017-03-12-homogeneous-coordinate-and-affine-transformation/fig_01.png" alt="fig"></p>
+<p>因此，给定一个2D点$(x,y)$，齐次空间中会有无数个点与之对应。所有的点都可以写作$(kx,ky,k),k\neq0$。这些点构成一条穿过齐次原点的直线。</p>
+<p>当$w=0$时，除法无意义，所以不存在实际的2D点。可以将2D齐次点$(x,y,0)$解释为位于无穷远处的点，它描述的是一个方向而不是一个位置。</p>
+<h3 id="空间中的齐次坐标"><a href="#空间中的齐次坐标" class="headerlink" title="空间中的齐次坐标"></a>空间中的齐次坐标</h3><p>4D坐标的基本思想相同。3D点可以被认为是在4D中$w=1$“平面”上。4D点的形式是$(x,y,z,w)$，将4D点“投影”刚才的“平面”上，得到相应的实际3D点$(x/w,y/w,z/w)$。$w=0$时4D点用于描述一个方向而不是一个位置。</p>
+<h2 id="仿射变换"><a href="#仿射变换" class="headerlink" title="仿射变换"></a>仿射变换</h2>
+
+仿射变换是指线性变换后接着平移，因此仿射变换是线性变换的超集。
+
+对于3D空间，$3\times3$变换矩阵用于表示线性变换，不包含平移，因为矩阵乘法的性质，零向量总是变换成零向量，因此任何能用矩阵乘法表达的变换都不包含平移。而$4\times4$矩阵可提供一种数学上的“技巧”，使平移变换也可以像线性变换一样使用矩阵乘法来表示。
+
+假设$w$总是为1，标准3D矢量$[x,y,z]$对应的4D矢量为$[x,y,z,1]$，任意$3\times3$变换矩阵在4D中表示为：
+$$
+\begin{bmatrix}
+  m_{11} & m_{12} & m_{13} \\
+  m_{21} & m_{22} & m_{23} \\
+  m_{31} & m_{32} & m_{33} \\
+  \end{bmatrix}
+\Rightarrow
+\begin{bmatrix}
+  m_{11} & m_{12} & m_{13} & 0\\
+  m_{21} & m_{22} & m_{23} & 0\\
+  m_{31} & m_{32} & m_{33} & 0\\
+  0& 0 & 0 & 1
+\end{bmatrix}
+$$
+则任意一个形如$[x,y,z,1]$的矢量乘以上边的$4\times4$矩阵，其结果会和标准的$3\times3$矩阵相同，只是用$w=1$的4D矢量表示。
+$$
+\begin{bmatrix} x & y & z \end{bmatrix}
+\begin{bmatrix}
+  m_{11} & m_{12} & m_{13} \\
+  m_{21} & m_{22} & m_{23} \\
+  m_{31} & m_{32} & m_{33} \\
+  \end{bmatrix}
+  =
+  \begin{bmatrix} 
+  xm_{11}+ym_{21}+zm_{31} &
+  xm_{12}+ym_{22}+zm_{32} &
+  xm_{13}+ym_{23}+zm_{33} 
+  \end{bmatrix}
+$$
+
+$$
+\begin{bmatrix} x & y & z & 1 \end{bmatrix}
+\begin{bmatrix}
+  m_{11} & m_{12} & m_{13} & 0\\
+  m_{21} & m_{22} & m_{23} & 0\\
+  m_{31} & m_{32} & m_{33} & 0\\
+  0& 0 & 0 & 1
+\end{bmatrix}
+  =
+  \begin{bmatrix} 
+  xm_{11}+ym_{21}+zm_{31} &
+  xm_{12}+ym_{22}+zm_{32} &
+  xm_{13}+ym_{23}+zm_{33} &
+  1
+  \end{bmatrix}
+$$
+
+3D中的所有线性变换矩阵也都可以通过$4\times4$矩阵的形式表示。
+
+
+
+<h3 id="平移"><a href="#平移" class="headerlink" title="平移"></a>平移</h3>
+
+本文一开始提出的问题得以解决：
+$$
+\begin{bmatrix} x & y & z & 1 \end{bmatrix}
+\begin{bmatrix}
+ 1 & 0 &0 & 0\\
+  0 & 1 & 0 & 0\\
+  0 & 0 & 1 & 0\\
+  \Delta x & \Delta y & \Delta z & 1
+\end{bmatrix}
+  =
+  \begin{bmatrix} 
+  x+\Delta x &
+  y+\Delta y &
+  z+\Delta z &
+  1
+  \end{bmatrix}
+$$
+
+
+<h3 id="旋转（绕指定点）"><a href="#旋转（绕指定点）" class="headerlink" title="旋转（绕指定点）"></a>旋转（绕指定点）</h3>
+
+绕原点以外的点旋转（及其它的不满足线性变换条件的变换）可以分解为三步：
+
+1. 将旋转（或其它变换）的中心点移到原点
+2. 进行线性变换
+3. 变换后将原点移回旋转中心（或其它变换的中心）
+   使用这一思路来推导绕点$P$旋转的变换矩阵。
+   矩阵$T$表示将$P$平移变换至原点的矩阵，则有：
+$$
+T=\begin{bmatrix}
+  1 & 0 & 0 & 0\\
+  0 & 1 & 0 & 0\\
+  0 & 0 & 1 & 0\\
+  -P_x & -P_y & -P_z & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+  I & 0 \\
+  -P & 1
+\end{bmatrix}
+$$
+上式中$I$表示3阶的单位矩阵，后边均用这种表示方法。
+
+易知将原点移回$P$的矩阵为$T$的逆矩阵：
+$$
+T^{-1}=\begin{bmatrix}
+  1 & 0 & 0 & 0\\
+  0 & 1 & 0 & 0\\
+  0 & 0 & 1 & 0\\
+  P_x & P_y & P_z & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+  I & 0 \\
+  P & 1
+\end{bmatrix}
+$$
+
+旋转变换矩阵用$R_{3\times 3}$表示：
+$$
+R_{3\times 3} =
+\begin{bmatrix}
+  r_{11} & r_{12} & r_{13} \\
+  r_{21} & r_{22} & r_{23} \\
+  r_{31} & r_{32} & r_{33} \\
+  \end{bmatrix}
+$$
+对应的4D表示为：
+$$
+R_{4\times 4}=
+\begin{bmatrix}
+  r_{11} & r_{12} & r_{13} & 0\\
+  r_{21} & r_{22} & r_{23} & 0\\
+  r_{31} & r_{32} & r_{33} & 0\\
+  0 & 0 & 0 & 1
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  R_{3\times 3} & 0 \\
+  0 & 1 \\
+  \end{bmatrix}
+$$
+绕任意点$P$旋转的矩阵为：
+$$
+\begin{align}
+M &= TR_{4\times 4}T^{-1}\\
+&= 
+\begin{bmatrix}
+  1 & 0 & 0 & 0\\
+  0 & 1 & 0 & 0\\
+  0 & 0 & 1 & 0\\
+  -P_x & -P_y & -P_z & 1
+\end{bmatrix}
+\begin{bmatrix}
+  r_{11} & r_{12} & r_{13} & 0\\
+  r_{21} & r_{22} & r_{23} & 0\\
+  r_{31} & r_{32} & r_{33} & 0\\
+  0 & 0 & 0 & 1
+  \end{bmatrix}
+  \begin{bmatrix}
+  1 & 0 & 0 & 0\\
+  0 & 1 & 0 & 0\\
+  0 & 0 & 1 & 0\\
+  P_x & P_y & P_z & 1
+\end{bmatrix}\\
+&=
+\begin{bmatrix}
+  I & 0 \\
+  -P & 1
+\end{bmatrix}
+  \begin{bmatrix}
+  R_{3\times 3} & 0 \\
+  0 & 1 \\
+  \end{bmatrix}
+\begin{bmatrix}
+  I & 0 \\
+  P & 1
+\end{bmatrix}\\
+&=\begin{bmatrix}
+ R_{3\times 3} & 0 \\
+  -P R_{3\times 3} +P& 1
+\end{bmatrix}
+\end{align}
+$$
+可以看出，仿射变换中增加的平移部分仅仅改变了$4\times4$矩阵的最后一行，并没有影响到上边所包含的线性变换的$3\times3$的部分。
+
+其余的仿射变换，如绕不通过原点的轴旋转，沿不穿过原点的平面缩放，沿不穿过原点的平面镜像，向不穿过原点的平面正交投影等均是类似的情况。
+
+
+
+<h3 id="透视投影"><a href="#透视投影" class="headerlink" title="透视投影"></a>透视投影</h3>
+
+之前的讨论中齐次坐标齐次项始终有$w=1$，将$3\times3$矩阵变化为$4\times4$矩阵并非齐次坐标的所有用处。
+
+透视投影是一种比较复杂的变换。首先来考虑一个比较简单的情况，下图中，待投影的点为$P$，投影平面为平行于$xy$平面的$z=d$平面，投影中心为原点。投影得到的点为$P'$。
+
+
+
+<p><img src="2017-03-12-homogeneous-coordinate-and-affine-transformation/fig_02.png" alt="fig"></p>
+
+
+根据相似三角形原理很容易得出$P'$点的坐标：
+$$
+P' = 
+\begin{bmatrix}
+P'_x &
+P'_y &
+P'_z
+\end{bmatrix}
+=
+\begin{bmatrix}
+dP_x/P_z &
+dP_y/P_z &
+d
+\end{bmatrix}
+$$
+为了得到透视投影的变换矩阵，需要将$P'$的坐标转化到4D表示：
+$$
+P'=
+\begin{bmatrix}
+dP_x/P_z &
+dP_y/P_z &
+d &
+1
+\end{bmatrix}
+=
+\begin{bmatrix}
+P_x &
+P_y &
+P_z &
+P_z/d
+\end{bmatrix}
+$$
+此时，需要找到一个$4\times4$的矩阵，使其满足条件$PR=P'$：
+$$
+\begin{bmatrix}
+P_x &
+P_y &
+P_z &
+1
+\end{bmatrix}
+\begin{bmatrix}
+1&0&0&0 \\
+0&1&0&0 \\
+0&0&1&1/d\\
+0&0&0&0
+\end{bmatrix}
+=
+\begin{bmatrix}
+P_x &
+P_y &
+P_z &
+P_z/d
+\end{bmatrix}
+$$
+因此找到了向$z=d$平面透视投影的矩阵$R$：
+$$
+R=\begin{bmatrix}
+1&0&0&0 \\
+0&1&0&0 \\
+0&0&1&1/d\\
+0&0&0&0
+\end{bmatrix}
+$$
+此矩阵用来计算出齐次坐标$w$的值，然后再将4D的齐次坐标变换为3D坐标，即完成了透视投影的变换。但是在实际应用中，投影中心或投影平面有不同的定义时，投影矩阵会有很多种变化情况。
+
+
+
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/25815142/" target="_blank" rel="noopener">游戏引擎架构</a><br><a href="https://book.douban.com/subject/1400419/" target="_blank" rel="noopener">3D数学基础：图形与游戏开发</a><br><a href="http://www.codeguru.com/cpp/misc/misc/graphics/article.php/c10123/Deriving-Projection-Matrices.htm" target="_blank" rel="noopener">http://www.codeguru.com/cpp/misc/misc/graphics/article.php/c10123/Deriving-Projection-Matrices.htm</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/matrix/" rel="tag"># matrix</a>
+              <a href="/tags/transformation/" rel="tag"># transformation</a>
+              <a href="/tags/coordinate/" rel="tag"># coordinate</a>
+              <a href="/tags/affine/" rel="tag"># affine</a>
+              <a href="/tags/homogeneous/" rel="tag"># homogeneous</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-03-07-linear-transformation-of-coordinate-system/" rel="prev" title="线性坐标变换">
+      <i class="fa fa-chevron-left"></i> 线性坐标变换
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-03-22-lua-basics/" rel="next" title="Lua基础">
+      Lua基础 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#齐次坐标"><span class="nav-number">1.</span> <span class="nav-text">齐次坐标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#平面内的齐次坐标"><span class="nav-number">1.1.</span> <span class="nav-text">平面内的齐次坐标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#空间中的齐次坐标"><span class="nav-number">1.2.</span> <span class="nav-text">空间中的齐次坐标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#仿射变换"><span class="nav-number">2.</span> <span class="nav-text">仿射变换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#平移"><span class="nav-number">2.1.</span> <span class="nav-text">平移</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#旋转（绕指定点）"><span class="nav-number">2.2.</span> <span class="nav-text">旋转（绕指定点）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#透视投影"><span class="nav-number">2.3.</span> <span class="nav-text">透视投影</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">3.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '4531fc3777ebccdd809f1c7d4ad554d9',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

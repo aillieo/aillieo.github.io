@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Selectable承担的逻辑是对玩家的输入产生反馈。它是交互的控件的基类，能够响应点击（或鼠标）的事件而产生动画效果，同时有导航功能（Navigation）。事实上，最简单的交互控件按钮Button，也仅仅是在Selectable之上多了点击事件回调的处理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 Selectable">
+<meta property="og:url" content="http://aillieo.cn/post/2018-06-04-unity-3d-ugui-source-code-08/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="Selectable承担的逻辑是对玩家的输入产生反馈。它是交互的控件的基类，能够响应点击（或鼠标）的事件而产生动画效果，同时有导航功能（Navigation）。事实上，最简单的交互控件按钮Button，也仅仅是在Selectable之上多了点击事件回调的处理。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-06-04T15:20:16.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.063Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="Selectable">
+<meta property="article:tag" content="button">
+<meta property="article:tag" content="按钮">
+<meta property="article:tag" content="unity3d">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="Navigation">
+<meta property="article:tag" content="导航">
+<meta property="article:tag" content="Transition">
+<meta property="article:tag" content="SelectionState">
+<meta property="article:tag" content="ColorBlock">
+<meta property="article:tag" content="[SelectionBase]">
+<meta property="article:tag" content="[flag]">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-06-04-unity-3d-ugui-source-code-08/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 Selectable | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-06-04-unity-3d-ugui-source-code-08/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 Selectable
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-06-04 23:20:16" itemprop="dateCreated datePublished" datetime="2018-06-04T23:20:16+08:00">2018-06-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><code>Selectable</code>承担的逻辑是对玩家的输入产生反馈。它是交互的控件的基类，能够响应点击（或鼠标）的事件而产生动画效果，同时有导航功能（Navigation）。事实上，最简单的交互控件按钮<code>Button</code>，也仅仅是在<code>Selectable</code>之上多了点击事件回调的处理。</p>
+<a id="more"></a>
+
+<h2 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h2><h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[AddComponentMenu(&quot;UI&#x2F;Selectable&quot;, 70)]</span><br><span class="line">[ExecuteInEditMode]</span><br><span class="line">[SelectionBase]</span><br><span class="line">[DisallowMultipleComponent]</span><br></pre></td></tr></table></figure>
+
+<p>有三个都是很常见到的属性，<code>SelectionBase</code>不太容易见到，它表示当在编辑器的场景视图中点击了某个GameObject时，如果点击的是某个prefab的一部分，那么会选中这个prefab的根节点，因为根节点被认为是<code>SelectionBase</code>。如果给脚本增加此属性，则挂载该脚本的对象会同样被认为是<code>SelectionBase</code>。</p>
+<h3 id="基类与接口"><a href="#基类与接口" class="headerlink" title="基类与接口"></a>基类与接口</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public class Selectable</span><br><span class="line">    :</span><br><span class="line">    UIBehaviour,</span><br><span class="line">    IMoveHandler,</span><br><span class="line">    IPointerDownHandler, IPointerUpHandler,</span><br><span class="line">    IPointerEnterHandler, IPointerExitHandler,</span><br><span class="line">    ISelectHandler, IDeselectHandler</span><br><span class="line">&#123;</span><br></pre></td></tr></table></figure>
+
+<p>继承自<code>UIBehaviour</code>，并且实现了若干个<code>EventInterfaces</code>中定义的接口。</p>
+<h3 id="衍生类"><a href="#衍生类" class="headerlink" title="衍生类"></a>衍生类</h3><p>以下是<code>Selectable</code>的衍生类，各种可交互的UI控件：</p>
+<ul>
+<li>Button</li>
+<li>Dropdown</li>
+<li>InputField</li>
+<li>Scrollbar</li>
+<li>Slider</li>
+<li>Toggle</li>
+</ul>
+<h2 id="涉及到的类、枚举、结构"><a href="#涉及到的类、枚举、结构" class="headerlink" title="涉及到的类、枚举、结构"></a>涉及到的类、枚举、结构</h2><p>在<code>Selectable</code>中有好多涉及到的很小的类、枚举或结构，用于表示当前的状态等，以协助实现交互的功能。</p>
+<h3 id="SelectionState"><a href="#SelectionState" class="headerlink" title="SelectionState"></a>SelectionState</h3><p>表示当前<code>Selectable</code>组件的状态，其定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">protected enum SelectionState</span><br><span class="line">&#123;</span><br><span class="line">    Normal,</span><br><span class="line">    Highlighted,</span><br><span class="line">    Pressed,</span><br><span class="line">    Disabled</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Transition"><a href="#Transition" class="headerlink" title="Transition"></a>Transition</h3><p>该<code>Selectable</code>组件使用的是哪种形式的转变动画，其定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public enum Transition</span><br><span class="line">&#123;</span><br><span class="line">    None,</span><br><span class="line">    ColorTint,</span><br><span class="line">    SpriteSwap,</span><br><span class="line">    Animation</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>依次是：不使用动画、使用颜色变化、使用变换sprite、使用Animation。三种动画形式对应会用到后边三个结构（或类）：<code>ColorBlock</code>、<code>SpriteState</code>和<code>AnimationTriggers</code>：</p>
+<h3 id="ColorBlock"><a href="#ColorBlock" class="headerlink" title="ColorBlock"></a>ColorBlock</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public struct ColorBlock : IEquatable&lt;ColorBlock&gt;</span><br></pre></td></tr></table></figure>
+
+<p>实现了接口<code>IEquatable</code>，内含<code>Equals</code>方法，用于判断两个对象是否相等。结构里边包含了6个私有成员变量及它们对应的公有的调用接口（属性形式），如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public Color normalColor       &#123; get &#123; return m_NormalColor; &#125; set &#123; m_NormalColor &#x3D; value; &#125; &#125;</span><br><span class="line">public Color highlightedColor &#123; get &#123; return m_HighlightedColor; &#125; set &#123; m_HighlightedColor &#x3D; value; &#125; &#125;</span><br><span class="line">public Color pressedColor &#123; get &#123; return m_PressedColor; &#125; set &#123; m_PressedColor &#x3D; value; &#125; &#125;</span><br><span class="line">public Color disabledColor &#123; get &#123; return m_DisabledColor; &#125; set &#123; m_DisabledColor &#x3D; value; &#125; &#125;</span><br><span class="line">public float colorMultiplier &#123; get &#123; return m_ColorMultiplier; &#125; set &#123; m_ColorMultiplier &#x3D; value; &#125; &#125;</span><br><span class="line">public float fadeDuration &#123; get &#123; return m_FadeDuration; &#125; set &#123; m_FadeDuration &#x3D; value; &#125; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后关于相等的判断，定义如下，并且重载了<code>==</code>和<code>!=</code>运算符，均使用<code>Equals</code>来判断。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public override bool Equals(object obj)</span><br><span class="line">&#123;</span><br><span class="line">    if (!(obj is ColorBlock))</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    return Equals((ColorBlock)obj);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public bool Equals(ColorBlock other)</span><br><span class="line">&#123;</span><br><span class="line">    return normalColor &#x3D;&#x3D; other.normalColor &amp;&amp;</span><br><span class="line">            highlightedColor &#x3D;&#x3D; other.highlightedColor &amp;&amp;</span><br><span class="line">            pressedColor &#x3D;&#x3D; other.pressedColor &amp;&amp;</span><br><span class="line">            disabledColor &#x3D;&#x3D; other.disabledColor &amp;&amp;</span><br><span class="line">            colorMultiplier &#x3D;&#x3D; other.colorMultiplier &amp;&amp;</span><br><span class="line">            fadeDuration &#x3D;&#x3D; other.fadeDuration;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="SpriteState"><a href="#SpriteState" class="headerlink" title="SpriteState"></a>SpriteState</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public struct SpriteState : IEquatable&lt;SpriteState&gt;</span><br></pre></td></tr></table></figure>
+
+<p>与<code>ColorBlock</code>套路相似，3个私有成员和公有属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public Sprite highlightedSprite    &#123; get &#123; return m_HighlightedSprite; &#125; set &#123; m_HighlightedSprite &#x3D; value; &#125; &#125;</span><br><span class="line">public Sprite pressedSprite     &#123; get &#123; return m_PressedSprite; &#125; set &#123; m_PressedSprite &#x3D; value; &#125; &#125;</span><br><span class="line">public Sprite disabledSprite    &#123; get &#123; return m_DisabledSprite; &#125; set &#123; m_DisabledSprite &#x3D; value; &#125; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>相等的比较：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public bool Equals(SpriteState other)</span><br><span class="line">&#123;</span><br><span class="line">    return highlightedSprite &#x3D;&#x3D; other.highlightedSprite &amp;&amp;</span><br><span class="line">            pressedSprite &#x3D;&#x3D; other.pressedSprite &amp;&amp;</span><br><span class="line">            disabledSprite &#x3D;&#x3D; other.disabledSprite;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="AnimationTriggers"><a href="#AnimationTriggers" class="headerlink" title="AnimationTriggers"></a>AnimationTriggers</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class AnimationTriggers</span><br></pre></td></tr></table></figure>
+
+<p>与前边两个相似，直接用的类而不是实现接口<code>IEquatable</code>的结构，而且也没有覆写<code>Equals</code>或<code>GetHashCode</code>方法。有4个私有成员和公有属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public string normalTrigger      &#123; get &#123; return m_NormalTrigger; &#125; set &#123; m_NormalTrigger &#x3D; value; &#125; &#125;</span><br><span class="line">public string highlightedTrigger &#123; get &#123; return m_HighlightedTrigger; &#125; set &#123; m_HighlightedTrigger &#x3D; value; &#125; &#125;</span><br><span class="line">public string pressedTrigger     &#123; get &#123; return m_PressedTrigger; &#125; set &#123; m_PressedTrigger &#x3D; value; &#125; &#125;</span><br><span class="line">public string disabledTrigger    &#123; get &#123; return m_DisabledTrigger; &#125; set &#123; m_DisabledTrigger &#x3D; value; &#125; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有一些是和导航相关的，导航即是对于当前选中的<code>Selectable</code>，以何种方式获取它的上边、下边、左边或右边的下一个（或上一个）<code>Selectable</code>。<code>Navigation</code>结构中存储的是当前导航的模式及相关的<code>Selectable</code>。</p>
+<h3 id="Navigation"><a href="#Navigation" class="headerlink" title="Navigation"></a>Navigation</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public struct Navigation : IEquatable&lt;Navigation&gt;</span><br></pre></td></tr></table></figure>
+
+<p>同样是私有成员和它们对应的共有属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public Mode       mode           &#123; get &#123; return m_Mode; &#125; set &#123; m_Mode &#x3D; value; &#125; &#125;</span><br><span class="line">public Selectable selectOnUp     &#123; get &#123; return m_SelectOnUp; &#125; set &#123; m_SelectOnUp &#x3D; value; &#125; &#125;</span><br><span class="line">public Selectable selectOnDown   &#123; get &#123; return m_SelectOnDown; &#125; set &#123; m_SelectOnDown &#x3D; value; &#125; &#125;</span><br><span class="line">public Selectable selectOnLeft   &#123; get &#123; return m_SelectOnLeft; &#125; set &#123; m_SelectOnLeft &#x3D; value; &#125; &#125;</span><br><span class="line">public Selectable selectOnRight  &#123; get &#123; return m_SelectOnRight; &#125; set &#123; m_SelectOnRight &#x3D; value; &#125; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>实现了<code>Equals</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public bool Equals(Navigation other)</span><br><span class="line">&#123;</span><br><span class="line">    return mode &#x3D;&#x3D; other.mode &amp;&amp;</span><br><span class="line">            selectOnUp &#x3D;&#x3D; other.selectOnUp &amp;&amp;</span><br><span class="line">            selectOnDown &#x3D;&#x3D; other.selectOnDown &amp;&amp;</span><br><span class="line">            selectOnLeft &#x3D;&#x3D; other.selectOnLeft &amp;&amp;</span><br><span class="line">            selectOnRight &#x3D;&#x3D; other.selectOnRight;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="主要的方法"><a href="#主要的方法" class="headerlink" title="主要的方法"></a>主要的方法</h2><p>现在开始捋<code>Selectable</code>中的一些重要的方法：</p>
+<h3 id="继承自UIBehaviour-MonoBehaviour"><a href="#继承自UIBehaviour-MonoBehaviour" class="headerlink" title="继承自UIBehaviour/MonoBehaviour"></a>继承自UIBehaviour/MonoBehaviour</h3><h4 id="OnEnable"><a href="#OnEnable" class="headerlink" title="OnEnable"></a>OnEnable</h4><p>在<code>Selectable</code>中有一个静态的列表<code>s_List</code>，存储的是当前激活状态的<code>Selectable</code>实例。<code>m_CurrentSelectionState</code>是<code>SelectionState</code>的值，表示当前该<code>Selectable</code>的状态。<code>hasSelection</code>是布尔值表示当前<code>Selectable</code>是否被选中。在回调方法<code>OnSelect</code>和<code>OnDeselect</code>等中会改变此值，后边会讨论。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">protected override void OnEnable()</span><br><span class="line">&#123;</span><br><span class="line">    base.OnEnable();</span><br><span class="line"></span><br><span class="line">    s_List.Add(this);</span><br><span class="line">    var state &#x3D; SelectionState.Normal;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; The button will be highlighted even in some cases where it shouldn&#39;t.</span><br><span class="line">    &#x2F;&#x2F; For example: We only want to set the State as Highlighted if the StandaloneInputModule.m_CurrentInputMode &#x3D;&#x3D; InputMode.Buttons</span><br><span class="line">    &#x2F;&#x2F; But we dont have access to this, and it might not apply to other InputModules.</span><br><span class="line">    &#x2F;&#x2F; TODO: figure out how to solve this. Case 617348.</span><br><span class="line">    if (hasSelection)</span><br><span class="line">        state &#x3D; SelectionState.Highlighted;</span><br><span class="line"></span><br><span class="line">    m_CurrentSelectionState &#x3D; state;</span><br><span class="line">    InternalEvaluateAndTransitionToSelectionState(true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>OnEnable</code>时，<code>Selectable</code>会把自己加入到<code>s_List</code>，最后调用<code>InternalEvaluateAndTransitionToSelectionState</code>来计算并更新该<code>Selectable</code>的状态及动画。</p>
+<h4 id="OnDisable"><a href="#OnDisable" class="headerlink" title="OnDisable"></a>OnDisable</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">protected override void OnDisable()</span><br><span class="line">&#123;</span><br><span class="line">    s_List.Remove(this);</span><br><span class="line">    InstantClearState();</span><br><span class="line">    base.OnDisable();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用<code>OnDisable</code>时，从<code>s_List</code>中移除自己，立即清除状态及动画<code>InstantClearState</code>。</p>
+<h4 id="OnCanvasGroupChanged"><a href="#OnCanvasGroupChanged" class="headerlink" title="OnCanvasGroupChanged"></a>OnCanvasGroupChanged</h4><p>覆写的<code>UIBehaviour</code>的方法，当该对象及向上的父级节点对象有挂载<code>CanvasGroup</code>时，需要根据这些<code>CanvasGroup</code>的可交互状态来更新<code>m_GroupsAllowInteraction</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">private readonly List&lt;CanvasGroup&gt; m_CanvasGroupCache &#x3D; new List&lt;CanvasGroup&gt;();</span><br><span class="line">protected override void OnCanvasGroupChanged()</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; Figure out if parent groups allow interaction</span><br><span class="line">    &#x2F;&#x2F; If no interaction is alowed... then we need</span><br><span class="line">    &#x2F;&#x2F; to not do that :)</span><br><span class="line">    var groupAllowInteraction &#x3D; true;</span><br><span class="line">    Transform t &#x3D; transform;</span><br><span class="line">    while (t !&#x3D; null)</span><br><span class="line">    &#123;</span><br><span class="line">        t.GetComponents(m_CanvasGroupCache);</span><br><span class="line">        bool shouldBreak &#x3D; false;</span><br><span class="line">        for (var i &#x3D; 0; i &lt; m_CanvasGroupCache.Count; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            &#x2F;&#x2F; if the parent group does not allow interaction</span><br><span class="line">            &#x2F;&#x2F; we need to break</span><br><span class="line">            if (!m_CanvasGroupCache[i].interactable)</span><br><span class="line">            &#123;</span><br><span class="line">                groupAllowInteraction &#x3D; false;</span><br><span class="line">                shouldBreak &#x3D; true;</span><br><span class="line">            &#125;</span><br><span class="line">            &#x2F;&#x2F; if this is a &#39;fresh&#39; group, then break</span><br><span class="line">            &#x2F;&#x2F; as we should not consider parents</span><br><span class="line">            if (m_CanvasGroupCache[i].ignoreParentGroups)</span><br><span class="line">                shouldBreak &#x3D; true;</span><br><span class="line">        &#125;</span><br><span class="line">        if (shouldBreak)</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        t &#x3D; t.parent;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (groupAllowInteraction !&#x3D; m_GroupsAllowInteraction)</span><br><span class="line">    &#123;</span><br><span class="line">        m_GroupsAllowInteraction &#x3D; groupAllowInteraction;</span><br><span class="line">        OnSetProperty();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="响应事件的回调"><a href="#响应事件的回调" class="headerlink" title="响应事件的回调"></a>响应事件的回调</h3><p><code>Selectable</code>实现了事件系统的事件接口，因此必须实现接口定义的方法。我们以<code>OnPointerEnter</code>事件为例：</p>
+<h4 id="OnPointerEnter"><a href="#OnPointerEnter" class="headerlink" title="OnPointerEnter"></a>OnPointerEnter</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public virtual void OnPointerEnter(PointerEventData eventData)</span><br><span class="line">&#123;</span><br><span class="line">    isPointerInside &#x3D; true;</span><br><span class="line">    EvaluateAndTransitionToSelectionState(eventData);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>EvaluateAndTransitionToSelectionState</code>会根据传入的事件来计算和更新转换动画的状态，在此之前，<code>OnPointerEnter</code>还会改变状态值<code>isPointerInside</code>为true，对应在<code>OnPointerExit</code>时会将此值设为false。与此相似的还有<code>OnSelect</code>和<code>OnDeselect</code>，对应状态值<code>hasSelection</code>；<code>OnPointerDown</code>和<code>OnPointerUp</code>，对应状态值<code>isPointerDown</code>。这些方法的共同之处是先改变对应状态值，然后调用<code>EvaluateAndTransitionToSelectionState</code>。</p>
+<p>除了点击相关的事件之外，还有导航相关的事件，文章最后一起讨论。</p>
+<h3 id="其它方法"><a href="#其它方法" class="headerlink" title="其它方法"></a>其它方法</h3><p>接下来是属于<code>Selectable</code>自己的一些方法，大多是和改变（或更新）转变动画的状态有关。</p>
+<h4 id="EvaluateAndTransitionToSelectionState"><a href="#EvaluateAndTransitionToSelectionState" class="headerlink" title="EvaluateAndTransitionToSelectionState"></a>EvaluateAndTransitionToSelectionState</h4><p>首先是之前遇到过的<code>EvaluateAndTransitionToSelectionState</code>，其定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Change the button to the correct state</span><br><span class="line">private void EvaluateAndTransitionToSelectionState(BaseEventData eventData)</span><br><span class="line">&#123;</span><br><span class="line">    if (!IsActive() || !IsInteractable())</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    UpdateSelectionState(eventData);</span><br><span class="line">    InternalEvaluateAndTransitionToSelectionState(false);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先是排除无效调用，未激活或者不可交互。根据<code>eventData</code>更新选择状态，<code>UpdateSelectionState</code>，然后调用<code>InternalEvaluateAndTransitionToSelectionState</code>，参数<code>instance</code>为false。</p>
+<h4 id="UpdateSelectionState"><a href="#UpdateSelectionState" class="headerlink" title="UpdateSelectionState"></a>UpdateSelectionState</h4><p>根据参数<code>eventData</code>来更新<code>m_CurrentSelectionState</code>的值，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; The current visual state of the control.</span><br><span class="line">protected void UpdateSelectionState(BaseEventData eventData)</span><br><span class="line">&#123;</span><br><span class="line">    if (IsPressed())</span><br><span class="line">    &#123;</span><br><span class="line">        m_CurrentSelectionState &#x3D; SelectionState.Pressed;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (IsHighlighted(eventData))</span><br><span class="line">    &#123;</span><br><span class="line">        m_CurrentSelectionState &#x3D; SelectionState.Highlighted;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m_CurrentSelectionState &#x3D; SelectionState.Normal;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此处的<code>IsHighlighted(eventData)</code>有较多的判断逻辑，highlight状态对应的几种情况，此处的<code>eventData</code>其实就是<code>OnXxx</code>调用时传入的<code>EventData</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Whether the control should be &#39;selected&#39;.</span><br><span class="line">protected bool IsHighlighted(BaseEventData eventData)</span><br><span class="line">&#123;</span><br><span class="line">    if (!IsActive())</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    if (IsPressed())</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    bool selected &#x3D; hasSelection;</span><br><span class="line">    if (eventData is PointerEventData)</span><br><span class="line">    &#123;</span><br><span class="line">        var pointerData &#x3D; eventData as PointerEventData;</span><br><span class="line">        selected |&#x3D;</span><br><span class="line">            (isPointerDown &amp;&amp; !isPointerInside &amp;&amp; pointerData.pointerPress &#x3D;&#x3D; gameObject) &#x2F;&#x2F; This object pressed, but pointer moved off</span><br><span class="line">            || (!isPointerDown &amp;&amp; isPointerInside &amp;&amp; pointerData.pointerPress &#x3D;&#x3D; gameObject) &#x2F;&#x2F; This object pressed, but pointer released over (PointerUp event)</span><br><span class="line">            || (!isPointerDown &amp;&amp; isPointerInside &amp;&amp; pointerData.pointerPress &#x3D;&#x3D; null); &#x2F;&#x2F; Nothing pressed, but pointer is over</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">    &#123;</span><br><span class="line">        selected |&#x3D; isPointerInside;</span><br><span class="line">    &#125;</span><br><span class="line">    return selected;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>更新SelectionState之后就是根据更新后的选择状态来计算和调整转换动画：</p>
+<h4 id="InternalEvaluateAndTransitionToSelectionState"><a href="#InternalEvaluateAndTransitionToSelectionState" class="headerlink" title="InternalEvaluateAndTransitionToSelectionState"></a>InternalEvaluateAndTransitionToSelectionState</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">private void InternalEvaluateAndTransitionToSelectionState(bool instant)</span><br><span class="line">&#123;</span><br><span class="line">    var transitionState &#x3D; m_CurrentSelectionState;</span><br><span class="line">    if (IsActive() &amp;&amp; !IsInteractable())</span><br><span class="line">        transitionState &#x3D; SelectionState.Disabled;</span><br><span class="line">    DoStateTransition(transitionState, instant);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取正确的<code>transitionState</code>（可能会是<code>Disabled</code>），然后执行状态转换<code>DoStateTransition</code>。</p>
+<h4 id="DoStateTransition"><a href="#DoStateTransition" class="headerlink" title="DoStateTransition"></a>DoStateTransition</h4><p>根据多个选择状态转变的状态（传入的<code>state</code>）及三种转换动画的类型<code>m_Transition</code>来执行具体的动作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">protected virtual void DoStateTransition(SelectionState state, bool instant)</span><br><span class="line">&#123;</span><br><span class="line">    Color tintColor;</span><br><span class="line">    Sprite transitionSprite;</span><br><span class="line">    string triggerName;</span><br><span class="line"></span><br><span class="line">    switch (state)</span><br><span class="line">    &#123;</span><br><span class="line">        case SelectionState.Normal:</span><br><span class="line">            tintColor &#x3D; m_Colors.normalColor;</span><br><span class="line">            transitionSprite &#x3D; null;</span><br><span class="line">            triggerName &#x3D; m_AnimationTriggers.normalTrigger;</span><br><span class="line">            break;</span><br><span class="line">        case SelectionState.Highlighted:</span><br><span class="line">            tintColor &#x3D; m_Colors.highlightedColor;</span><br><span class="line">            transitionSprite &#x3D; m_SpriteState.highlightedSprite;</span><br><span class="line">            triggerName &#x3D; m_AnimationTriggers.highlightedTrigger;</span><br><span class="line">            break;</span><br><span class="line">        case SelectionState.Pressed:</span><br><span class="line">            tintColor &#x3D; m_Colors.pressedColor;</span><br><span class="line">            transitionSprite &#x3D; m_SpriteState.pressedSprite;</span><br><span class="line">            triggerName &#x3D; m_AnimationTriggers.pressedTrigger;</span><br><span class="line">            break;</span><br><span class="line">        case SelectionState.Disabled:</span><br><span class="line">            tintColor &#x3D; m_Colors.disabledColor;</span><br><span class="line">            transitionSprite &#x3D; m_SpriteState.disabledSprite;</span><br><span class="line">            triggerName &#x3D; m_AnimationTriggers.disabledTrigger;</span><br><span class="line">            break;</span><br><span class="line">        default:</span><br><span class="line">            tintColor &#x3D; Color.black;</span><br><span class="line">            transitionSprite &#x3D; null;</span><br><span class="line">            triggerName &#x3D; string.Empty;</span><br><span class="line">            break;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (gameObject.activeInHierarchy)</span><br><span class="line">    &#123;</span><br><span class="line">        switch (m_Transition)</span><br><span class="line">        &#123;</span><br><span class="line">            case Transition.ColorTint:</span><br><span class="line">                StartColorTween(tintColor * m_Colors.colorMultiplier, instant);</span><br><span class="line">                break;</span><br><span class="line">            case Transition.SpriteSwap:</span><br><span class="line">                DoSpriteSwap(transitionSprite);</span><br><span class="line">                break;</span><br><span class="line">            case Transition.Animation:</span><br><span class="line">                TriggerAnimation(triggerName);</span><br><span class="line">                break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>依据三种不同的转换动画的类型，有三种具体的状态转变函数，<code>StartColorTween</code>，<code>DoSpriteSwap</code>和<code>TriggerAnimation</code>，根据不同的选择状态有不同的参数。<code>DoStateTransition</code>实际上就是调用不同的状态转变函数并传入对应的参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">void StartColorTween(Color targetColor, bool instant)</span><br><span class="line">&#123;</span><br><span class="line">    if (m_TargetGraphic &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    m_TargetGraphic.CrossFadeColor(targetColor, instant ? 0f : m_Colors.fadeDuration, true, true);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void DoSpriteSwap(Sprite newSprite)</span><br><span class="line">&#123;</span><br><span class="line">    if (image &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    image.overrideSprite &#x3D; newSprite;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void TriggerAnimation(string triggername)</span><br><span class="line">&#123;</span><br><span class="line">    if (transition !&#x3D; Transition.Animation || animator &#x3D;&#x3D; null || !animator.isActiveAndEnabled || animator.runtimeAnimatorController &#x3D;&#x3D; null || string.IsNullOrEmpty(triggername))</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    animator.ResetTrigger(m_AnimationTriggers.normalTrigger);</span><br><span class="line">    animator.ResetTrigger(m_AnimationTriggers.pressedTrigger);</span><br><span class="line">    animator.ResetTrigger(m_AnimationTriggers.highlightedTrigger);</span><br><span class="line">    animator.ResetTrigger(m_AnimationTriggers.disabledTrigger);</span><br><span class="line"></span><br><span class="line">    animator.SetTrigger(triggername);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>StartColorTween</code>会调用<code>Graphic</code>的方法，传入目标颜色值和变换的时间，后边细说。<code>m_TargetGraphic</code>和<code>image</code>获取到的都是该<code>Selectable</code>上的<code>Graphic</code>组件，<code>animator</code>得到的是<code>Animator</code>组件。</p>
+<p><code>Image</code>的<code>overrideSprite</code>属性，如果不为<code>null</code>，则绘制时会覆盖掉<code>sprite</code>属性中指定的精灵图片（后边会有<code>Image</code>的章节单说）。<code>animator</code>用<code>ResetTrigger</code>会停掉对应的动画，然后用<code>SetTrigger</code>可以开启对应的动画。接下来是关于<code>Graphic</code>的<code>CrossFadeColor</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">public virtual void CrossFadeColor(Color targetColor, float duration, bool ignoreTimeScale, bool useAlpha)</span><br><span class="line">&#123;</span><br><span class="line">    CrossFadeColor(targetColor, duration, ignoreTimeScale, useAlpha, true);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public virtual void CrossFadeColor(Color targetColor, float duration, bool ignoreTimeScale, bool useAlpha, bool useRGB)</span><br><span class="line">&#123;</span><br><span class="line">    if (canvasRenderer &#x3D;&#x3D; null || (!useRGB &amp;&amp; !useAlpha))</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    Color currentColor &#x3D; canvasRenderer.GetColor();</span><br><span class="line">    if (currentColor.Equals(targetColor))</span><br><span class="line">    &#123;</span><br><span class="line">        m_ColorTweenRunner.StopTween();</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ColorTween.ColorTweenMode mode &#x3D; (useRGB &amp;&amp; useAlpha ?</span><br><span class="line">                                        ColorTween.ColorTweenMode.All :</span><br><span class="line">                                        (useRGB ? ColorTween.ColorTweenMode.RGB : ColorTween.ColorTweenMode.Alpha));</span><br><span class="line"></span><br><span class="line">    var colorTween &#x3D; new ColorTween &#123;duration &#x3D; duration, startColor &#x3D; canvasRenderer.GetColor(), targetColor &#x3D; targetColor&#125;;</span><br><span class="line">    colorTween.AddOnChangedCallback(canvasRenderer.SetColor);</span><br><span class="line">    colorTween.ignoreTimeScale &#x3D; ignoreTimeScale;</span><br><span class="line">    colorTween.tweenMode &#x3D; mode;</span><br><span class="line">    m_ColorTweenRunner.StartTween(colorTween);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>指定了目标颜色和用时等参数，在指定的时间内变化到目标颜色。内部使用到一个<code>ColorTween</code>的类，它是用协程实现的一个逐帧更新的颜色动画，指定初始和目标颜色，变化时间，是否忽略<code>TimeScale</code>，变化模式（RGB变化/Alpha变化）。</p>
+<h4 id="InstantClearState"><a href="#InstantClearState" class="headerlink" title="InstantClearState"></a>InstantClearState</h4><p>立即清除动画状态，先是重置各状态，然后与<code>DoStateTransition</code>有点相似，根据不同的转换动画类型，将其重置，并且<code>StartColorTween</code>传入参数<code>instant</code>为true，即颜色补间动画的时长是0，立即变化到目标颜色。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">protected virtual void InstantClearState()</span><br><span class="line">&#123;</span><br><span class="line">    string triggerName &#x3D; m_AnimationTriggers.normalTrigger;</span><br><span class="line"></span><br><span class="line">    isPointerInside &#x3D; false;</span><br><span class="line">    isPointerDown &#x3D; false;</span><br><span class="line">    hasSelection &#x3D; false;</span><br><span class="line"></span><br><span class="line">    switch (m_Transition)</span><br><span class="line">    &#123;</span><br><span class="line">        case Transition.ColorTint:</span><br><span class="line">            StartColorTween(Color.white, true);</span><br><span class="line">            break;</span><br><span class="line">        case Transition.SpriteSwap:</span><br><span class="line">            DoSpriteSwap(null);</span><br><span class="line">            break;</span><br><span class="line">        case Transition.Animation:</span><br><span class="line">            TriggerAnimation(triggerName);</span><br><span class="line">            break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="OnSetProperty"><a href="#OnSetProperty" class="headerlink" title="OnSetProperty"></a>OnSetProperty</h4><p>还有一个被很多地方调用的方法<code>OnSetProperty</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">private void OnSetProperty()</span><br><span class="line">&#123;</span><br><span class="line">#if UNITY_EDITOR</span><br><span class="line">    if (!Application.isPlaying)</span><br><span class="line">        InternalEvaluateAndTransitionToSelectionState(true);</span><br><span class="line">    else</span><br><span class="line">#endif</span><br><span class="line">    InternalEvaluateAndTransitionToSelectionState(false);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当属性（状态）发生变化时，调用以更新变换动画，在编辑器模式下且游戏未在运行中时，立即执行，其它的状态会播放变换的动画。</p>
+<h3 id="导航相关"><a href="#导航相关" class="headerlink" title="导航相关"></a>导航相关</h3><p>其实前边提到的方法基本上实现了<code>Selectable</code>的主要的功能。Unity中的各交互组件还有导航相关功能，也是由<code>Selectable</code>来实现的。</p>
+<h4 id="OnMove"><a href="#OnMove" class="headerlink" title="OnMove"></a>OnMove</h4><p>前边说到<code>Selectable</code>实现的事件接口，其实还有一个漏掉的<code>OnMove</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public virtual void OnMove(AxisEventData eventData)</span><br><span class="line">&#123;</span><br><span class="line">    switch (eventData.moveDir)</span><br><span class="line">    &#123;</span><br><span class="line">        case MoveDirection.Right:</span><br><span class="line">            Navigate(eventData, FindSelectableOnRight());</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        case MoveDirection.Up:</span><br><span class="line">            Navigate(eventData, FindSelectableOnUp());</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        case MoveDirection.Left:</span><br><span class="line">            Navigate(eventData, FindSelectableOnLeft());</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        case MoveDirection.Down:</span><br><span class="line">            Navigate(eventData, FindSelectableOnDown());</span><br><span class="line">            break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据事件中给出的移动方向（上下左右），向对应方向的<code>Selectable</code>对象导航。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Convenience function -- change the selection to the specified object if it&#39;s not null and happens to be active.</span><br><span class="line">void Navigate(AxisEventData eventData, Selectable sel)</span><br><span class="line">&#123;</span><br><span class="line">    if (sel !&#x3D; null &amp;&amp; sel.IsActive())</span><br><span class="line">        eventData.selectedObject &#x3D; sel.gameObject;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Navigate</code>的内容很简单，更新<code>Selectable</code>对象。</p>
+<h4 id="FindSelectableOnRight"><a href="#FindSelectableOnRight" class="headerlink" title="FindSelectableOnRight"></a>FindSelectableOnRight</h4><p>重点在于如果获取目标<code>Selectable</code>对象，即<code>FindSelectableOnXxx</code>这些方法。我们以<code>FindSelectableOnRight</code>为例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Find the selectable object to the right of this one.</span><br><span class="line">public virtual Selectable FindSelectableOnRight()</span><br><span class="line">&#123;</span><br><span class="line">    if (m_Navigation.mode &#x3D;&#x3D; Navigation.Mode.Explicit)</span><br><span class="line">    &#123;</span><br><span class="line">        return m_Navigation.selectOnRight;</span><br><span class="line">    &#125;</span><br><span class="line">    if ((m_Navigation.mode &amp; Navigation.Mode.Horizontal) !&#x3D; 0)</span><br><span class="line">    &#123;</span><br><span class="line">        return FindSelectable(transform.rotation * Vector3.right);</span><br><span class="line">    &#125;</span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先<code>m_Navigation</code>有各种模式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[Flags]</span><br><span class="line">public enum Mode</span><br><span class="line">&#123;</span><br><span class="line">    None        &#x3D; 0, &#x2F;&#x2F; No navigation</span><br><span class="line">    Horizontal  &#x3D; 1, &#x2F;&#x2F; Automatic horizontal navigation</span><br><span class="line">    Vertical    &#x3D; 2, &#x2F;&#x2F; Automatic vertical navigation</span><br><span class="line">    Automatic   &#x3D; 3, &#x2F;&#x2F; Automatic navigation in both dimensions</span><br><span class="line">    Explicit    &#x3D; 4, &#x2F;&#x2F; Explicitly specified only</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果是显式指定的导航模式，则会选择<code>m_Navigation.selectOnRight</code>为导航目标。否则会继续判断当前导航模式是否支持水平方向导航，这里用的判断条件是<code>(m_Navigation.mode &amp; Navigation.Mode.Horizontal) != 0</code>。由于前边有<code>[flag]</code>属性，因此该枚举值可以按位与运算。<code>Horizontal = 1</code>和<code>Automatic = 3</code>均满足此条件。如果支持水平方向导航，则会调用<code>FindSelectable</code>方法。</p>
+<h4 id="FindSelectable"><a href="#FindSelectable" class="headerlink" title="FindSelectable"></a>FindSelectable</h4><p>根据传入的方向<code>dir</code>，寻找最合适的目标，作为导航目标对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Find the next selectable object in the specified world-space direction.</span><br><span class="line">public Selectable FindSelectable(Vector3 dir)</span><br><span class="line">&#123;</span><br><span class="line">    dir &#x3D; dir.normalized;</span><br><span class="line">    Vector3 localDir &#x3D; Quaternion.Inverse(transform.rotation) * dir;</span><br><span class="line">    Vector3 pos &#x3D; transform.TransformPoint(GetPointOnRectEdge(transform as RectTransform, localDir));</span><br><span class="line">    float maxScore &#x3D; Mathf.NegativeInfinity;</span><br><span class="line">    Selectable bestPick &#x3D; null;</span><br><span class="line">    for (int i &#x3D; 0; i &lt; s_List.Count; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        Selectable sel &#x3D; s_List[i];</span><br><span class="line"></span><br><span class="line">        if (sel &#x3D;&#x3D; this || sel &#x3D;&#x3D; null)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        if (!sel.IsInteractable() || sel.navigation.mode &#x3D;&#x3D; Navigation.Mode.None)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        var selRect &#x3D; sel.transform as RectTransform;</span><br><span class="line">        Vector3 selCenter &#x3D; selRect !&#x3D; null ? (Vector3)selRect.rect.center : Vector3.zero;</span><br><span class="line">        Vector3 myVector &#x3D; sel.transform.TransformPoint(selCenter) - pos;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Value that is the distance out along the direction.</span><br><span class="line">        float dot &#x3D; Vector3.Dot(dir, myVector);</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; Skip elements that are in the wrong direction or which have zero distance.</span><br><span class="line">        &#x2F;&#x2F; This also ensures that the scoring formula below will not have a division by zero error.</span><br><span class="line">        if (dot &lt;&#x3D; 0)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; This scoring function has two priorities:</span><br><span class="line">        &#x2F;&#x2F; - Score higher for positions that are closer.</span><br><span class="line">        &#x2F;&#x2F; - Score higher for positions that are located in the right direction.</span><br><span class="line">        &#x2F;&#x2F; This scoring function combines both of these criteria.</span><br><span class="line">        &#x2F;&#x2F; It can be seen as this:</span><br><span class="line">        &#x2F;&#x2F;   Dot (dir, myVector.normalized) &#x2F; myVector.magnitude</span><br><span class="line">        &#x2F;&#x2F; The first part equals 1 if the direction of myVector is the same as dir, and 0 if it&#39;s orthogonal.</span><br><span class="line">        &#x2F;&#x2F; The second part scores lower the greater the distance is by dividing by the distance.</span><br><span class="line">        &#x2F;&#x2F; The formula below is equivalent but more optimized.</span><br><span class="line">        &#x2F;&#x2F;</span><br><span class="line">        &#x2F;&#x2F; If a given score is chosen, the positions that evaluate to that score will form a circle</span><br><span class="line">        &#x2F;&#x2F; that touches pos and whose center is located along dir. A way to visualize the resulting functionality is this:</span><br><span class="line">        &#x2F;&#x2F; From the position pos, blow up a circular balloon so it grows in the direction of dir.</span><br><span class="line">        &#x2F;&#x2F; The first Selectable whose center the circular balloon touches is the one that&#39;s chosen.</span><br><span class="line">        float score &#x3D; dot &#x2F; myVector.sqrMagnitude;</span><br><span class="line"></span><br><span class="line">        if (score &gt; maxScore)</span><br><span class="line">        &#123;</span><br><span class="line">            maxScore &#x3D; score;</span><br><span class="line">            bestPick &#x3D; sel;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return bestPick;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>会遍历<code>s_List</code>，剔除不合要求的，剩余部分中找出得分最高的<code>Selectable</code>。根据代码和注释，看到得分的依据是距离近&amp;夹角小，使用位置矢量的点乘积除以距离的平方值<code>dot / myVector.sqrMagnitude</code>。</p>
+<p>给定一个矩形和一个矢量，获取从矩形中心沿着矢量方向投射出射线与矩形相交的一点。</p>
+<h4 id="GetPointOnRectEdge"><a href="#GetPointOnRectEdge" class="headerlink" title="GetPointOnRectEdge"></a>GetPointOnRectEdge</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">private static Vector3 GetPointOnRectEdge(RectTransform rect, Vector2 dir)</span><br><span class="line">&#123;</span><br><span class="line">    if (rect &#x3D;&#x3D; null)</span><br><span class="line">        return Vector3.zero;</span><br><span class="line">    if (dir !&#x3D; Vector2.zero)</span><br><span class="line">        dir &#x2F;&#x3D; Mathf.Max(Mathf.Abs(dir.x), Mathf.Abs(dir.y));</span><br><span class="line">    dir &#x3D; rect.rect.center + Vector2.Scale(rect.rect.size, dir * 0.5f);</span><br><span class="line">    return dir;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/ScriptReference/UI.Selectable.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/UI.Selectable.html</a></p>
+<p><a href="https://docs.unity3d.com/ScriptReference/SelectionBaseAttribute.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/SelectionBaseAttribute.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-05-28-unity-3d-ugui-source-code-07/" rel="prev" title="Unity3D UGUI 源码学习 ExecuteEvents">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 ExecuteEvents
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-06-16-unity-3d-ugui-source-code-09/" rel="next" title="Unity3D UGUI 源码学习 LayoutGroup">
+      Unity3D UGUI 源码学习 LayoutGroup <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概览"><span class="nav-number">1.</span> <span class="nav-text">概览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#属性"><span class="nav-number">1.1.</span> <span class="nav-text">属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基类与接口"><span class="nav-number">1.2.</span> <span class="nav-text">基类与接口</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#衍生类"><span class="nav-number">1.3.</span> <span class="nav-text">衍生类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#涉及到的类、枚举、结构"><span class="nav-number">2.</span> <span class="nav-text">涉及到的类、枚举、结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SelectionState"><span class="nav-number">2.1.</span> <span class="nav-text">SelectionState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Transition"><span class="nav-number">2.2.</span> <span class="nav-text">Transition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ColorBlock"><span class="nav-number">2.3.</span> <span class="nav-text">ColorBlock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SpriteState"><span class="nav-number">2.4.</span> <span class="nav-text">SpriteState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AnimationTriggers"><span class="nav-number">2.5.</span> <span class="nav-text">AnimationTriggers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Navigation"><span class="nav-number">2.6.</span> <span class="nav-text">Navigation</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要的方法"><span class="nav-number">3.</span> <span class="nav-text">主要的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#继承自UIBehaviour-MonoBehaviour"><span class="nav-number">3.1.</span> <span class="nav-text">继承自UIBehaviour&#x2F;MonoBehaviour</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OnEnable"><span class="nav-number">3.1.1.</span> <span class="nav-text">OnEnable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OnDisable"><span class="nav-number">3.1.2.</span> <span class="nav-text">OnDisable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OnCanvasGroupChanged"><span class="nav-number">3.1.3.</span> <span class="nav-text">OnCanvasGroupChanged</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#响应事件的回调"><span class="nav-number">3.2.</span> <span class="nav-text">响应事件的回调</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OnPointerEnter"><span class="nav-number">3.2.1.</span> <span class="nav-text">OnPointerEnter</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其它方法"><span class="nav-number">3.3.</span> <span class="nav-text">其它方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#EvaluateAndTransitionToSelectionState"><span class="nav-number">3.3.1.</span> <span class="nav-text">EvaluateAndTransitionToSelectionState</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UpdateSelectionState"><span class="nav-number">3.3.2.</span> <span class="nav-text">UpdateSelectionState</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InternalEvaluateAndTransitionToSelectionState"><span class="nav-number">3.3.3.</span> <span class="nav-text">InternalEvaluateAndTransitionToSelectionState</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DoStateTransition"><span class="nav-number">3.3.4.</span> <span class="nav-text">DoStateTransition</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#InstantClearState"><span class="nav-number">3.3.5.</span> <span class="nav-text">InstantClearState</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OnSetProperty"><span class="nav-number">3.3.6.</span> <span class="nav-text">OnSetProperty</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#导航相关"><span class="nav-number">3.4.</span> <span class="nav-text">导航相关</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#OnMove"><span class="nav-number">3.4.1.</span> <span class="nav-text">OnMove</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FindSelectableOnRight"><span class="nav-number">3.4.2.</span> <span class="nav-text">FindSelectableOnRight</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FindSelectable"><span class="nav-number">3.4.3.</span> <span class="nav-text">FindSelectable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GetPointOnRectEdge"><span class="nav-number">3.4.4.</span> <span class="nav-text">GetPointOnRectEdge</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '824fbfd8311fc8a6791981c97e3d037c',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

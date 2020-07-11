@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="阅读《Effective C#》一书的总结，第六部分，杂项。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Effective C#》笔记 杂项">
+<meta property="og:url" content="http://aillieo.cn/post/2019-05-20-effective-c-sharp-notes-06/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="阅读《Effective C#》一书的总结，第六部分，杂项。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-05-20T15:08:02.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.080Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C#">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2019-05-20-effective-c-sharp-notes-06/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>《Effective C#》笔记 杂项 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2019-05-20-effective-c-sharp-notes-06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《Effective C#》笔记 杂项
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-05-20 23:08:02" itemprop="dateCreated datePublished" datetime="2019-05-20T23:08:02+08:00">2019-05-20</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/" itemprop="url" rel="index"><span itemprop="name">C&#35;</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/Effective-C-35/" itemprop="url" rel="index"><span itemprop="name">Effective C&#35;</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>阅读《Effective C#》一书的总结，第六部分，杂项。</p>
+<a id="more"></a>
+
+<h2 id="Miscellaneous"><a href="#Miscellaneous" class="headerlink" title="Miscellaneous"></a>Miscellaneous</h2><h3 id="45-尽量减少装箱和拆箱"><a href="#45-尽量减少装箱和拆箱" class="headerlink" title="45 尽量减少装箱和拆箱"></a>45 尽量减少装箱和拆箱</h3><p>装箱将把一个值类型放在一个未确定类型的引用对象中，让这个值类型也能在需要引用类型的地方使用，而拆箱则是指从箱中取出其中的值类型的副本。在需要<code>System.Object</code>类型的时候，装箱和拆箱允许你在此处使用值类型；</p>
+<p>装箱和拆箱都是较为影响性能的操作，有时还会创建对象的临时副本，进而导致一些难以发现的bug；</p>
+<p>装箱会把值类型转换为引用类型，这个新的引用类型（箱子）会被分配在堆上，箱子包含了值类型的副本，并提供了公有接口的功能，获取箱中数据时，返回的是值类型的另一个副本；</p>
+<p>注意下边的代码会产生装箱：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Console.WriteLine(&quot;A few numbers:&#123;0&#125;, &#123;1&#125;, &#123;2&#125;&quot;, 25, 32, 50);</span><br></pre></td></tr></table></figure>
+
+<p><code>Console.WriteLine</code>接受的参数是一个<code>System.Object</code>的数组，而int是值类型，因此必须装箱才能传入到<code>WriteLine</code>方法中去。此外，在<code>WriteLine</code>内部还要调用装箱对象的<code>ToString()</code>方法来获取值（会发生拆箱）。注意，为避免此类代价，应当在将值类型传递给<code>WriteLine</code>之前手动将其转为string，即：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Console.WriteLine(&quot;A few numbers:&#123;0&#125;, &#123;1&#125;, &#123;2&#125;&quot;,</span><br><span class="line">    25.ToString(), 32.ToString(), 50.ToString());</span><br></pre></td></tr></table></figure>
+
+<p>避免装箱的一条规则是：小心值类型与<code>System.Object</code>到隐式转换；</p>
+<h3 id="46-为应用程序创建专门的异常类"><a href="#46-为应用程序创建专门的异常类" class="headerlink" title="46 为应用程序创建专门的异常类"></a>46 为应用程序创建专门的异常类</h3><p>在创建自己的异常类时，必须仔细斟酌这些问题：异常是一种报告错误的机制，在这种机制中，错误的抛出位置和处理位置可能会相距甚远。因此，有关错误的所有信息都必须包含在异常对象中。此外，我们还可能需要将低级别的错误转换成应用程序领域内特定的异常，同时保留原始错误的所有信息；</p>
+<p>首先考虑创建异常类的原因，以及如何组织信息完备的异常层次结构，通常开发者使用你的类库编写<code>catch</code>子句时都会根据异常的运行时类型的不同有区别地执行处理逻辑，即每个不同的异常类都有着专门的处理方式，例如以下代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">try</span><br><span class="line">&#123;</span><br><span class="line">    Foo();</span><br><span class="line">    Bar(); </span><br><span class="line">&#125;</span><br><span class="line">catch (MyFirstApplicationException e1)</span><br><span class="line">&#123;</span><br><span class="line">    FixProblem(e1);</span><br><span class="line">&#125;</span><br><span class="line">catch (AnotherApplicationException e2)</span><br><span class="line">&#123;</span><br><span class="line">    ReportErrorAndContinue(e2);</span><br><span class="line">&#125;</span><br><span class="line">catch (YetAnotherApplicationException e3)</span><br><span class="line">&#123;</span><br><span class="line">    ReportErrorAndShutdown(e3);</span><br><span class="line">&#125;</span><br><span class="line">catch (Exception e)</span><br><span class="line">&#123;</span><br><span class="line">    ReportGenericError(e);</span><br><span class="line">    throw; </span><br><span class="line">&#125;</span><br><span class="line">finally</span><br><span class="line">&#123;</span><br><span class="line">    CleanupResources();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不同的catch子句用于捕获不同类型的异常，只有你认为使用者会用不同的方式处理错误时，才应该创建出不同的异常类；</p>
+<p>异常并不适用于遇到的每一个问题，建议对于那些如果不及时报告并处理会引发长久问题的错误，应该抛出异常。如数据库中的数据完整性错误就应该抛出异常，而一个保存用户某个窗体位置的方法出现了错误使用表示出错的返回值就够了；</p>
+<p>编写throw语句并不代表着要在此处创建一个全新的异常类，应当考虑到使用<code>System.Exception</code>仅提供最少的一部分基础信息，如果提供不同的异常类，可以帮助使用者更清晰地了解到问题的成因，然后有针对性地恢复。如果某类错误将导致不同的处理操作以及不同的恢复机制，那么此时正是创建新异常类的时机；</p>
+<p>创建异常类时，需要担负明确的指责，必须Exception结尾，继承于<code>System.Exception</code>或其它合适的异常类。通常很少需要为基类添加额外的字段和功能，创建不同的异常类是为了在catch语句中区分错误的不同成因。创建新的异常类时需要提供4个构造函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Default constructor</span><br><span class="line">public Exception();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Create with a message.</span><br><span class="line">public Exception(string);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Create with a message and an inner exception.</span><br><span class="line">public Exception(string, Exception);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Create from an input stream.</span><br><span class="line">protected Exception(SerializationInfo, StreamingContext);</span><br></pre></td></tr></table></figure>
+
+<p>对于接受一个异常作为参数的构造函数，通常适用于这样的情况，你使用的某个类库抛出了异常，如果将这个异常直接抛出给外部，你的使用者会因为信息太少而对这个内部异常一头雾水。此时应该提供自己对这个内部异常的封装，抛出自定义的异常，并将原始的异常存放在<code>InnerException</code>属性中，这样即可提供出足够友好、信息丰富的异常。这种处理方式叫做异常转换（Exception translation），能将低层次的异常转换成更高级别的包含更多上下文信息的异常；</p>
+<h3 id="47-使用强异常安全保证"><a href="#47-使用强异常安全保证" class="headerlink" title="47 使用强异常安全保证"></a>47 使用强异常安全保证</h3><p>在《Exceptional C++》一书中，Dave Abrahams定义了三种安全异常来保证程序：基础保证、强保证和无抛出保证。三者定义如下：</p>
+<ul>
+<li>基础保证：指没有资源泄漏，而且所有的对象在你的应用程序抛出异常后（即在任何一个<code>finally</code>子句结束之后）是可用的；</li>
+<li>强异常保证：是创建在基本保证之上的，而且添加了一个条件是在异常抛出后，程序的状态不发生改变；</li>
+<li>无抛出保证：表示操作绝对不失败，也就是在某个操作后绝对不会发生异常；</li>
+</ul>
+<p>强异常保证是在异常恢复和简化异常处理之间最平衡的一种做法；</p>
+<p>.NET CLR中提供了一些基本保证功能，运行环境可以处理托管内存。如果在抛出异常时，你的程序还在使用着一个实现了<code>IDisposable</code>接口的资源，就可能会有资源泄漏。在此之上，你仍需保证对象的状态合法。例如，假设你的类型中缓存了某个集合中元素的个数，同时也保存了这个集合本身，那么如果是<code>Add()</code>操作抛出了异常，在处理后你仍需要保证缓存的元素个数和集合中实际的元素数目相同；</p>
+<p>强异常保证是指，如果一个操作因为某个异常中断，程序将维持原状太不改变。操作要么彻底完成，要么就不会修改程序的任何状态，没有其它折衷。其好处是你可以在捕获异常后更容易地继续执行程序；</p>
+<p>将程序使用的数据元素存放在不可变值类型中（参见条目18和20），或使用函数式编程（如使用LINQ查询），这些编程方式会自然地遵循强异常保证；</p>
+<p>执行数据修改的通用原则如下：</p>
+<ol>
+<li>对将要修改的数据进行防御性的复制；</li>
+<li>在复制的数据上执行修改操作，包括任何可能导致异常的操作；</li>
+<li>把临时的副本数据与源数据进行交换，这个操作绝对不会抛出任何异常；</li>
+</ol>
+<p>使用<code>Interlocked.Exchange</code>方法可以保证数据交换的过程不会被打断（即使是在多线程的环境中），例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public class Envelope : IBindingList</span><br><span class="line">&#123;</span><br><span class="line">    private BindingList&lt;PayrollData&gt; data &#x3D;</span><br><span class="line">        new BindingList&lt;PayrollData&gt;();</span><br><span class="line">    </span><br><span class="line">    &#x2F;&#x2F; ...</span><br><span class="line">    </span><br><span class="line">    public void SafeUpdate(IEnumerable&lt;PayrollData&gt; bindingList)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; make the copy:</span><br><span class="line">        BindingList&lt;PayrollData&gt; updates &#x3D; </span><br><span class="line">            new BindingList&lt;PayrollData&gt;(bindingList.ToList());</span><br><span class="line">        &#x2F;&#x2F; swap</span><br><span class="line">        System.Threading.Interlocked.Exchange</span><br><span class="line">            &lt;BindingList&lt;PayrollData&gt;&gt;(ref data, updates);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最严格的是无抛出保证：一个方法总是完成任务，而且不会在方法里抛出异常。在某些小的范围内，方法必须要做到无抛出保证，终结器（Finalizer）和<code>Dispose()</code>方法就必须保证无异常抛出，因为这两种情况下，抛出任何异常都会引发更多的问题，远不如尽力保证无抛出。另一个必须做到无抛出保证的地方是委托的目标。当一个委托目标抛出异常时，在这个多播委托上的其他目标将无法执行，解决这一问题的唯一方法就是保证在委托目标上不抛出任何异常；</p>
+<h3 id="48-尽量使用安全的代码"><a href="#48-尽量使用安全的代码" class="headerlink" title="48 尽量使用安全的代码"></a>48 尽量使用安全的代码</h3><p>如果CLR没有完全信任一个程序集，它就会限制其某些行为，这叫做CAS（code access security，代码安全访问）；</p>
+<p>能否遵守安全要求是运行时条件，编译器不能强制保证；</p>
+<p>.NET是一个托管环境，它能保证一定程度的安全性，大多数.NET框架类库在安装时采用的是完全信任的策略，这个信任是可被验证的，即CLR可以检查其IL，确保它不会有什么潜在的危险行为，例如直接访问原始内存等。这些类库也不会声明需要某些特殊的安全权限才能访问本地资源。你应该遵守同样的规则，如果代码不需要任何的安全权限，那么就不要使用CAS的API来判断访问权限，否则只会影响程序性能；</p>
+<p>使用CAS的API来访问一些受保护的资源，这些资源的访问需额外的权限，最常见的受保护资源是非托管的内存和文件系统，还包括数据库、网络端口、Windows注册表以及打印子系统等；</p>
+<p>对于上述这些情况，如果调用代码没有足够的权限，那么访问这些资源都会抛出异常，除此之外，访问这些资源可能引发运行时遍历当前调用栈，以确保当前栈上的所有程序集都有恰当的许可；</p>
+<p>接下来讨论关于非托管内存和文件系统的安全程序设计的最佳实践：</p>
+<p>任何时候你都可以通过创建可验证的安全程序来避免非托管内存的访问，即不使用任何指针来访问非托管或者托管堆。除非在C#的编译器上打开了不安全的编译开关<code>/unsafe</code>，否则你所创建的都是可验证的安全代码，<code>/unsafe</code>允许用户使用指针，而指针是CLR无法验证的；</p>
+<p>通常很少使用不安全代码，而使用的原因一般都是为了追求性能（P258第二段，翻译有误），指向原始内存的指针比需要检测的安全引用要快很多（数组可能会快10倍以上），但当你使用不安全的结构时，要明白任何的不安全代码都会影响整个程序集，因此最好把这些不安全的代码块（算法）独立到一个程序集中（参见条目50），这样可降低不安全代码对整个程序的影响。除了实际调用者会受到影响之外，代码的其它部分仍可以在严格的环境中使用安全机制；</p>
+<p>其它的需要原始指针的场景，如P/Invoke或者COM接口，同样应该将其隔绝开来，这样不安全代码只会影响它所在的小程序集；</p>
+<p>对于内存访问的建议很简单：尽可能避免访问非托管内存，如果确实有需要，那么应该将其隔离在独立的程序集中；</p>
+<p>对于文件系统，有这样的问题：从网上下载的代码，无法访问文件系统中的绝大多数位置，否则会产生安全漏洞，如果完全不允许访问文件，又会妨碍编写真正有用的应用程序。为解决这一问题，可以使用独立存储（Isolated storage）。独立存储可以认为是一个虚拟的目录，根据使用的程序集、应用程序域以及当前的用户的不相同而不会互相干扰；</p>
+<p>不完全被信任的程序集，可以访问它们自己专属的隔离存储区域，但却不能访问文件系统的其它位置。使用<code>System.IO.IsolatedStorage</code>命名空间下的类来访问独立存储，其中包含的类与<code>System.IO</code>中的类的接口基本上一致；</p>
+<p>当你的程序集可能在Web上运行，或者可能被运行于Web上的代码访问时，应该考虑使用隔离存储；</p>
+<h3 id="49-实现与CLS兼容的程序集"><a href="#49-实现与CLS兼容的程序集" class="headerlink" title="49 实现与CLS兼容的程序集"></a>49 实现与CLS兼容的程序集</h3><p>.NET运行环境是语言无关的，开发者可以使用不同的.NET语言编写组件，你创建的程序集必须与CLS（Common Language Subsystem，公共语言子系统）保持兼容，这样才能保证其他的开发人员可以用另一种语言来调用你的组件；</p>
+<p>CLS兼容是实现语言之间交互操作的最小公分母，CLS规范是所有语言都必须支持的最小操作子集；</p>
+<p>若想创建CLS兼容的程序集，必须遵从两个规则：</p>
+<ol>
+<li>首先，所有参数及从公有的和受保护的成员上返回的值都必须是与CLS兼容的；</li>
+<li>其它与CLS不能兼容的公有或受保护成员必须提供一个CLS兼容的版本（即能够实现同样的功能）；</li>
+</ol>
+<p>第一个规则很容易实现，可以让编译器来强制完成，只需要在程序集上添加一个<code>CLSCompliant</code>特性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[assembly: System.CLSCompliant(true)]</span><br></pre></td></tr></table></figure>
+
+<p>编译器会强制整个程序集都与CLS兼容，如果你编写了一个公有方法或属性，它使用了一个与CLS不兼容的结构，那么编译器将视其为错误；</p>
+<p>第二个规则因人而异：你必须提供一种方式，确保所有公有的及受保护的操作能以语言无关的方式完成，同时还要保证你所使用的多态接口中不会不小心暴露出不兼容的对象；</p>
+<p>可以分解为以下三点注意事项：</p>
+<ol>
+<li>操作符重载，并不是所有的语言都支持操作符重载。无论何时重载操作运算符，都应该同时提供一个语义相同的函数；</li>
+<li>使用多态参数时，避免非CLR的类型被隐藏地传递出去（比如事件参数，公用的事件参数使用基类定义，然而调用时实际传入的参数是衍生类，衍生类中包含公有的非CLR兼容类型）；</li>
+<li>为了保证接口与CLS兼容，仅满足CLS规范是不够的，还必须顶一载一个CLS兼容的程序集中才行；</li>
+<li>如果接口不能与CLS兼容，为保证实现该接口的类能够与CLS兼容，则应该显式实现该接口，以便在公有接口上隐藏掉；</li>
+</ol>
+<h3 id="50-实现小尺寸、高内聚的程序集"><a href="#50-实现小尺寸、高内聚的程序集" class="headerlink" title="50 实现小尺寸、高内聚的程序集"></a>50 实现小尺寸、高内聚的程序集</h3><p>开发人员总是把所有的东西都放在一个程序集中，这不利于其中组件的重用，也不利于系统中小部分的更新；</p>
+<p>程序集的内聚性很重要，内聚性是指组成程序单元的各个组件之间职责的相关联程度，高内聚组件的功能都可以简单地用一句话概括；</p>
+<p>程序集不能过小，不应该只用一个类来创建一个程序集，这样会创建太多的程序集，就失去了封装可能带来的一些好处：如果没有将相关的公有类放在同一个程序集中，就失去了使用internal的机会。JIT编译器可以在一个程序集内实现高效的内联，这会比跨程序集的内联方便高效得多；</p>
+<p>程序集为一系列的相关的类提供二进制的包，在这个程序集以外，只有公有和受保护的类是可见的，而工具类可以是程序集的内部类，为了共享程序集内部通用的实现，同时不将这些实现暴露给所有的使用者，可以将程序拆分为多个程序集，且把相关的类型放在同一个程序集中；</p>
+<p>使用多程序集可以让支持不同部署选项变得很简单，例如有一段数据验证原则，同时在客户端和服务器使用，且服务器又要增加额外的条件验证更严格，这种情况下，可以在服务端使用完整的集合而在客户端使用其中一个子集。相比于共享源文件，这样做大大减小分发的复杂性；</p>
+<p>一个程序集应该是一个包含了相关功能的、良好组织的库，程序集越是保持精简，就越有可能灵活地将其部署到不同的场景中；</p>
+<p>对于有相同接口的程序集来说，你应该可以很容易地把它抽出来然后用一个新的程序集去替换，而且程序其它部分应该可以继续像往常一样运行；</p>
+<p>更小的程序集同样可以降低程序启动时的开销，更大的程序集要花上更多的CPU时间来加载，且需要更多的时间来将必须的IL编译成机器指令，虽然只有启动时会调用的程序会被JIT编译，但程序集确是整体载入的，而且CLR要为程序集中的每个方法生成占位符；</p>
+<p>不要走向另一个极端，基于太多小程序集构建的一个大型应用程序带来的性能开销是不容忽视的，程序集边界之间的穿梭会带来很多开销，在加载大量程序集并转化IL为机器指令时，CLR的加载器需完成更多的工作，特别是解析函数地址；</p>
+<p>在跨越程序集时，安全性检查也会成为一个额外的开销，同一个程序集中的所有代码都具有相同的信任级别，无论何时只要代码访问跨越了程序集，CLR都要进行一些安全验证；</p>
+<p>相比于内聚性和部署的灵活性，这性能上的损失实际上微乎其微，C#和.NET的设计是以组件为核心的，更好的灵活性通常能带来更大的价值；</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/5360961/" target="_blank" rel="noopener">《C#高效编程 改进C#代码的50个行之有效的办法》</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-35/" rel="tag"># C&#35;</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2019-03-29-effective-c-sharp-notes-05/" rel="prev" title="《Effective C#》笔记 C#中的动态编程">
+      <i class="fa fa-chevron-left"></i> 《Effective C#》笔记 C#中的动态编程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2019-05-22-unity-3d-notes-05/" rel="next" title="Unity3D 使用Image包络Text">
+      Unity3D 使用Image包络Text <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Miscellaneous"><span class="nav-number">1.</span> <span class="nav-text">Miscellaneous</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#45-尽量减少装箱和拆箱"><span class="nav-number">1.1.</span> <span class="nav-text">45 尽量减少装箱和拆箱</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#46-为应用程序创建专门的异常类"><span class="nav-number">1.2.</span> <span class="nav-text">46 为应用程序创建专门的异常类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#47-使用强异常安全保证"><span class="nav-number">1.3.</span> <span class="nav-text">47 使用强异常安全保证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#48-尽量使用安全的代码"><span class="nav-number">1.4.</span> <span class="nav-text">48 尽量使用安全的代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#49-实现与CLS兼容的程序集"><span class="nav-number">1.5.</span> <span class="nav-text">49 实现与CLS兼容的程序集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#50-实现小尺寸、高内聚的程序集"><span class="nav-number">1.6.</span> <span class="nav-text">50 实现小尺寸、高内聚的程序集</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">2.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'a870a4f38f530d8810dbd17752fcb842',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

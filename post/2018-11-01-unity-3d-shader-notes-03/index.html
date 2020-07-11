@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在片段着色器中获取像素对应的世界坐标，分为两种情况，第一种是在绘制物体时，第二种是在屏幕后处理阶段。前者比较简单，因此主要讨论后者，同时拿前者的绘制结果作为参照。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity Shader笔记（三） 在片段着色器中获取世界坐标">
+<meta property="og:url" content="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="在片段着色器中获取像素对应的世界坐标，分为两种情况，第一种是在绘制物体时，第二种是在屏幕后处理阶段。前者比较简单，因此主要讨论后者，同时拿前者的绘制结果作为参照。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/2018-11-01-unity-3d-shader-notes-03/pic_cams.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/2018-11-01-unity-3d-shader-notes-03/pic_cam_perspective.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/2018-11-01-unity-3d-shader-notes-03/pic_cam_orthographic.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/2018-11-01-unity-3d-shader-notes-03/pic_perspective.png">
+<meta property="og:image" content="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/2018-11-01-unity-3d-shader-notes-03/pic_orthographic.png">
+<meta property="article:published_time" content="2018-11-01T06:17:02.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.074Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Unity3D">
+<meta property="article:tag" content="shader">
+<meta property="article:tag" content="shaderlab">
+<meta property="article:tag" content="depth">
+<meta property="article:tag" content="DepthTexture">
+<meta property="article:tag" content="DepthTextureMode">
+<meta property="article:tag" content="worldPos">
+<meta property="article:tag" content="worldSpace">
+<meta property="article:tag" content="SAMPLE_DEPTH_TEXTURE">
+<meta property="article:tag" content="UNITY_REVERSED_Z">
+<meta property="article:tag" content="世界空间">
+<meta property="article:tag" content="裁剪空间">
+<meta property="article:tag" content="世界坐标">
+<meta property="article:tag" content="深度纹理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/2018-11-01-unity-3d-shader-notes-03/pic_cams.png">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity Shader笔记（三） 在片段着色器中获取世界坐标 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-11-01-unity-3d-shader-notes-03/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity Shader笔记（三） 在片段着色器中获取世界坐标
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-11-01 14:17:02" itemprop="dateCreated datePublished" datetime="2018-11-01T14:17:02+08:00">2018-11-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/ShaderLab/" itemprop="url" rel="index"><span itemprop="name">ShaderLab</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在片段着色器中获取像素对应的世界坐标，分为两种情况，第一种是在绘制物体时，第二种是在屏幕后处理阶段。前者比较简单，因此主要讨论后者，同时拿前者的绘制结果作为参照。</p>
+<a id="more"></a>
+
+<h2 id="绘制物体时"><a href="#绘制物体时" class="headerlink" title="绘制物体时"></a>绘制物体时</h2><p>顶点着色器向片段着色器额外传入世界坐标即可。在传递的数据中加上顶点的世界坐标<code>worldPos</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">v2f</span> &#123;</span></span><br><span class="line">	float4 pos : SV_POSITION;</span><br><span class="line">	float3 worldPos : TEXCOORD0;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>顶点着色器中计算顶点的世界坐标并赋值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">v2f <span class="title">vert</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">	v2f o;</span><br><span class="line">	o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">	o.worldPos = mul(unity_ObjectToWorld ,v.vertex);</span><br><span class="line">	<span class="keyword">return</span> o;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后在片段着色器中使用即可。</p>
+<h2 id="后处理阶段"><a href="#后处理阶段" class="headerlink" title="后处理阶段"></a>后处理阶段</h2><p>这里会使用两种方法，都需要用到深度纹理。这两种方法分别是在片段着色器中使用矩阵变换反算世界坐标、和根据深度值在射线上插值获取。</p>
+<h3 id="使用矩阵变换坐标"><a href="#使用矩阵变换坐标" class="headerlink" title="使用矩阵变换坐标"></a>使用矩阵变换坐标</h3><p>主要步骤如下：</p>
+<ul>
+<li><p>保存相机VP的逆矩阵</p>
+</li>
+<li><p>在片段着色器中取NDC的x和y</p>
+</li>
+<li><p>在片段着色器中对深度纹理采样取z</p>
+</li>
+<li><p>使用VP的逆矩阵变换到世界空间</p>
+</li>
+</ul>
+<p>在程序中需要保证相机开启深度纹理，并向材质传递VP的逆矩阵：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cam.depthTextureMode |&#x3D; DepthTextureMode.Depth;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; ...</span><br><span class="line"></span><br><span class="line">mat.SetMatrix(&quot;_VP_Inverse&quot;, (cam.projectionMatrix * cam.worldToCameraMatrix).inverse);</span><br></pre></td></tr></table></figure>
+
+<p>顶点着色器和片段着色器之间，需要传递深度纹理中的采样坐标：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">v2f</span> &#123;</span></span><br><span class="line">	float4 pos : SV_POSITION;</span><br><span class="line">	half2 uv : TEXCOORD0;</span><br><span class="line">	half2 uv_depth : TEXCOORD1;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>顶点着色器比较常规，需要为深度纹理的坐标赋值：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">v2f <span class="title">vert</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">	v2f o;</span><br><span class="line">	o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">	</span><br><span class="line">	o.uv = v.texcoord;</span><br><span class="line">	o.uv_depth = v.texcoord;</span><br><span class="line">	</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> UNITY_UV_STARTS_AT_TOP</span></span><br><span class="line">	<span class="keyword">if</span> (_MainTex_TexelSize.y &lt; <span class="number">0</span>)</span><br><span class="line">		o.uv_depth.y = <span class="number">1</span> - o.uv_depth.y;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">			 </span><br><span class="line">	<span class="keyword">return</span> o;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>片段着色器中需要对深度纹理采样，获取到NDC坐标H，使用之前的PV逆矩阵转换到世界坐标得到<code>worldPos</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">fixed4 <span class="title">frag</span><span class="params">(v2f i)</span> : SV_Target </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">float</span> d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv_depth);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> UNITY_REVERSED_Z</span></span><br><span class="line">	d = <span class="number">1.0f</span> - d;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	float4 H = float4(i.uv.x * <span class="number">2</span> - <span class="number">1</span>, i.uv.y * <span class="number">2</span> - <span class="number">1</span>, d * <span class="number">2</span> - <span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">	float4 D = mul(_VP_Inverse, H);</span><br><span class="line">	float4 worldPos = D / D.w;</span><br><span class="line"></span><br><span class="line">	fixed hasObj = <span class="built_in">step</span>(d,<span class="number">0.999f</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> fixed4(worldPos.rgb, <span class="number">1.0</span>) * hasObj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种方法比较方便，且适用范围广（正交相机/透视相机）。但是需要在片段着色器中进行矩阵计算，效率较低。</p>
+<h3 id="根据深度值在射线上插值"><a href="#根据深度值在射线上插值" class="headerlink" title="根据深度值在射线上插值"></a>根据深度值在射线上插值</h3><p>屏幕上绘制的像素，对应的空间位置，位于从相机到远平面的连线上（对于正交相机，像素的空间位置位于与相机方向平行的位于远平面和近平面之间的直线上）。</p>
+<p><img src="2018-11-01-unity-3d-shader-notes-03/pic_cams.png" alt="fig"></p>
+<h4 id="透视相机"><a href="#透视相机" class="headerlink" title="透视相机"></a>透视相机</h4><p>像素位于连接相机到屏幕上一点的直线上：</p>
+<p><img src="2018-11-01-unity-3d-shader-notes-03/pic_cam_perspective.png" alt="fig"></p>
+<p>在程序中计算出由相机位置向远平面四个角的射线方向。并将此方向值保存在<code>frustumCorners</code>的四个列向量中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cam.depthTextureMode |&#x3D; DepthTextureMode.Depth;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; ...</span><br><span class="line"></span><br><span class="line">frustumCorners.SetRow(0, bottomLeft);</span><br><span class="line">frustumCorners.SetRow(1, bottomRight);</span><br><span class="line">frustumCorners.SetRow(2, topRight);</span><br><span class="line">frustumCorners.SetRow(3, topLeft);</span><br><span class="line"></span><br><span class="line">mat.SetMatrix(&quot;_FrustumCornersRay&quot;, frustumCorners);</span><br></pre></td></tr></table></figure>
+
+<p>在后处理阶段，屏幕可以理解为一个Quad，在顶点着色器中，计算四个顶点对应的由相机指向该顶点的射线方向，保存在<code>interpolatedRay</code>中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">v2f <span class="title">vert</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">	v2f o;</span><br><span class="line">	o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">	</span><br><span class="line">	o.uv = v.texcoord;</span><br><span class="line">	o.uv_depth = v.texcoord;</span><br><span class="line">	</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> UNITY_UV_STARTS_AT_TOP</span></span><br><span class="line">	<span class="keyword">if</span> (_MainTex_TexelSize.y &lt; <span class="number">0</span>)</span><br><span class="line">		o.uv_depth.y = <span class="number">1</span> - o.uv_depth.y;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">if</span> (v.texcoord.x &lt; <span class="number">0.5</span> &amp;&amp; v.texcoord.y &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">		index = <span class="number">0</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> (v.texcoord.x &gt; <span class="number">0.5</span> &amp;&amp; v.texcoord.y &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">		index = <span class="number">1</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> (v.texcoord.x &gt; <span class="number">0.5</span> &amp;&amp; v.texcoord.y &gt; <span class="number">0.5</span>) &#123;</span><br><span class="line">		index = <span class="number">2</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		index = <span class="number">3</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> UNITY_UV_STARTS_AT_TOP</span></span><br><span class="line">	<span class="keyword">if</span> (_MainTex_TexelSize.y &lt; <span class="number">0</span>)</span><br><span class="line">		index = <span class="number">3</span> - index;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	</span><br><span class="line">	o.interpolatedRay = _FrustumCornersRay[index];</span><br><span class="line">		 	 </span><br><span class="line">	<span class="keyword">return</span> o;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由顶点着色器传向片段着色器的数据结构中需要额外包含此射线方向：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">v2f</span> &#123;</span></span><br><span class="line">	float4 pos : SV_POSITION;</span><br><span class="line">	half2 uv : TEXCOORD0;</span><br><span class="line">	half2 uv_depth : TEXCOORD1;</span><br><span class="line">	float4 interpolatedRay : TEXCOORD2;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>在片段着色器中，同样是采样深度纹理，得到深度值。然后根据相机的世界坐标、相机指向当前像素的方向、线性空间深度值来得出像素的空间坐标：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">fixed4 <span class="title">frag</span><span class="params">(v2f i)</span> : SV_Target </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">float</span> d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv_depth);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">float</span> linearDepth = LinearEyeDepth(d);</span><br><span class="line"></span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> UNITY_REVERSED_Z</span></span><br><span class="line">		d = <span class="number">1.0f</span> - d;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	float3 worldPos = _WorldSpaceCameraPos + linearDepth * i.interpolatedRay.xyz;</span><br><span class="line"></span><br><span class="line">	fixed hasObj = <span class="built_in">step</span>(d,<span class="number">0.999f</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> fixed4(worldPos.xyz,<span class="number">1.0</span>) * hasObj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="正交相机"><a href="#正交相机" class="headerlink" title="正交相机"></a>正交相机</h4><p>正交相机的计算方式稍有不同，但原理相似。像素点位于相机远近平面之间的与相机方向平行的直线上。所以需要得出这条直线，并使用深度值在这条线上求解出世界坐标。</p>
+<p><img src="2018-11-01-unity-3d-shader-notes-03/pic_cam_orthographic.png" alt="fig"></p>
+<p>程序中需要计算远平面四个角的顶点坐标，以及远平面中心点的坐标（或相机的方向）。此处把远平面的中心点直接塞进<code>frustumCorners</code>的最后一列：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">cam.depthTextureMode |&#x3D; DepthTextureMode.Depth;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; ...</span><br><span class="line"></span><br><span class="line">frustumCorners.SetRow(0, bottomLeft);</span><br><span class="line">frustumCorners.SetRow(1, bottomRight);</span><br><span class="line">frustumCorners.SetRow(2, topRight);</span><br><span class="line">frustumCorners.SetRow(3, topLeft);</span><br><span class="line"></span><br><span class="line">frustumCorners.SetColumn (3, farCenter);</span><br></pre></td></tr></table></figure>
+
+<p>顶点着色器与之前相似，但是需要额外向片段着色器传递相机的正方向<code>camForward</code>（长度为远平面的距离），这里的<code>interpolatedRay</code>实际上是像素点所属的直线相对于相机正方向的偏移量：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">v2f <span class="title">vert</span><span class="params">(appdata_img v)</span> </span>&#123;</span><br><span class="line">	v2f o;</span><br><span class="line">	o.pos = UnityObjectToClipPos(v.vertex);</span><br><span class="line">	</span><br><span class="line">	o.uv = v.texcoord;</span><br><span class="line">	o.uv_depth = v.texcoord;</span><br><span class="line">	</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> UNITY_UV_STARTS_AT_TOP</span></span><br><span class="line">	<span class="keyword">if</span> (_MainTex_TexelSize.y &lt; <span class="number">0</span>)</span><br><span class="line">		o.uv_depth.y = <span class="number">1</span> - o.uv_depth.y;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	</span><br><span class="line">	<span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">if</span> (v.texcoord.x &lt; <span class="number">0.5</span> &amp;&amp; v.texcoord.y &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">		index = <span class="number">0</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> (v.texcoord.x &gt; <span class="number">0.5</span> &amp;&amp; v.texcoord.y &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">		index = <span class="number">1</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> <span class="keyword">if</span> (v.texcoord.x &gt; <span class="number">0.5</span> &amp;&amp; v.texcoord.y &gt; <span class="number">0.5</span>) &#123;</span><br><span class="line">		index = <span class="number">2</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		index = <span class="number">3</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> UNITY_UV_STARTS_AT_TOP</span></span><br><span class="line">	<span class="keyword">if</span> (_MainTex_TexelSize.y &lt; <span class="number">0</span>)</span><br><span class="line">		index = <span class="number">3</span> - index;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">	</span><br><span class="line">	o.interpolatedRay = _FrustumCornersRay[index];</span><br><span class="line"></span><br><span class="line">	o.camForward = float3(_FrustumCornersRay[<span class="number">0</span>][<span class="number">3</span>],_FrustumCornersRay[<span class="number">1</span>][<span class="number">3</span>],_FrustumCornersRay[<span class="number">2</span>][<span class="number">3</span>]); </span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> o;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>传递的数据结构如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">v2f</span> &#123;</span></span><br><span class="line">	float4 pos : SV_POSITION;</span><br><span class="line">	half2 uv : TEXCOORD0;</span><br><span class="line">	half2 uv_depth : TEXCOORD1;</span><br><span class="line">	float4 interpolatedRay : TEXCOORD2;</span><br><span class="line">    float3 camForward: TEXCOORD3;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>最后在片段着色器中，先采样得到深度值。然后根据相机的世界坐标、相机正方向和线性空间深度值、像素所在的直线与相机正方向的偏移量计算出世界坐标：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">fixed4 <span class="title">frag</span><span class="params">(v2f i)</span> : SV_Target </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">float</span> d = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv_depth);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">float</span> linearDepth = LinearEyeDepth(d);</span><br><span class="line"></span><br><span class="line">	<span class="meta">#<span class="meta-keyword">if</span> UNITY_REVERSED_Z</span></span><br><span class="line">		d = <span class="number">1.0f</span> - d;</span><br><span class="line">	<span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">	float3 worldPos = _WorldSpaceCameraPos + i.camForward * linearDepth + i.interpolatedRay.xyz;</span><br><span class="line">							</span><br><span class="line">	fixed hasObj = <span class="built_in">step</span>(d,<span class="number">0.999f</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> fixed4(worldPos.xyz,<span class="number">1.0</span>) * hasObj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用以上各shader，在场景中添加一个Cube时的绘制结果：</p>
+<p>直接绘制物体、屏幕后处理方法一、屏幕后处理方法二（透视相机）</p>
+<p><img src="2018-11-01-unity-3d-shader-notes-03/pic_perspective.png" alt="fig"></p>
+<p>直接绘制物体、屏幕后处理方法一、屏幕后处理方法二（正交相机）</p>
+<p><img src="2018-11-01-unity-3d-shader-notes-03/pic_orthographic.png" alt="fig"></p>
+<p>涉及到的所有脚本和shader可以在<a href="https://github.com/aillieo/unity3d-shader-collection/tree/master/Assets/01_FragWorldPos" target="_blank" rel="noopener">这里</a>找到。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/26821639/" target="_blank" rel="noopener">《Unity Shader入门精要》</a></p>
+<p><a href="https://www.khronos.org/opengl/wiki/GluProject_and_gluUnProject_code" target="_blank" rel="noopener">https://www.khronos.org/opengl/wiki/GluProject_and_gluUnProject_code</a></p>
+<p><a href="https://docs.unity3d.com/Manual/SL-DepthTextures.html" target="_blank" rel="noopener">https://docs.unity3d.com/Manual/SL-DepthTextures.html</a></p>
+<p><a href="https://www.derschmale.com/2014/03/19/reconstructing-positions-from-the-depth-buffer-pt-2-perspective-and-orthographic-general-case/" target="_blank" rel="noopener">https://www.derschmale.com/2014/03/19/reconstructing-positions-from-the-depth-buffer-pt-2-perspective-and-orthographic-general-case/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/shader/" rel="tag"># shader</a>
+              <a href="/tags/ShaderLab/" rel="tag"># ShaderLab</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-10-24-shell-script-notes-01/" rel="prev" title="shell脚本笔记（一）">
+      <i class="fa fa-chevron-left"></i> shell脚本笔记（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-11-08-unity-3d-notes-04/" rel="next" title="Unity3D 基于shader和Image的雷达图">
+      Unity3D 基于shader和Image的雷达图 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#绘制物体时"><span class="nav-number">1.</span> <span class="nav-text">绘制物体时</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后处理阶段"><span class="nav-number">2.</span> <span class="nav-text">后处理阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用矩阵变换坐标"><span class="nav-number">2.1.</span> <span class="nav-text">使用矩阵变换坐标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#根据深度值在射线上插值"><span class="nav-number">2.2.</span> <span class="nav-text">根据深度值在射线上插值</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#透视相机"><span class="nav-number">2.2.1.</span> <span class="nav-text">透视相机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#正交相机"><span class="nav-number">2.2.2.</span> <span class="nav-text">正交相机</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">3.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'e984f780e522a38e3360645c058713e8',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

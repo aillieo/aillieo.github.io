@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Raycaster的职责是向场景中的对象投射射线以判断光标是否在其上方，在Unity中，Raycaster系统用于当事件发生时筛选和确定事件的接收对象。对于指定的屏幕坐标点，使用射线投射可以取到所有位于该坐标点之下的对象并得出其中最靠近屏幕的一个。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 Raycaster">
+<meta property="og:url" content="http://aillieo.cn/post/2018-05-26-unity-3d-ugui-source-code-06/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="Raycaster的职责是向场景中的对象投射射线以判断光标是否在其上方，在Unity中，Raycaster系统用于当事件发生时筛选和确定事件的接收对象。对于指定的屏幕坐标点，使用射线投射可以取到所有位于该坐标点之下的对象并得出其中最靠近屏幕的一个。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-25T16:09:09.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.063Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="Raycaster">
+<meta property="article:tag" content="unity3d">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="射线">
+<meta property="article:tag" content="射线投射">
+<meta property="article:tag" content="GraphicRaycaster">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-05-26-unity-3d-ugui-source-code-06/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 Raycaster | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-05-26-unity-3d-ugui-source-code-06/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 Raycaster
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-26 00:09:09" itemprop="dateCreated datePublished" datetime="2018-05-26T00:09:09+08:00">2018-05-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Raycaster的职责是向场景中的对象投射射线以判断光标是否在其上方，在Unity中，Raycaster系统用于当事件发生时筛选和确定事件的接收对象。对于指定的屏幕坐标点，使用射线投射可以取到所有位于该坐标点之下的对象并得出其中最靠近屏幕的一个。</p>
+<a id="more"></a>
+
+<h2 id="Raycaster"><a href="#Raycaster" class="headerlink" title="Raycaster"></a>Raycaster</h2><p>Unity中有三种内置的Raycaster</p>
+<ul>
+<li>GraphicRaycaster：用于处理UIelements，依存于一个Canvas并且会在Canvas内搜寻目标</li>
+<li>Physics2DRaycaster：用于处理2D物理的对象</li>
+<li>PhysicsRaycaster：用于处理3D物理的对象</li>
+</ul>
+<p>各Raycasters继承关系如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public abstract class BaseRaycaster : UIBehaviour</span><br><span class="line">public class GraphicRaycaster : BaseRaycaster</span><br><span class="line">public class PhysicsRaycaster : BaseRaycaster</span><br><span class="line">public class Physics2DRaycaster : PhysicsRaycaster</span><br></pre></td></tr></table></figure>
+
+<p>本系列主要是阅读分析UGUI代码，所以只讨论<code>GraphicRaycaster</code>相关的内容。</p>
+<h3 id="BaseRaycaster"><a href="#BaseRaycaster" class="headerlink" title="BaseRaycaster"></a>BaseRaycaster</h3><p>所有的Raycaster的基类，提供了一个抽象方法<code>Raycast(...)</code>交由子类实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public abstract void Raycast(PointerEventData eventData, List&lt;RaycastResult&gt; resultAppendList);</span><br></pre></td></tr></table></figure>
+
+<p>除此之外还有<code>sortOrderPriority</code>和<code>renderOrderPriority</code>两个get的虚方法，与射线投射的优先级相关，后边会被<code>GraphicRaycaster</code>复写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public virtual int sortOrderPriority</span><br><span class="line">&#123;</span><br><span class="line">    get &#123; return int.MinValue; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public virtual int renderOrderPriority</span><br><span class="line">&#123;</span><br><span class="line">    get &#123; return int.MinValue; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>OnEnable()</code>和<code>OnDisable()</code>中，Raycaster会把自己从<code>RaycasterManager</code>管理的一个列表中添加/移除。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">protected override void OnEnable()</span><br><span class="line">&#123;</span><br><span class="line">    base.OnEnable();</span><br><span class="line">    RaycasterManager.AddRaycaster(this);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected override void OnDisable()</span><br><span class="line">&#123;</span><br><span class="line">    RaycasterManager.RemoveRaycasters(this);</span><br><span class="line">    base.OnDisable();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="GraphicRaycaster"><a href="#GraphicRaycaster" class="headerlink" title="GraphicRaycaster"></a>GraphicRaycaster</h3><p><code>GraphicRaycaster</code>内围绕复写的基类的<code>Raycast</code>方法来展开（注意在<code>GraphicRaycaster</code>内部有另一个名为<code>Raycast</code>的私有静态方法，不要搞混）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br></pre></td><td class="code"><pre><span class="line">[NonSerialized] private List&lt;Graphic&gt; m_RaycastResults &#x3D; new List&lt;Graphic&gt;();</span><br><span class="line">public override void Raycast(PointerEventData eventData, List&lt;RaycastResult&gt; resultAppendList)</span><br><span class="line">&#123;</span><br><span class="line">    if (canvas &#x3D;&#x3D; null)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    var eventPosition &#x3D; Display.RelativeMouseAt(eventData.position);</span><br><span class="line"></span><br><span class="line">    int displayIndex &#x3D; canvas.targetDisplay;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Discard events that are not part of this display so the user does not interact with multiple displays at once.</span><br><span class="line">    if (eventPosition.z !&#x3D; displayIndex)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; The multiple display system is not supported on all platforms, when it is not supported the returned position</span><br><span class="line">    &#x2F;&#x2F; will be all zeros so when the returned index is 0 we will default to the event data to be safe.</span><br><span class="line">    if (eventPosition.z &#x3D;&#x3D; 0)</span><br><span class="line">        eventPosition &#x3D; eventData.position;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; Convert to view space</span><br><span class="line">    Vector2 pos;</span><br><span class="line">    if (eventCamera &#x3D;&#x3D; null)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Multiple display support only when not the main display. For display 0 the reported</span><br><span class="line">        &#x2F;&#x2F; resolution is always the desktops resolution since its part of the display API,</span><br><span class="line">        &#x2F;&#x2F; so we use the standard none multiple display method. (case 741751)</span><br><span class="line">        float w &#x3D; Screen.width;</span><br><span class="line">        float h &#x3D; Screen.height;</span><br><span class="line">        if (displayIndex &gt; 0 &amp;&amp; displayIndex &lt; Display.displays.Length)</span><br><span class="line">        &#123;</span><br><span class="line">            w &#x3D; Display.displays[displayIndex].systemWidth;</span><br><span class="line">            h &#x3D; Display.displays[displayIndex].systemHeight;</span><br><span class="line">        &#125;</span><br><span class="line">        pos &#x3D; new Vector2(eventPosition.x &#x2F; w, eventPosition.y &#x2F; h);</span><br><span class="line">    &#125;</span><br><span class="line">    else</span><br><span class="line">        pos &#x3D; eventCamera.ScreenToViewportPoint(eventPosition);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; If it&#39;s outside the camera&#39;s viewport, do nothing</span><br><span class="line">    if (pos.x &lt; 0f || pos.x &gt; 1f || pos.y &lt; 0f || pos.y &gt; 1f)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    float hitDistance &#x3D; float.MaxValue;</span><br><span class="line"></span><br><span class="line">    Ray ray &#x3D; new Ray();</span><br><span class="line"></span><br><span class="line">    if (eventCamera !&#x3D; null)</span><br><span class="line">        ray &#x3D; eventCamera.ScreenPointToRay(eventPosition);</span><br><span class="line"></span><br><span class="line">    if (canvas.renderMode !&#x3D; RenderMode.ScreenSpaceOverlay &amp;&amp; blockingObjects !&#x3D; BlockingObjects.None)</span><br><span class="line">    &#123;</span><br><span class="line">        float dist &#x3D; 100.0f;</span><br><span class="line"></span><br><span class="line">        if (eventCamera !&#x3D; null)</span><br><span class="line">            dist &#x3D; eventCamera.farClipPlane - eventCamera.nearClipPlane;</span><br><span class="line"></span><br><span class="line">        if (blockingObjects &#x3D;&#x3D; BlockingObjects.ThreeD || blockingObjects &#x3D;&#x3D; BlockingObjects.All)</span><br><span class="line">        &#123;</span><br><span class="line">            if (ReflectionMethodsCache.Singleton.raycast3D !&#x3D; null)</span><br><span class="line">            &#123;</span><br><span class="line">                RaycastHit hit;</span><br><span class="line">                if (ReflectionMethodsCache.Singleton.raycast3D(ray, out hit, dist, m_BlockingMask))</span><br><span class="line">                    hitDistance &#x3D; hit.distance;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (blockingObjects &#x3D;&#x3D; BlockingObjects.TwoD || blockingObjects &#x3D;&#x3D; BlockingObjects.All)</span><br><span class="line">        &#123;</span><br><span class="line">            if (ReflectionMethodsCache.Singleton.raycast2D !&#x3D; null)</span><br><span class="line">            &#123;</span><br><span class="line">                var hit &#x3D; ReflectionMethodsCache.Singleton.raycast2D((Vector2)ray.origin, (Vector2)ray.direction, dist, (int)m_BlockingMask);</span><br><span class="line">                if (hit.collider)</span><br><span class="line">                    hitDistance &#x3D; hit.fraction * dist;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    m_RaycastResults.Clear();</span><br><span class="line">    Raycast(canvas, eventCamera, eventPosition, m_RaycastResults);</span><br><span class="line"></span><br><span class="line">    for (var index &#x3D; 0; index &lt; m_RaycastResults.Count; index++)</span><br><span class="line">    &#123;</span><br><span class="line">        var go &#x3D; m_RaycastResults[index].gameObject;</span><br><span class="line">        bool appendGraphic &#x3D; true;</span><br><span class="line"></span><br><span class="line">        if (ignoreReversedGraphics)</span><br><span class="line">        &#123;</span><br><span class="line">            if (eventCamera &#x3D;&#x3D; null)</span><br><span class="line">            &#123;</span><br><span class="line">                &#x2F;&#x2F; If we dont have a camera we know that we should always be facing forward</span><br><span class="line">                var dir &#x3D; go.transform.rotation * Vector3.forward;</span><br><span class="line">                appendGraphic &#x3D; Vector3.Dot(Vector3.forward, dir) &gt; 0;</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">            &#123;</span><br><span class="line">                &#x2F;&#x2F; If we have a camera compare the direction against the cameras forward.</span><br><span class="line">                var cameraFoward &#x3D; eventCamera.transform.rotation * Vector3.forward;</span><br><span class="line">                var dir &#x3D; go.transform.rotation * Vector3.forward;</span><br><span class="line">                appendGraphic &#x3D; Vector3.Dot(cameraFoward, dir) &gt; 0;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (appendGraphic)</span><br><span class="line">        &#123;</span><br><span class="line">            float distance &#x3D; 0;</span><br><span class="line"></span><br><span class="line">            if (eventCamera &#x3D;&#x3D; null || canvas.renderMode &#x3D;&#x3D; RenderMode.ScreenSpaceOverlay)</span><br><span class="line">                distance &#x3D; 0;</span><br><span class="line">            else</span><br><span class="line">            &#123;</span><br><span class="line">                Transform trans &#x3D; go.transform;</span><br><span class="line">                Vector3 transForward &#x3D; trans.forward;</span><br><span class="line">                &#x2F;&#x2F; http:&#x2F;&#x2F;geomalgorithms.com&#x2F;a06-_intersect-2.html</span><br><span class="line">                distance &#x3D; (Vector3.Dot(transForward, trans.position - ray.origin) &#x2F; Vector3.Dot(transForward, ray.direction));</span><br><span class="line"></span><br><span class="line">                &#x2F;&#x2F; Check to see if the go is behind the camera.</span><br><span class="line">                if (distance &lt; 0)</span><br><span class="line">                    continue;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if (distance &gt;&#x3D; hitDistance)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            var castResult &#x3D; new RaycastResult</span><br><span class="line">            &#123;</span><br><span class="line">                gameObject &#x3D; go,</span><br><span class="line">                module &#x3D; this,</span><br><span class="line">                distance &#x3D; distance,</span><br><span class="line">                screenPosition &#x3D; eventPosition,</span><br><span class="line">                index &#x3D; resultAppendList.Count,</span><br><span class="line">                depth &#x3D; m_RaycastResults[index].depth,</span><br><span class="line">                sortingLayer &#x3D;  canvas.sortingLayerID,</span><br><span class="line">                sortingOrder &#x3D; canvas.sortingOrder</span><br><span class="line">            &#125;;</span><br><span class="line">            resultAppendList.Add(castResult);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整个函数代码很多，但是做的事情很简单，对于给定的<code>PointerEventData</code>，射线投射得出一些投射结果<code>RaycastResult</code>，追加到传入的参数<code>List&lt;RaycastResult&gt;</code>之后。函数里边主要做了下边这些工作：</p>
+<ul>
+<li><p>获取<code>eventPosition</code>：<code>Display.RelativeMouseAt(...)</code>方法用于获取鼠标的相对位置，在PC平台下可能会有多个Display窗口，返回的<code>z</code>表示的是Display的id。如果不支持多个Display则返回值的<code>z</code>为0，此时获取到的就是<code>eventData.position</code>；</p>
+</li>
+<li><p>获取正确的<code>pos</code>：将上一步的屏幕坐标<code>eventPosition</code>转换成ViewPort坐标<code>pos</code>，这里同样也处理了多Display的情况。获取<code>eventCamaera</code>不为<code>null</code>则直接调用相机的坐标转换方法<code>ScreenToViewportPoint</code>，获取<code>eventCamera</code>的逻辑如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public override Camera eventCamera</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        if (canvas.renderMode &#x3D;&#x3D; RenderMode.ScreenSpaceOverlay</span><br><span class="line">            || (canvas.renderMode &#x3D;&#x3D; RenderMode.ScreenSpaceCamera &amp;&amp; canvas.worldCamera &#x3D;&#x3D; null))</span><br><span class="line">            return null;</span><br><span class="line"></span><br><span class="line">        return canvas.worldCamera !&#x3D; null ? canvas.worldCamera : Camera.main;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获取正确的<code>hitDistance</code>：这里分别处理<code>blockingObjects</code> 为不同的枚举值时的情况（默认值为<code>None</code>）。<code>hitDistance</code>表示相机到投射目标点的距离。后边会根据这个距离值筛选掉一部分<code>Graphic</code>；<code>m_BlockingMask</code>是<code>LayerMask</code>用于按层筛选投射目标；这里的<code>ReflectionMethodsCache.Singleton.raycast3D</code>这样的方法实际上调用的就是<code>Physics.Raycast(...)</code>方法，后边会有专门的文章讨论这个<code>ReflectionMethodsCache</code>；</p>
+</li>
+<li><p>调用私有的<code>Raycast(...)</code>：得到候选的经过排序的<code>Graphic</code>的列表<code>m_RaycastResults</code>，后边细说；</p>
+</li>
+<li><p>遍历<code>m_RaycastResults</code>：判断对应的GameObject是否有效<code>appendGraphic</code>，即是否继续处理追加该Graphic到射线投射结果的列表。如果<code>ignoreReversedGraphics</code> ，则值追加朝向为正的<code>Graphic</code>，当判断需要追加<code>appendGraphic</code>为正时，会计算目标到摄像机的距离<code>distance</code>并再进行一次筛选，最终通过筛选的对象，会为其new一个<code>RaycastResult</code>并填入数据，最后把它追加到<code>resultAppendList</code></p>
+</li>
+</ul>
+<p>我们来看静态私有方法<code>Raycast(...)</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">[NonSerialized] static readonly List&lt;Graphic&gt; s_SortedGraphics &#x3D; new List&lt;Graphic&gt;();</span><br><span class="line">private static void Raycast(Canvas canvas, Camera eventCamera, Vector2 pointerPosition, List&lt;Graphic&gt; results)</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; Debug.Log(&quot;ttt&quot; + pointerPoision + &quot;:::&quot; + camera);</span><br><span class="line">    &#x2F;&#x2F; Necessary for the event system</span><br><span class="line">    var foundGraphics &#x3D; GraphicRegistry.GetGraphicsForCanvas(canvas);</span><br><span class="line">    for (int i &#x3D; 0; i &lt; foundGraphics.Count; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        Graphic graphic &#x3D; foundGraphics[i];</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; -1 means it hasn&#39;t been processed by the canvas, which means it isn&#39;t actually drawn</span><br><span class="line">        if (graphic.depth &#x3D;&#x3D; -1 || !graphic.raycastTarget)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        if (!RectTransformUtility.RectangleContainsScreenPoint(graphic.rectTransform, pointerPosition, eventCamera))</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        if (graphic.Raycast(pointerPosition, eventCamera))</span><br><span class="line">        &#123;</span><br><span class="line">            s_SortedGraphics.Add(graphic);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    s_SortedGraphics.Sort((g1, g2) &#x3D;&gt; g2.depth.CompareTo(g1.depth));</span><br><span class="line">    &#x2F;&#x2F;		StringBuilder cast &#x3D; new StringBuilder();</span><br><span class="line">    for (int i &#x3D; 0; i &lt; s_SortedGraphics.Count; ++i)</span><br><span class="line">        results.Add(s_SortedGraphics[i]);</span><br><span class="line">    &#x2F;&#x2F;		Debug.Log (cast.ToString());</span><br><span class="line"></span><br><span class="line">    s_SortedGraphics.Clear();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要完成的工作如下：</p>
+<ul>
+<li>获取在<code>canvas</code>注册的<code>Graphic</code>的列表<code>foundGraphics</code>；</li>
+<li>遍历<code>foundGraphics</code>，筛选有效的<code>Graphic</code>（是否已绘制且是<code>raycastTarget</code>且事件坐标点在<code>rectTransform</code>范围内）；调用<code>graphic.Raycast(...)</code>方法，符合要求的<code>Graphic</code>放入<code>s_SortedGraphics</code>；</li>
+<li>对<code>s_SortedGraphics</code>中的各个<code>Graphic</code>按照<code>depth</code>排序，<code>depth</code>其实是<code>Graphic</code>的<code>canvasRenderer.absoluteDepth</code>；</li>
+<li>将排序后的<code>Graphic</code>放入<code>results</code>并清空<code>s_SortedGraphics</code></li>
+</ul>
+<p>展开来看<code>Graphic</code>中的<code>Raycast(...)</code>方法，对于给定的屏幕坐标和事件Camera，判断是否是有效的投射结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">public virtual bool Raycast(Vector2 sp, Camera eventCamera)</span><br><span class="line">&#123;</span><br><span class="line">    if (!isActiveAndEnabled)</span><br><span class="line">        return false;</span><br><span class="line"></span><br><span class="line">    var t &#x3D; transform;</span><br><span class="line">    var components &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line"></span><br><span class="line">    bool ignoreParentGroups &#x3D; false;</span><br><span class="line">    bool continueTraversal &#x3D; true;</span><br><span class="line"></span><br><span class="line">    while (t !&#x3D; null)</span><br><span class="line">    &#123;</span><br><span class="line">        t.GetComponents(components);</span><br><span class="line">        for (var i &#x3D; 0; i &lt; components.Count; i++)</span><br><span class="line">        &#123;</span><br><span class="line">            var canvas &#x3D; components[i] as Canvas;</span><br><span class="line">            if (canvas !&#x3D; null &amp;&amp; canvas.overrideSorting)</span><br><span class="line">                continueTraversal &#x3D; false;</span><br><span class="line"></span><br><span class="line">            var filter &#x3D; components[i] as ICanvasRaycastFilter;</span><br><span class="line"></span><br><span class="line">            if (filter &#x3D;&#x3D; null)</span><br><span class="line">                continue;</span><br><span class="line"></span><br><span class="line">            var raycastValid &#x3D; true;</span><br><span class="line"></span><br><span class="line">            var group &#x3D; components[i] as CanvasGroup;</span><br><span class="line">            if (group !&#x3D; null)</span><br><span class="line">            &#123;</span><br><span class="line">                if (ignoreParentGroups &#x3D;&#x3D; false &amp;&amp; group.ignoreParentGroups)</span><br><span class="line">                &#123;</span><br><span class="line">                    ignoreParentGroups &#x3D; true;</span><br><span class="line">                    raycastValid &#x3D; filter.IsRaycastLocationValid(sp, eventCamera);</span><br><span class="line">                &#125;</span><br><span class="line">                else if (!ignoreParentGroups)</span><br><span class="line">                    raycastValid &#x3D; filter.IsRaycastLocationValid(sp, eventCamera);</span><br><span class="line">            &#125;</span><br><span class="line">            else</span><br><span class="line">            &#123;</span><br><span class="line">                raycastValid &#x3D; filter.IsRaycastLocationValid(sp, eventCamera);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if (!raycastValid)</span><br><span class="line">            &#123;</span><br><span class="line">                ListPool&lt;Component&gt;.Release(components);</span><br><span class="line">                return false;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        t &#x3D; continueTraversal ? t.parent : null;</span><br><span class="line">    &#125;</span><br><span class="line">    ListPool&lt;Component&gt;.Release(components);</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先是做了一些是否有效的判断，然后会在层级结构中自下而上地遍历，直到没有更多的父级节点或者由<code>overrideSorting</code>的<code>Canvas</code>为止。遍历过程中，如果遇到有<code>ICanvasRaycastFilter</code>（<code>Image</code>实现有此接口）和<code>CanvasGroup</code>则要根据二者的实现及参数做出一些判断，如果都通过了检测，则认为这次投射有效返回<code>true</code>。</p>
+<h2 id="RaycasterManager"><a href="#RaycasterManager" class="headerlink" title="RaycasterManager"></a>RaycasterManager</h2><p>直接是一个静态类，用于管理各Raycaster：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">internal static class RaycasterManager</span><br><span class="line">&#123;</span><br><span class="line">    private static readonly List&lt;BaseRaycaster&gt; s_Raycasters &#x3D; new List&lt;BaseRaycaster&gt;();</span><br><span class="line"></span><br><span class="line">    public static void AddRaycaster(BaseRaycaster baseRaycaster)</span><br><span class="line">    &#123;</span><br><span class="line">        if (s_Raycasters.Contains(baseRaycaster))</span><br><span class="line">            return;</span><br><span class="line"></span><br><span class="line">        s_Raycasters.Add(baseRaycaster);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static List&lt;BaseRaycaster&gt; GetRaycasters()</span><br><span class="line">    &#123;</span><br><span class="line">        return s_Raycasters;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void RemoveRaycasters(BaseRaycaster baseRaycaster)</span><br><span class="line">    &#123;</span><br><span class="line">        if (!s_Raycasters.Contains(baseRaycaster))</span><br><span class="line">            return;</span><br><span class="line">        s_Raycasters.Remove(baseRaycaster);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>内容很少也很简单，添加和移除Raycaster，获取当前激活的Raycaster列表。</p>
+<h2 id="RaycastResult"><a href="#RaycastResult" class="headerlink" title="RaycastResult"></a>RaycastResult</h2><p><code>RaycastResult</code>是一个结构体，记录了投射结果相关的信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public struct RaycastResult</span><br></pre></td></tr></table></figure>
+
+<p>下边是它主要的成员和方法，其实之前在<code>GraphicRaycaster</code>复写的基类的<code>Raycast(...)</code>中最后的部分就有过<code>RaycastResult</code>构造和填入数据的过程。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">private GameObject m_GameObject; &#x2F;&#x2F; Game object hit by the raycast</span><br><span class="line"></span><br><span class="line">public GameObject gameObject</span><br><span class="line">&#123;</span><br><span class="line">    get &#123; return m_GameObject; &#125;</span><br><span class="line">    set &#123; m_GameObject &#x3D; value; &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public BaseRaycaster module; &#x2F;&#x2F; Event system that hit this object</span><br><span class="line">public float distance; &#x2F;&#x2F; The distance from the origin this hit was.</span><br><span class="line">public float index; &#x2F;&#x2F; The index this element is in the raycastList (used for sorting)</span><br><span class="line">public int depth;</span><br><span class="line">public int sortingLayer;</span><br><span class="line">public int sortingOrder;</span><br><span class="line">&#x2F;&#x2F; World-space position where a ray cast into the screen hits something</span><br><span class="line">public Vector3 worldPosition;</span><br><span class="line">&#x2F;&#x2F; World-space normal where a ray cast into the screen hits something</span><br><span class="line">public Vector3 worldNormal;</span><br><span class="line"></span><br><span class="line">public Vector2 screenPosition;</span><br><span class="line"></span><br><span class="line">public bool isValid</span><br><span class="line">&#123;</span><br><span class="line">    get &#123; return module !&#x3D; null &amp;&amp; gameObject !&#x3D; null; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注释很清楚，而且前边构造（赋值）的过程也可以看到各个成员值的来源。除此之外，<code>RaycastResult</code>可以调用<code>Clear()</code>清除数据。</p>
+<h2 id="调用者EventSystem"><a href="#调用者EventSystem" class="headerlink" title="调用者EventSystem"></a>调用者EventSystem</h2><p>在<code>EventSystem</code>中，获取事件响应的目标对象时，调用<code>RaycastAll()</code>方法，传入参数是一个<code>PointerEventData</code>和一个用于接收射线投射结果的列表。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public void RaycastAll(PointerEventData eventData, List&lt;RaycastResult&gt; raycastResults)</span><br><span class="line">&#123;</span><br><span class="line">    raycastResults.Clear();</span><br><span class="line">    var modules &#x3D; RaycasterManager.GetRaycasters();</span><br><span class="line">    for (int i &#x3D; 0; i &lt; modules.Count; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        var module &#x3D; modules[i];</span><br><span class="line">        if (module &#x3D;&#x3D; null || !module.IsActive())</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        module.Raycast(eventData, raycastResults);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    raycastResults.Sort(s_RaycastComparer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>各个在<code>RaycasterManager</code>中记录的激活状态的Raycaster调用<code>Raycast</code>方法，在传入的<code>raycastResults</code>后追加射线投射结果。遍历全部的Raycaster之后，对所有的投射结果排序。排序方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">private static readonly Comparison&lt;RaycastResult&gt; s_RaycastComparer &#x3D; RaycastComparer;</span><br><span class="line"></span><br><span class="line">private static int RaycastComparer(RaycastResult lhs, RaycastResult rhs)</span><br><span class="line">&#123;</span><br><span class="line">    if (lhs.module !&#x3D; rhs.module)</span><br><span class="line">    &#123;</span><br><span class="line">        if (lhs.module.eventCamera !&#x3D; null &amp;&amp; rhs.module.eventCamera !&#x3D; null &amp;&amp; lhs.module.eventCamera.depth !&#x3D; rhs.module.eventCamera.depth)</span><br><span class="line">        &#123;</span><br><span class="line">            &#x2F;&#x2F; need to reverse the standard compareTo</span><br><span class="line">            if (lhs.module.eventCamera.depth &lt; rhs.module.eventCamera.depth)</span><br><span class="line">                return 1;</span><br><span class="line">            if (lhs.module.eventCamera.depth &#x3D;&#x3D; rhs.module.eventCamera.depth)</span><br><span class="line">                return 0;</span><br><span class="line"></span><br><span class="line">            return -1;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        if (lhs.module.sortOrderPriority !&#x3D; rhs.module.sortOrderPriority)</span><br><span class="line">            return rhs.module.sortOrderPriority.CompareTo(lhs.module.sortOrderPriority);</span><br><span class="line"></span><br><span class="line">        if (lhs.module.renderOrderPriority !&#x3D; rhs.module.renderOrderPriority)</span><br><span class="line">            return rhs.module.renderOrderPriority.CompareTo(lhs.module.renderOrderPriority);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (lhs.sortingLayer !&#x3D; rhs.sortingLayer)</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; Uses the layer value to properly compare the relative order of the layers.</span><br><span class="line">        var rid &#x3D; SortingLayer.GetLayerValueFromID(rhs.sortingLayer);</span><br><span class="line">        var lid &#x3D; SortingLayer.GetLayerValueFromID(lhs.sortingLayer);</span><br><span class="line">        return rid.CompareTo(lid);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    if (lhs.sortingOrder !&#x3D; rhs.sortingOrder)</span><br><span class="line">        return rhs.sortingOrder.CompareTo(lhs.sortingOrder);</span><br><span class="line"></span><br><span class="line">    if (lhs.depth !&#x3D; rhs.depth)</span><br><span class="line">        return rhs.depth.CompareTo(lhs.depth);</span><br><span class="line"></span><br><span class="line">    if (lhs.distance !&#x3D; rhs.distance)</span><br><span class="line">        return lhs.distance.CompareTo(rhs.distance);</span><br><span class="line"></span><br><span class="line">    return lhs.index.CompareTo(rhs.index);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>优先级依次是：</p>
+<p>如果是不同的Raycaster：</p>
+<ol>
+<li>module.eventCamera.depth 高者优先</li>
+<li>module.sortOrderPriority 高者优先</li>
+<li>module.renderOrderPriority 高者优先</li>
+</ol>
+<p>如果是相同的Raycaster：</p>
+<ol>
+<li>sortingLayer 高者优先</li>
+<li>sortingOrder 高者优先</li>
+<li>depth 高者优先</li>
+<li>distance 小者优先</li>
+<li>index 小者优先</li>
+</ol>
+<p>对于<code>GraphicRaycaster</code>有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public override int sortOrderPriority</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; We need to return the sorting order here as distance will all be 0 for overlay.</span><br><span class="line">        if (canvas.renderMode &#x3D;&#x3D; RenderMode.ScreenSpaceOverlay)</span><br><span class="line">            return canvas.sortingOrder;</span><br><span class="line"></span><br><span class="line">        return base.sortOrderPriority;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public override int renderOrderPriority</span><br><span class="line">&#123;</span><br><span class="line">    get</span><br><span class="line">    &#123;</span><br><span class="line">        &#x2F;&#x2F; We need to return the sorting order here as distance will all be 0 for overlay.</span><br><span class="line">        if (canvas.renderMode &#x3D;&#x3D; RenderMode.ScreenSpaceOverlay)</span><br><span class="line">            return canvas.renderOrder;</span><br><span class="line"></span><br><span class="line">        return base.renderOrderPriority;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/ScriptReference" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+              <a href="/tags/Event/" rel="tag"># Event</a>
+              <a href="/tags/Raycaster/" rel="tag"># Raycaster</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-05-16-unity-3d-ugui-source-code-05/" rel="prev" title="Unity3D UGUI 源码学习 InputModule">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 InputModule
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-05-28-unity-3d-ugui-source-code-07/" rel="next" title="Unity3D UGUI 源码学习 ExecuteEvents">
+      Unity3D UGUI 源码学习 ExecuteEvents <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Raycaster"><span class="nav-number">1.</span> <span class="nav-text">Raycaster</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BaseRaycaster"><span class="nav-number">1.1.</span> <span class="nav-text">BaseRaycaster</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GraphicRaycaster"><span class="nav-number">1.2.</span> <span class="nav-text">GraphicRaycaster</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RaycasterManager"><span class="nav-number">2.</span> <span class="nav-text">RaycasterManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RaycastResult"><span class="nav-number">3.</span> <span class="nav-text">RaycastResult</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调用者EventSystem"><span class="nav-number">4.</span> <span class="nav-text">调用者EventSystem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '254329db1111e1636b3adb1e2ec76ee0',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

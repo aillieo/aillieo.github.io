@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="使用Python处理微软Excel的xls文件，主要涉及到3个Python包或模块：xlrd、xlwt和xlutils。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Python处理Excel文档">
+<meta property="og:url" content="http://aillieo.cn/post/2017-03-27-working-with-excel-files-in-python/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="使用Python处理微软Excel的xls文件，主要涉及到3个Python包或模块：xlrd、xlwt和xlutils。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-03-27T04:56:05.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.047Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="excel文件">
+<meta property="article:tag" content="excel文档">
+<meta property="article:tag" content="xls">
+<meta property="article:tag" content="xlrd">
+<meta property="article:tag" content="xlwt">
+<meta property="article:tag" content="xlutils">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-03-27-working-with-excel-files-in-python/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用Python处理Excel文档 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-03-27-working-with-excel-files-in-python/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用Python处理Excel文档
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-27 12:56:05" itemprop="dateCreated datePublished" datetime="2017-03-27T12:56:05+08:00">2017-03-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>使用Python处理微软Excel的xls文件，主要涉及到3个Python包或模块：xlrd、xlwt和xlutils。</p>
+<a id="more"></a>
+
+<h2 id="xlrd-xlwt-和-xlutils"><a href="#xlrd-xlwt-和-xlutils" class="headerlink" title="xlrd xlwt 和 xlutils"></a>xlrd xlwt 和 xlutils</h2><ul>
+<li>xlrd</li>
+</ul>
+<p>用于读取xls文件中的内容，不可修改文件中的内容。读取xls文件得到一个<code>Book</code>对象。</p>
+<ul>
+<li>xlwt</li>
+</ul>
+<p>用于向xls文件中写入内容，无法获取xls中的内容。生成的xls文件是一个<code>Workbook</code>对象。</p>
+<ul>
+<li>xlutils</li>
+</ul>
+<p>可将<code>xlrd.Book</code>的数据复制到<code>xlwt.Workbook</code>，以实现对读取的xls文件进行编辑的目的。</p>
+<p>以上可以使用<code>pip</code>来完成安装：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pip install xlrd</span><br><span class="line">pip install xlwt</span><br><span class="line">pip install xlutils</span><br></pre></td></tr></table></figure>
+
+<h2 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h2><p>先看一个简单示例，生成一个test.xls文件，然后读取该文件。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> xlrd</span><br><span class="line"><span class="keyword">import</span> xlwt</span><br><span class="line"><span class="keyword">from</span> xlutils.copy <span class="keyword">import</span> copy</span><br><span class="line"></span><br><span class="line"><span class="comment"># xlwt</span></span><br><span class="line">workbook = xlwt.Workbook(encoding=<span class="string">"utf-8"</span>)</span><br><span class="line">sheet = workbook.add_sheet(<span class="string">"Sheet1"</span>, cell_overwrite_ok=<span class="literal">True</span>)</span><br><span class="line">style = xlwt.easyxf(</span><br><span class="line">    <span class="string">"font: name Arial;"</span></span><br><span class="line">    <span class="string">"pattern: pattern solid, fore_colour red;"</span></span><br><span class="line">)</span><br><span class="line">sheet.write(<span class="number">0</span>, <span class="number">0</span>, <span class="string">"writen by python"</span>, style)</span><br><span class="line">sheet.row(<span class="number">0</span>).set_style(style)</span><br><span class="line">workbook.save(<span class="string">"test.xls"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># xlrd</span></span><br><span class="line">book = xlrd.open_workbook(<span class="string">"test.xls"</span>, formatting_info=<span class="literal">True</span>, on_demand=<span class="literal">True</span>)</span><br><span class="line">sheet = book.sheet_by_index(<span class="number">0</span>)</span><br><span class="line">cell = sheet.cell(<span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line">print(cell.value)</span><br><span class="line"></span><br><span class="line"><span class="comment"># xlutils</span></span><br><span class="line">workbook = copy(book)</span><br></pre></td></tr></table></figure>
+
+<h2 id="主要的API"><a href="#主要的API" class="headerlink" title="主要的API"></a>主要的API</h2><h3 id="xlrd"><a href="#xlrd" class="headerlink" title="xlrd"></a>xlrd</h3><p>主要涉及到3个类，<code>Book</code>、<code>Sheet</code>、<code>Cell</code>，分别对应xls文件（工作簿）、工作表、单元格。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 加载xls文件，返回一个Book对象</span></span><br><span class="line">book = open_workbook(</span><br><span class="line">    filename=<span class="literal">None</span>,   <span class="comment"># 要加载的文件</span></span><br><span class="line">    logfile=sys.stdout,   <span class="comment"># 指定输出log的文件</span></span><br><span class="line">    verbosity=<span class="number">0</span>,   <span class="comment"># 对应输出log的内容的量</span></span><br><span class="line">    pickleable=<span class="literal">True</span>,   <span class="comment"># Python2.4及之前的版本中将pickleable置为false会使用array以节省内存</span></span><br><span class="line">    use_mmap=USE_MMAP,   <span class="comment"># 是否启用mmap</span></span><br><span class="line">    file_contents=<span class="literal">None</span>,   <span class="comment"># 不使用指定文件名filename的方式而是直接根据内容file_contents加载</span></span><br><span class="line">    encoding_override=<span class="literal">None</span>,   <span class="comment"># 指定解码方式</span></span><br><span class="line">    formatting_info=<span class="literal">False</span>    <span class="comment"># 加载表内各单元格的格式信息，如果选择加载则会同时加载底部空的行及右侧空的列中的单元格</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取名为book的Book对象的内容：</span></span><br><span class="line"><span class="comment"># book中工作表sheets的数量</span></span><br><span class="line">book.nsheets</span><br><span class="line"><span class="comment"># 获取所有sheets的列表</span></span><br><span class="line">book.sheets</span><br><span class="line"><span class="comment"># book内所有sheet名称列表</span></span><br><span class="line">book.sheet_names</span><br><span class="line"><span class="comment"># 根据索引号获取一个Sheet对象</span></span><br><span class="line">book.sheet_by_index(sheetx)</span><br><span class="line"><span class="comment"># 根据名称获取一个sheet对象</span></span><br><span class="line">book.sheet_by_name(sheet_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取名为sheet的Sheet对象的内容</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 工作表sheet的名称</span></span><br><span class="line">sheet.name</span><br><span class="line"><span class="comment"># 表内包含的行数</span></span><br><span class="line">sheet.nrows</span><br><span class="line"><span class="comment"># 表内包含的列数</span></span><br><span class="line">sheet.ncols</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取由第colx列单元格组成的列表，可以指定起止位置</span></span><br><span class="line">sheet.col_slice(colx,start_rowx=<span class="number">0</span>,end_rowx=<span class="literal">None</span>)</span><br><span class="line"><span class="comment"># 获取由第colx列单元格的值类型组成的列表，可以指定起止位置</span></span><br><span class="line">sheet.col_types(colx,start_rowx=<span class="number">0</span>,end_rowx=<span class="literal">None</span>)</span><br><span class="line"><span class="comment"># 获取由第colx列单元格的值组成的列表，可以指定起止位置</span></span><br><span class="line">sheet.col_values(colx,start_rowx=<span class="number">0</span>,end_rowx=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取由第rowx列单元格组成的列表，可以指定起止位置</span></span><br><span class="line">sheet.row_slice(rowx,start_colx=<span class="number">0</span>,end_colx=<span class="literal">None</span>)</span><br><span class="line"><span class="comment"># 获取由第rowx列单元格的值类型组成的列表，可以指定起止位置</span></span><br><span class="line">sheet.row_types(rowx,start_colx=<span class="number">0</span>,end_colx=<span class="literal">None</span>)</span><br><span class="line"><span class="comment"># 获取由第rowx列单元格的值组成的列表，可以指定起止位置</span></span><br><span class="line">sheet.row_values(rowx,start_colx=<span class="number">0</span>,end_colx=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取位于第rows行colx列的单元格</span></span><br><span class="line">sheet.cell(rowx,colx)</span><br><span class="line"><span class="comment"># 获取位于第rows行colx列的单元格值类型</span></span><br><span class="line">sheet.cell_type(rowx,colx)</span><br><span class="line"><span class="comment"># 获取位于第rows行colx列的单元格的值</span></span><br><span class="line">sheet.cell_value(rows,colx)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取名为cell的单元格Cell的内容</span></span><br><span class="line"><span class="comment"># 单元格的值的类型 是一个枚举类型</span></span><br><span class="line">cell.ctype</span><br><span class="line"><span class="comment"># 单元格的值</span></span><br><span class="line">cell.value</span><br><span class="line"><span class="comment"># ctype可以取的值及含义</span></span><br><span class="line"><span class="comment"># 0 XL_CELL_EMPTY 空字符串 u''</span></span><br><span class="line"><span class="comment"># 1 XL_CELL_TEXT 表示Unicode string</span></span><br><span class="line"><span class="comment"># 2 XL_CELL_NUMBER 浮点数据	float</span></span><br><span class="line"><span class="comment"># 3 XL_CELL_DATE 浮点数据 float</span></span><br><span class="line"><span class="comment"># 4 XL_CELL_BOOLEAN 整型 1表示TRUE， 0表示FALSE</span></span><br><span class="line"><span class="comment"># 5 XL_CELL_ERROR 整形 excel内部的错误编号</span></span><br><span class="line"><span class="comment"># 6 XL_CELL_BLANK 空字符串 u'' 只有在open_workbook时传入参数formatting_info=True时才会出现</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="xlwt"><a href="#xlwt" class="headerlink" title="xlwt"></a>xlwt</h3><p>主要涉及到3个类：<code>Workbook</code>对应工作簿文件，<code>Worksheet</code>对应工作表，<code>XFStyle</code>对象用于控制单元格格式（XF record）。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建Workbook对象</span></span><br><span class="line">xlwt.Workbook.Workbook(encoding=<span class="string">'ascii'</span>, style_compression=<span class="number">0</span>)</span><br><span class="line"><span class="comment"># style_compression表示是否对格式进行压缩 默认为0不压缩 =1表示压缩字体信息 =2表示压缩字体和XF record</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 对于名为workbook的Workbook对象 可以有以下操作</span></span><br><span class="line"><span class="comment"># 添加工作表 并返回添加的工作表</span></span><br><span class="line">workbook.add_sheet(sheet_name, cell_overwrite_ok=<span class="literal">False</span>)</span><br><span class="line"><span class="comment"># 获取指定名称的工作表</span></span><br><span class="line">workbook.get_sheet(Sheet_name)</span><br><span class="line"><span class="comment"># 保存xls文件</span></span><br><span class="line">workbook.save(file_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---------------------------------</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 对于名为worksheet的Worksheet对象 有以下操作</span></span><br><span class="line"><span class="comment"># 写入内容指定单元格的内容与格式</span></span><br><span class="line">worksheet.write(rowx,colx,cell_value,style)</span><br><span class="line">worksheet.row(rowx).write(colx,cell_value,style)</span><br><span class="line">worksheet.col(colx).write(rows,cell_value,style)</span><br><span class="line"><span class="comment"># 将完成编辑的行flush，flush之后的行不可再编辑</span></span><br><span class="line">worksheet.flush_row_data()</span><br></pre></td></tr></table></figure>
+
+<p><code>XFStyle</code>用于指定单元格内容格式，使用<code>easyxf</code>函数来得到一个<code>XFStyle</code>对象。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xlwt.Style.easyxf(strg_to_parse=<span class="string">''</span>, num_format_str=<span class="literal">None</span>, field_sep=<span class="string">', '</span>, line_sep=<span class="string">';'</span>, intro_sep=<span class="string">':'</span>, esc_char=<span class="string">'\\'</span>, debug=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>strg_to_parse</code>是定义了格式的字符串，可以控制的格式属性包括字体（<code>font</code>）、对齐方式（<code>align</code>）、边框形式（<code>border</code>）、颜色样式（<code>pattern</code>）和单元格保护（<code>protection</code>）等，具体的格式属性在文章末尾详细列出。</p>
+<p>字符串<code>strg_to_parse</code>语法格式如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(&lt;element&gt;:(&lt;attribute&gt; &lt;value&gt;,)+;)+</span><br></pre></td></tr></table></figure>
+
+<p>例如</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">'font: bold on; align: wrap on, vert centre, horiz center'</span>  <span class="comment"># 字体加粗 对齐方式 允许换行 垂直居中 水平居中</span></span><br></pre></td></tr></table></figure>
+
+<p>参数字符串<code>num_format_str</code>用于指定数字的格式，例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"#,##0.00"</span></span><br><span class="line"><span class="string">"dd/mm/yyyy"</span></span><br></pre></td></tr></table></figure>
+
+<p>以下是<code>xlwt.Style.easyxf</code>的一些用例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">style1 = easyxf(<span class="string">'font: name Times New Roman'</span>)</span><br><span class="line">style2 = easyxf(<span class="string">'font: underline single'</span>)</span><br><span class="line">style3 = easyxf(<span class="string">'border: left thick, top thick'</span>)</span><br><span class="line">style4 = easyxf(<span class="string">'pattern: pattern solid, fore_colour red;'</span>)</span><br><span class="line">style5 = xlwt.easyxf(num_format_str=<span class="string">'yyyy-mm-dd hh:mm:ss'</span>)</span><br><span class="line">style6 = xlwt.easyxf(<span class="string">'font: name Times New Roman, color-index red, bold on'</span>, num_format_str=<span class="string">'#,##0.00'</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="xlutils"><a href="#xlutils" class="headerlink" title="xlutils"></a>xlutils</h3><p>依赖<code>xlrd</code>和 <code>xlwt</code>，主要包含以下模块：</p>
+<ul>
+<li>xlutils.copy<br>可将xlrd.Book对象复制到xlwt.Workbook对象</li>
+<li>xlutils.display<br>更好友好更安全地显示xlrd相关对象的信息</li>
+<li>xlutils.filter<br>用于分割和过滤现有Excel文件到新Excel文件的小型框架</li>
+<li>xlutils.margins<br>获取Excel文件中包含有多少有用信息</li>
+<li>xlutils.save<br>将xlrd.Book对象序列化为Excel文件的工具</li>
+<li>xlutils.styles<br>用于处于Excel文件中格式信息的工具</li>
+<li>xlutils.view<br>使用workbook中工作表的视图信息</li>
+</ul>
+<p>主要介绍两个函数的使用，第一个<code>xlutils.copy.copy(wb)</code>：</p>
+<p><code>xlutils.copy.copy(wb)</code>将一个<code>xlrd.Book</code>对象中的内容复制到一个<code>xlwt.Workbook</code>对象，并尽量多的保留其中的信息。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> os.path <span class="keyword">import</span> join</span><br><span class="line"><span class="keyword">from</span> xlrd <span class="keyword">import</span> open_workbook</span><br><span class="line"><span class="keyword">from</span> xlutils.copy <span class="keyword">import</span> copy</span><br><span class="line"></span><br><span class="line">test_files = <span class="string">''</span></span><br><span class="line"><span class="comment"># 使用xlrd打开文件testall.xls，并显示前两个单元格的内容，此时rb是只读模式</span></span><br><span class="line">rb = open_workbook(join(test_files,<span class="string">'testall.xls'</span>), formatting_info=<span class="literal">True</span>, on_demand=<span class="literal">True</span>)</span><br><span class="line">print(rb.sheet_by_index(<span class="number">0</span>).cell(<span class="number">0</span>, <span class="number">0</span>).value)</span><br><span class="line">print(rb.sheet_by_index(<span class="number">0</span>).cell(<span class="number">0</span>, <span class="number">1</span>).value)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用xlutils.copy，将xlrd.Book中的内容复制到xlwt.Workbook</span></span><br><span class="line">wb = copy(rb)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改wb的第一个单元格的内容</span></span><br><span class="line">wb.get_sheet(<span class="number">0</span>).write(<span class="number">0</span>,<span class="number">0</span>,<span class="string">'changed!'</span>)</span><br><span class="line">wb.save(join(temp_dir.path,<span class="string">'output.xls'</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 再次加载刚才的文件 发现内容被修改了</span></span><br><span class="line">rb = open_workbook(join(temp_dir.path,<span class="string">'output.xls'</span>))</span><br><span class="line">print(rb.sheet_by_index(<span class="number">0</span>).cell(<span class="number">0</span>, <span class="number">0</span>).value)</span><br><span class="line">print(rb.sheet_by_index(<span class="number">0</span>).cell(<span class="number">0</span>, <span class="number">1</span>).value)</span><br></pre></td></tr></table></figure>
+<p>另一个是<code>xlutils.filter</code>中的函数<code>xlutils.filter.process(reader, *chain)</code>：</p>
+<p>模块<code>xlutils.filter</code>中包含有一些内置的模块<code>reader</code>、<code>writer</code>和<code>filter</code>，以及用于将它们串联起来的函数<code>process()</code> ，主要功能是过滤和分割Excel文件。</p>
+<p><code>reader</code>用于从数据源中获取数据，并将其转化为一系列<code>xlrd.Book</code>对象，然后会调用第一个filter相关的方法。模块内提供有一些基础的<code>reader</code>类。<br><code>filter</code>用户获取特定任务需要的结果，在<code>filter</code>中必须要定义一些特定的方法，这些方法的实现中可以根据需要填写任意功能，但通常会以调用下一个<code>filter</code>的对应方法作为结束。<br><code>writer</code>会处理参数链中最后一个<code>filter</code>中特定的方法。<code>writer</code>通常用于从数据源复制信息并将其写入输出文件。由于在<code>writer</code>中涉及到很多工作而通常只有向目标位置写入二进制数据会略有不同，模块内也提供了一些基础的<code>writer</code>类。<br><code>process(reader, *chain)</code>可以将内置或自定义的<code>reader</code>、<code>writer</code>和 <code>filter</code>串联起来执行。<br>接下来是一个完整的示例：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> xlutils.filter <span class="keyword">import</span> BaseReader</span><br><span class="line"><span class="keyword">from</span> xlutils.filter <span class="keyword">import</span> BaseWriter</span><br><span class="line"><span class="keyword">from</span> xlutils.filter <span class="keyword">import</span> BaseFilter</span><br><span class="line"><span class="keyword">from</span> xlutils.filter <span class="keyword">import</span> process</span><br><span class="line"></span><br><span class="line">test_files = <span class="string">""</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyReader</span><span class="params">(BaseReader)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, filename)</span>:</span></span><br><span class="line"></span><br><span class="line">        self.filename = filename</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_filepaths</span><span class="params">(self)</span>:</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> os.path.join(test_files, self.filename)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyFilter</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start</span><span class="params">(self)</span>:</span></span><br><span class="line">        print(self.name, <span class="string">'start'</span>)</span><br><span class="line">        self.next.start()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">workbook</span><span class="params">(self, rdbook, wtbook_name)</span>:</span></span><br><span class="line">        print(self.name, <span class="string">'workbook'</span>, rdbook, wtbook_name)</span><br><span class="line">        self.next.workbook(rdbook, wtbook_name)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">sheet</span><span class="params">(self, rdsheet, wtsheet_name)</span>:</span></span><br><span class="line">        print(self.name, <span class="string">'sheet'</span>, rdsheet, wtsheet_name)</span><br><span class="line">        self.next.sheet(rdsheet, wtsheet_name)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">set_rdsheet</span><span class="params">(self, rdsheet)</span>:</span></span><br><span class="line">        print(self.name, <span class="string">'set_rdsheet'</span>, rdsheet)</span><br><span class="line">        self.next.sheet(rdsheet, wtsheet_name)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">row</span><span class="params">(self, rdrowx, wtrowx)</span>:</span></span><br><span class="line">        print(self.name, <span class="string">'row'</span>, rdrowx, wtrowx)</span><br><span class="line">        self.next.row(rdrowx, wtrowx)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">cell</span><span class="params">(self, rdrowx, rdcolx, wtrowx, wtcolx)</span>:</span></span><br><span class="line">        print(self.name, <span class="string">'cell'</span>, rdrowx, rdcolx, wtrowx, wtcolx)</span><br><span class="line">        self.next.cell(rdrowx, rdcolx, wtrowx, wtcolx)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">finish</span><span class="params">(self)</span>:</span></span><br><span class="line">        print(self.name, <span class="string">'finish'</span>)</span><br><span class="line">        self.next.finish()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EvenFilter</span><span class="params">(BaseFilter)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">row</span><span class="params">(self, rdrowx, wtrowx)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> rdrowx % <span class="number">2</span>:</span><br><span class="line">            self.next.row(rdrowx, wtrowx)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">cell</span><span class="params">(self, rdrowx, rdcolx, wtrowx, wtcolx)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> rdrowx % <span class="number">2</span>:</span><br><span class="line">            self.next.cell(rdrowx, rdcolx, wtrowx, wtcolx)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyWriter</span><span class="params">(BaseWriter)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_stream</span><span class="params">(self, filename)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> open(os.path.join(test_files, filename), <span class="string">'wb'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">process(</span><br><span class="line">    MyReader(&#123;<span class="string">"test1.xls"</span>,<span class="string">"test2.xls"</span>&#125;),</span><br><span class="line">    MyFilter(<span class="string">'before filter'</span>),</span><br><span class="line">    EvenFilter(),</span><br><span class="line">    MyFilter(<span class="string">'after filter'</span>),</span><br><span class="line">    MyWriter()</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="XFStyle格式"><a href="#XFStyle格式" class="headerlink" title="XFStyle格式"></a>XFStyle格式</h2><h3 id="格式属性"><a href="#格式属性" class="headerlink" title="格式属性"></a>格式属性</h3><ul>
+<li>font<ul>
+<li>bold<br>布尔值，默认为<code>False</code></li>
+<li>charset<br>可选值见下节，默认值是<code>sys_default</code></li>
+<li>colour （或color_index、 colour_index、 color ）<br>可选值见下节，默认值是<code>automatic</code></li>
+<li>escapement<br>可选值为<code>none</code>、<code>superscript</code>或 <code>subscript</code>，默认值<code>none</code></li>
+<li>family<br>包含字体的font family的字符串，默认值<code>None</code></li>
+<li>height<br>使用20乘以point size得到的高度值，默认是200，对应10pt</li>
+<li>italic<br>布尔值，默认为<code>False</code></li>
+<li>name<br>包含字体名称的字符串，默认为<code>Arial</code></li>
+<li>outline<br>布尔值，默认为<code>False</code></li>
+<li>shadow<br>布尔值，默认为<code>False</code></li>
+<li>struck_out<br>布尔值，默认为<code>False</code></li>
+<li>underline<br>布尔值或者<code>none</code>、<code>single</code>、<code>single_acc</code>、 <code>double</code>、<code>double_acc</code>其中之一。默认值是<code>none</code></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>alignment（或align）<ul>
+<li>direction（或dire）<br><code>general</code>、<code>lr</code>、<code>rl</code>之一，默认值<code>general</code></li>
+<li>horizontal（或horiz、horz）<br>One of the following:<br><code>general</code>、<code>left</code>、<code>center|centre</code>、<code>right</code>、<code>filled</code>、<code>justified</code>、<code>center|centre_across_selection</code>、<code>distributed</code>其中之一，默认值是<code>general</code></li>
+<li>indent（或inde）<br>缩进值0到15，默认值0</li>
+<li>rotation（或rota）<br>-90到+90之间的整数值或<code>stacked</code>、<code>none</code>之一，默认值是<code>none</code></li>
+<li>shrink_to_fit（或shri、shrink）<br>布尔值，默认为<code>False</code></li>
+<li>vertical（或vert）<br><code>top</code>、<code>center|centre</code>、<code>bottom</code>、<code>justified</code>、<code>distributed</code>其中之一，默认为<code>bottom</code></li>
+<li>wrap<br>布尔值，默认为<code>False</code></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>borders（或border）<ul>
+<li>left<br>边框样式，详见下节</li>
+<li>right<br>边框样式，详见下节</li>
+<li>top<br>边框样式，详见下节</li>
+<li>bottom<br>边框样式，详见下节</li>
+<li>diag<br>边框样式，详见下节</li>
+<li>left_colour（或left_color）<br>颜色值，详见下节，默认为<code>automatic</code></li>
+<li>right_colour（或right_color）<br>颜色值，详见下节，默认为<code>automatic</code></li>
+<li>top_colour（或top_color）<br>颜色值，详见下节，默认为<code>automatic</code></li>
+<li>bottom_colour（或bottom_color）<br>颜色值，详见下节，默认为<code>automatic</code></li>
+<li>diag_colour（或diag_color）<br>颜色值，详见下节，默认为<code>automatic</code></li>
+<li>need_diag_1<br>布尔值，默认为<code>False</code></li>
+<li>need_diag_2<br>布尔值，默认为<code>False</code></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>pattern</p>
+<ul>
+<li><p>back_colour（或back_color、pattern_back_colour、pattern_back_color）<br>颜色值，详见下节，默认为<code>automatic</code></p>
+</li>
+<li><p>fore_colour（或fore_color、pattern_fore_colour、pattern_fore_color）<br>颜色值，详见下节，默认为<code>automatic</code></p>
+</li>
+<li><p>pattern</p>
+<p><code>no_fill</code>、<code>none</code>、<code>solid</code>、<code>solid_fill</code>、<code>solid_pattern</code>、<code>fine_dots</code>、<code>alt_bars</code>、<code>sparse_dots</code>、<code>thick_horz_bands</code>、<code>thick_vert_bands</code>、<code>thick_backward_diag</code>、<code>thick_forward_diag</code>、<code>big_spots</code>、<code>bricks</code>、<code>thin_horz_bands</code>、<code>thin_vert_bands</code>、<code>thin_backward_diag</code>、<code>thin_forward_diag</code>、<code>squares</code>、<code>diamonds</code>其中之一，默认为<code>none</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>protection<ul>
+<li>cell_locked<br>布尔值，默认为<code>True</code></li>
+<li>formula_hidden<br>布尔值，默认为<code>False</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="取值说明"><a href="#取值说明" class="headerlink" title="取值说明"></a>取值说明</h3><h4 id="布尔型"><a href="#布尔型" class="headerlink" title="布尔型"></a>布尔型</h4><p><code>True</code>可以表示为<code>1</code>、 <code>yes</code>、 <code>true</code> 或 <code>on</code>；</p>
+<p><code>False</code>可以表示为<code>0</code>、 <code>no</code>、 <code>false</code>或 <code>off</code>。</p>
+<h4 id="charset"><a href="#charset" class="headerlink" title="charset"></a>charset</h4><p>字符集的可选值如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ansi_latin, sys_default, symbol, apple_roman,</span><br><span class="line">ansi_jap_shift_jis, ansi_kor_hangul, ansi_kor_johab,</span><br><span class="line">ansi_chinese_gbk, ansi_chinese_big5, ansi_greek,</span><br><span class="line">ansi_turkish, ansi_vietnamese, ansi_hebrew,</span><br><span class="line">ansi_arabic, ansi_baltic, ansi_cyrillic, ansi_thai,</span><br><span class="line">ansi_latin_ii, oem_latin_i</span><br></pre></td></tr></table></figure>
+<h4 id="color"><a href="#color" class="headerlink" title="color"></a>color</h4><p>颜色可选值如下：</p>
+
+<table>
+<tr>
+<td>aqua</td>
+<td>dark_red_ega</td>
+<td>light_blue</td>
+<td>plum</td>
+</tr>
+<tr>
+<td>black</td>
+<td>dark_teal</td>
+<td>light_green</td>
+<td>purple_ega</td>
+</tr>
+<tr>
+<td>blue</td>
+<td>dark_yellow</td>
+<td>light_orange</td>
+<td>red</td>
+</tr>
+<tr>
+<td>blue_gray</td>
+<td>gold</td>
+<td>light_turquoise</td>
+<td>rose</td>
+</tr>
+<tr>
+<td>bright_green</td>
+<td>gray_ega</td>
+<td>light_yellow</td>
+<td>sea_green</td>
+</tr>
+<tr>
+<td>brown</td>
+<td>gray25</td>
+<td>lime</td>
+<td>silver_ega</td>
+</tr>
+<tr>
+<td>coral</td>
+<td>gray40</td>
+<td>magenta_ega</td>
+<td>sky_blue</td>
+</tr>
+<tr>
+<td>cyan_ega</td>
+<td>gray50</td>
+<td>ocean_blue</td>
+<td>tan</td>
+</tr>
+<tr>
+<td>dark_blue</td>
+<td>gray80</td>
+<td>olive_ega</td>
+<td>teal</td>
+</tr>
+<tr>
+<td>dark_blue_ega</td>
+<td>green</td>
+<td>olive_green</td>
+<td>teal_ega</td>
+</tr>
+<tr>
+<td>dark_green</td>
+<td>ice_blue</td>
+<td>orange</td>
+<td>turquoise</td>
+</tr>
+<tr>
+<td>dark_green_ega</td>
+<td>indigo</td>
+<td>pale_blue</td>
+<td>violet</td>
+</tr>
+<tr>
+<td>dark_purple</td>
+<td>ivory</td>
+<td>periwinkle</td>
+<td>white</td>
+</tr>
+<tr>
+<td>dark_red</td>
+<td>lavender</td>
+<td>pink</td>
+<td>yellow</td>
+</tr>
+</table>
+
+
+<h4 id="borderline"><a href="#borderline" class="headerlink" title="borderline"></a>borderline</h4><p>可以是0到13的整数值，或者以下值其中之一：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">no_line, thin, medium, dashed, dotted, thick, double, hair,</span><br><span class="line">medium_dashed, thin_dash_dotted, medium_dash_dotted,</span><br><span class="line">thin_dash_dot_dotted, medium_dash_dot_dotted,</span><br><span class="line">slanted_medium_dash_dotted</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://github.com/python-excel" target="_blank" rel="noopener">https://github.com/python-excel</a><br><a href="http://xlrd.readthedocs.io/en/latest/" target="_blank" rel="noopener">http://xlrd.readthedocs.io/en/latest/</a><br><a href="http://xlwt.readthedocs.io/en/latest/api.html" target="_blank" rel="noopener">http://xlwt.readthedocs.io/en/latest/api.html</a><br><a href="http://xlutils.readthedocs.io/en/latest/" target="_blank" rel="noopener">http://xlutils.readthedocs.io/en/latest/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+              <a href="/tags/Excel/" rel="tag"># Excel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-03-22-lua-basics/" rel="prev" title="Lua基础">
+      <i class="fa fa-chevron-left"></i> Lua基础
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-04-02-unity-3d-notes-01/" rel="next" title="Unity3d点滴记录（一）">
+      Unity3d点滴记录（一） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#xlrd-xlwt-和-xlutils"><span class="nav-number">1.</span> <span class="nav-text">xlrd xlwt 和 xlutils</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单示例"><span class="nav-number">2.</span> <span class="nav-text">简单示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要的API"><span class="nav-number">3.</span> <span class="nav-text">主要的API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#xlrd"><span class="nav-number">3.1.</span> <span class="nav-text">xlrd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xlwt"><span class="nav-number">3.2.</span> <span class="nav-text">xlwt</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#xlutils"><span class="nav-number">3.3.</span> <span class="nav-text">xlutils</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#XFStyle格式"><span class="nav-number">4.</span> <span class="nav-text">XFStyle格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#格式属性"><span class="nav-number">4.1.</span> <span class="nav-text">格式属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#取值说明"><span class="nav-number">4.2.</span> <span class="nav-text">取值说明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#布尔型"><span class="nav-number">4.2.1.</span> <span class="nav-text">布尔型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#charset"><span class="nav-number">4.2.2.</span> <span class="nav-text">charset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#color"><span class="nav-number">4.2.3.</span> <span class="nav-text">color</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#borderline"><span class="nav-number">4.2.4.</span> <span class="nav-text">borderline</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : 'e48a783d097f16387348fc1b31b439b0',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

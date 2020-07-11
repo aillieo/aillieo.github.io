@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="记录最近学习Unity3D中的一些小知识点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3d点滴记录（一）">
+<meta property="og:url" content="http://aillieo.cn/post/2017-04-02-unity-3d-notes-01/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="记录最近学习Unity3D中的一些小知识点。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://docs.unity3d.com/500/Documentation/uploads/Main/monobehaviour_flowchart.svg">
+<meta property="article:published_time" content="2017-04-02T07:12:24.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.048Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Unity3D">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://docs.unity3d.com/500/Documentation/uploads/Main/monobehaviour_flowchart.svg">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-04-02-unity-3d-notes-01/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3d点滴记录（一） | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-04-02-unity-3d-notes-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3d点滴记录（一）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-04-02 15:12:24" itemprop="dateCreated datePublished" datetime="2017-04-02T15:12:24+08:00">2017-04-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录最近学习Unity3D中的一些小知识点。</p>
+<a id="more"></a>
+
+<h2 id="Unity3D的四种坐标系"><a href="#Unity3D的四种坐标系" class="headerlink" title="Unity3D的四种坐标系"></a>Unity3D的四种坐标系</h2><h3 id="Unity3D的四种坐标系-1"><a href="#Unity3D的四种坐标系-1" class="headerlink" title="Unity3D的四种坐标系"></a>Unity3D的四种坐标系</h3><ol>
+<li><p>World Space（世界坐标）：我们在场景中添加物体（如：Cube），他们都是以世界坐标显示在场景中的。<code>transform.position</code>可以获得该位置坐标。与之类似的还有局部坐标系，是相对于父节点而言的，获取方法为<code>transform.localPosition</code>。</p>
+</li>
+<li><p>Screen Space（屏幕坐标）：以像素来定义的，以屏幕的左下角为<code>(0，0)</code>点，右上角为<code>(Screen.width，Screen.height)</code>，Z的位置是以相机的世界单位来衡量的。注：鼠标位置坐标属于屏幕坐标，<code>Input.mousePosition</code>可以获得该位置坐标，手指触摸屏幕也为屏幕坐标，<code>Input.GetTouch(0).position</code>可以获得单个手指触摸屏幕坐标。</p>
+</li>
+</ol>
+<ol start="3">
+<li><p>ViewPort Space（视口坐标）：视口坐标是标准的和相对于相机的。相机的左下角为<code>(0，0)</code>点，右上角为<code>(1，1)</code>点，Z的位置是以相机的世界单位来衡量的。</p>
+</li>
+<li><p>绘制GUI界面的坐标系：这个坐标系与屏幕坐标系相似，不同的是该坐标系以屏幕的左上角为<code>(0，0)</code>点，右下角为<code>(Screen.width，Screen.height)</code>。</p>
+</li>
+</ol>
+<h3 id="四种坐标系的转换"><a href="#四种坐标系的转换" class="headerlink" title="四种坐标系的转换"></a>四种坐标系的转换</h3><ol>
+<li>世界坐标→屏幕坐标：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">camera.WorldToScreenPoint(transform.position);</span><br><span class="line">&#x2F;&#x2F;将世界坐标转换为屏幕坐标。其中camera为场景中的camera对象。</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>屏幕坐标→视口坐标：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">camera.ScreenToViewportPoint(Input.GetTouch(0).position);</span><br><span class="line">&#x2F;&#x2F;将屏幕坐标转换为视口坐标。其中camera为场景中的camera对象。</span><br></pre></td></tr></table></figure></li>
+<li>视口坐标→屏幕坐标：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">camera.ViewportToScreenPoint();</span><br></pre></td></tr></table></figure></li>
+<li>视口坐标→世界坐标：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">camera.ViewportToWorldPoint();</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ol>
+<h3 id="世界坐标中的固有方向"><a href="#世界坐标中的固有方向" class="headerlink" title="世界坐标中的固有方向"></a>世界坐标中的固有方向</h3><table>
+<thead>
+<tr>
+<th>方向</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>up</td>
+<td>世界坐标的Y轴方向</td>
+</tr>
+<tr>
+<td>right</td>
+<td>世界坐标的X轴方向</td>
+</tr>
+<tr>
+<td>forward</td>
+<td>世界坐标的Z轴方向</td>
+</tr>
+</tbody></table>
+<h2 id="访问其它的GameObject或Component"><a href="#访问其它的GameObject或Component" class="headerlink" title="访问其它的GameObject或Component"></a>访问其它的GameObject或Component</h2><h3 id="查找GameObject"><a href="#查找GameObject" class="headerlink" title="查找GameObject"></a>查找GameObject</h3><p>通过<code>Gameobject.Find</code>来查找，参数为GameObject的名称（或带路径的名称）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GameObject hand;</span><br><span class="line">hand &#x3D; GameObject.Find(&quot;Hand&quot;);</span><br><span class="line">hand &#x3D; GameObject.Find(&quot;&#x2F;Hand&quot;);</span><br><span class="line">hand &#x3D; GameObject.Find(&quot;&#x2F;Monster&#x2F;Arm&#x2F;Hand&quot;);</span><br><span class="line">hand &#x3D; GameObject.Find(&quot;Monster&#x2F;Arm&#x2F;Hand&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>根据Tag判断类型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">if(gameObject.tag &#x3D;&#x3D; &quot;Player&quot;)</span><br><span class="line">&#123;</span><br><span class="line">	&#x2F;&#x2F;...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>获取所有匹配标签的GameObject：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GameObject [] objs &#x3D; GameObject.FindGameObjectsWithTag(&quot;标签名&quot;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="查找GameObject下挂载的Component"><a href="#查找GameObject下挂载的Component" class="headerlink" title="查找GameObject下挂载的Component"></a>查找GameObject下挂载的Component</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">HingeJoint hinge &#x3D; gameObject.GetComponent( typeof(HingeJoint) ) as HingeJoint;</span><br><span class="line">&#x2F;&#x2F; 根据type查找 </span><br><span class="line"></span><br><span class="line">HingeJoint hinge &#x3D; gameObject.GetComponent&lt;HingeJoint&gt;();</span><br><span class="line">&#x2F;&#x2F; 泛型方式根据type查找 </span><br><span class="line"></span><br><span class="line">HingeJoint hinge &#x3D; gameObject.GetComponent( &quot;HingeJoint&quot; ) as HingeJoint;</span><br><span class="line">&#x2F;&#x2F; 根据type的名称查找</span><br></pre></td></tr></table></figure>
+
+<p>类似的还有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GetComponent()</span><br><span class="line">GetComponents()</span><br><span class="line">GetComponent()</span><br><span class="line">GetComponentInChildren()</span><br><span class="line">GetComponentsInChildren()</span><br><span class="line">GetComponentInParent()</span><br><span class="line">GetComponentsInParent()</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="内置事件函数执行顺序"><a href="#内置事件函数执行顺序" class="headerlink" title="内置事件函数执行顺序"></a>内置事件函数执行顺序</h2><p>Unity3D的脚本中有一些内置的事件函数，其执行顺序如下：</p>
+<h3 id="编辑器（Editor）"><a href="#编辑器（Editor）" class="headerlink" title="编辑器（Editor）"></a>编辑器（Editor）</h3><ul>
+<li>Reset<br><code>Reset</code>用于在脚本被第一次挂载到对象上时初始化脚本属性，或者当使用<code>Reset</code>命令时。</li>
+</ul>
+<h3 id="第一次加载场景（First-Scene-Load）"><a href="#第一次加载场景（First-Scene-Load）" class="headerlink" title="第一次加载场景（First Scene Load）"></a>第一次加载场景（First Scene Load）</h3><p>场景开始时会调用以下函数，场景中的每个对象只调用一次。</p>
+<ul>
+<li><p>Awake<br>在实例化prefab之后、所有的<code>Start()</code>之前调用。如果一个GameObject在启动期间处于非激活状态，则不会调用<code>Awake()</code>，直到它被激活，或者它挂载的任何脚本中有函数被调用。</p>
+</li>
+<li><p>OnEnable<br>（只有当Object在激活状态才会被调用）该函数在Object被启用（enabled）时调用。当创建<code>MonoBehaviour</code>实例，如载入关卡、或挂载有该脚本组件的GameObject被实例化时会调用该函数。</p>
+</li>
+</ul>
+<p>注意：对于被添加到场景中的对象，<code>Awake</code>和<code>OnEnable</code>函数会在所有脚本的<code>Start</code>、 <code>Update</code>等之前被调用，但对于游戏过程中实例化的对象无法强制如此。</p>
+<h3 id="第一帧更新之前（Before-the-first-frame-update）"><a href="#第一帧更新之前（Before-the-first-frame-update）" class="headerlink" title="第一帧更新之前（Before the first frame update）"></a>第一帧更新之前（Before the first frame update）</h3><ul>
+<li>Start<br>如果脚本实例处于激活状态（enabled），会在第一帧刷新之前调用<code>Start</code>。</li>
+</ul>
+<p>对于场景中添加的游戏对象，所有脚本的<code>Start</code>都会在任意脚本的<code>Update</code>等函数之前调用，但对于游戏过程中实例化的对象无法强制如此。</p>
+<h3 id="帧之间（In-between-frames）"><a href="#帧之间（In-between-frames）" class="headerlink" title="帧之间（In between frames）"></a>帧之间（In between frames）</h3><ul>
+<li>OnApplicationPause<br>当帧内侦测到有暂停时，帧结束时会调用此函数。调用于正常的帧更新之间。在<code>OnApplicationPause</code>被调用后将会有额外的一帧以显示暂停状态的图像。</li>
+</ul>
+<h3 id="更新顺序（Update-Order）"><a href="#更新顺序（Update-Order）" class="headerlink" title="更新顺序（Update Order）"></a>更新顺序（Update Order）</h3><p>当要跟踪游戏逻辑、交互、动画、摄像机位置等时，有一些事件可供使用。通常的模式是将大多数工作放在<code>Update</code>函数中执行，但也有一些其它的函数供使用。</p>
+<ul>
+<li><p>FixedUpdate<br>通常<code>FixedUpdate</code>会比<code>Update</code>调用得更频繁。当帧率很低时，每帧可能有多次调用；当帧率很高时，可能在帧之间不会有调用。所有的物理计算及更新都是在<code>FixedUpdate</code>之后立即执行。当在<code>FixedUpdate</code>内进行运动计算时，相关数值可不必乘以<code>Time.deltaTime</code>，因为<code>FixedUpdate</code>是由可靠地计时器调用，而与帧率无关。</p>
+</li>
+<li><p>Update<br><code>Update</code>在每帧被调用，是帧更新的主要承载函数。</p>
+</li>
+<li><p>LateUpdate<br><code>LateUpdate</code>在每帧调用一次，调用时机为<code>Update</code>结束之后。<code>Update</code>中的所有计算都会在<code>LateUpdate</code>调用之前完成。<code>LateUpdate</code>一个比较通常的用法是跟随的第三人视角摄像机。如果角色在<code>Update</code>中移动或转动，则可以将所有的摄像机移动和转动放入<code>LateUpdate</code>。这样可以确保在摄像机跟随角色之前角色已经完成了所有的移动。</p>
+</li>
+</ul>
+<h3 id="渲染（Rendering）"><a href="#渲染（Rendering）" class="headerlink" title="渲染（Rendering）"></a>渲染（Rendering）</h3><ul>
+<li><p>OnPreCull<br>在摄像机对场景进行剔除（cull）之前调用。剔除将会决定对于摄像机来说哪些游戏对象可见或不可见。<code>OnPreCull</code>调用之后即是摄像机的剔除操作。</p>
+</li>
+<li><p>OnBecameVisible/OnBecameInvisible<br>当游戏对象对于所有摄像机都变为可见（visible）/不可见（invisible）时调用</p>
+</li>
+<li><p>OnWillRenderObject<br>如果游戏对象对于摄像机可见，则每有一个摄像机将会调用一次</p>
+</li>
+<li><p>OnPreRender<br>在摄像机对场景进行渲染之前调用</p>
+</li>
+<li><p>OnRenderObject<br>在常规场景渲染完成之后调用。此时可以使用<code>GL</code>类或<code>Graphics.DrawMeshNow</code>来绘制自定义的几何体</p>
+</li>
+<li><p>OnPostRender<br>在摄像机完成对场景的渲染之后调用</p>
+</li>
+<li><p>OnRenderImage<br>在场景渲染完成之后调用，用于屏幕图像的后处理（postprocessing）</p>
+</li>
+<li><p>OnGUI<br>用于响应GUI事件，在每帧内会调用多次。首先处理<code>Layout</code>和<code>Repaint</code>事件，紧接着处理每个输入事件的<code>Layout</code>和键盘/鼠标事件</p>
+</li>
+<li><p>OnDrawGizmos<br>在场景中绘制用于可视化的Gizmo</p>
+</li>
+</ul>
+<h3 id="协程（Coroutines）"><a href="#协程（Coroutines）" class="headerlink" title="协程（Coroutines）"></a>协程（Coroutines）</h3><p>正常的协程会在<code>Update</code>函数返回后更新。协程是一个可以将其执行挂起（<code>yield</code>）直到其<code>YieldInstruction</code>完成的函数。以下是协程的不同用法：</p>
+<ul>
+<li><p>yield<br>协程将在下一帧的所有的<code>Update</code>完成调用之后继续执行</p>
+</li>
+<li><p>yield WaitForSeconds<br>协程将在指定时间的延迟之后的一帧，调用全部<code>Update</code>函数之后</p>
+</li>
+<li><p>yield WaitForFixedUpdate<br>协程在所有的<code>FixedUpdate</code>调用之后继续</p>
+</li>
+<li><p>yield WWW<br>协程在一个<code>WWW</code>下载完成后继续</p>
+</li>
+<li><p>yield StartCoroutine<br>将协程构成链，并且会先等待<code>MyFunc</code>协程完成</p>
+</li>
+</ul>
+<h3 id="销毁对象（When-the-Object-is-Destroyed）"><a href="#销毁对象（When-the-Object-is-Destroyed）" class="headerlink" title="销毁对象（When the Object is Destroyed）"></a>销毁对象（When the Object is Destroyed）</h3><ul>
+<li>OnDestroy<br>会在该对象存在的最后一帧所有帧更新函数调用完成之后调用（在调用<code>Object.Destroy</code>或是关闭场景时会销毁对象）</li>
+</ul>
+<h3 id="退出（When-Quitting）"><a href="#退出（When-Quitting）" class="headerlink" title="退出（When Quitting）"></a>退出（When Quitting）</h3><p>以下函数会对所有激活状态（active）的游戏对象调用</p>
+<ul>
+<li><p>OnApplicationQuit<br>会在退出应用程序时对所有的游戏对象调用。在编辑器中，则是在用户停止playmode时调用。在web player中则是在web视图被关闭时调用。</p>
+</li>
+<li><p>OnDisable:<br>当对象变为禁用（disabled）或非激活状态（inactive）时调用</p>
+</li>
+</ul>
+<p>以上各函数的执行可参考下图：</p>
+<p><img src="https://docs.unity3d.com/500/Documentation/uploads/Main/monobehaviour_flowchart.svg" alt="fig"></p>
+<h2 id="Transform主要变量和方法"><a href="#Transform主要变量和方法" class="headerlink" title="Transform主要变量和方法"></a>Transform主要变量和方法</h2><h3 id="主要变量"><a href="#主要变量" class="headerlink" title="主要变量"></a>主要变量</h3><table>
+<thead>
+<tr>
+<th>变量</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>childCount</td>
+<td>返回Transform的子节点的个数</td>
+</tr>
+<tr>
+<td>eulerAngles</td>
+<td>角度单位的欧拉角形式的旋转参数</td>
+</tr>
+<tr>
+<td>forward</td>
+<td>世界坐标下蓝色轴（Z）的正向</td>
+</tr>
+<tr>
+<td>hasChanged</td>
+<td>从上次被置为<code>false</code>之后transform是否发生过变化</td>
+</tr>
+<tr>
+<td>hierarchyCapacity</td>
+<td>transform的层级结构的transform容量</td>
+</tr>
+<tr>
+<td>hierarchyCount</td>
+<td>transform层级结构中transform的数量</td>
+</tr>
+<tr>
+<td>localEulerAngles</td>
+<td>相对于父节点的角度单位的欧拉角形式的旋转参数</td>
+</tr>
+<tr>
+<td>localPosition</td>
+<td>相对于父节点的位置参数</td>
+</tr>
+<tr>
+<td>localRotation</td>
+<td>相对于父节点的旋转参数</td>
+</tr>
+<tr>
+<td>localScale</td>
+<td>相对于父节点的缩放比例参数</td>
+</tr>
+<tr>
+<td>localToWorldMatrix</td>
+<td>将局部坐标转化为世界坐标的矩阵</td>
+</tr>
+<tr>
+<td>lossyScale</td>
+<td>全局尺度的缩放比例</td>
+</tr>
+<tr>
+<td>parent</td>
+<td>父节点</td>
+</tr>
+<tr>
+<td>position</td>
+<td>世界坐标下的位置参数</td>
+</tr>
+<tr>
+<td>right</td>
+<td>世界坐标下红色轴（X）的正向</td>
+</tr>
+<tr>
+<td>root</td>
+<td>层级结构的最顶端</td>
+</tr>
+<tr>
+<td>rotation</td>
+<td>世界坐标下四元数形式的旋转参数</td>
+</tr>
+<tr>
+<td>up</td>
+<td>世界坐标下绿色轴（Y）的正向</td>
+</tr>
+<tr>
+<td>worldToLocalMatrix</td>
+<td>将世界坐标转化为局部坐标的矩阵</td>
+</tr>
+</tbody></table>
+<h3 id="主要方法"><a href="#主要方法" class="headerlink" title="主要方法"></a>主要方法</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DetachChildren</td>
+<td>断开与所有子节点的父子关系</td>
+</tr>
+<tr>
+<td>Find</td>
+<td>根据名字查找子节点并返回</td>
+</tr>
+<tr>
+<td>GetChild</td>
+<td>根据索引值返回子节点</td>
+</tr>
+<tr>
+<td>GetSiblingIndex</td>
+<td>获取在同级节点中的索引</td>
+</tr>
+<tr>
+<td>InverseTransformDirection</td>
+<td>将方向direction从世界空间转化到局部空间</td>
+</tr>
+<tr>
+<td>InverseTransformPoint</td>
+<td>将位置position从世界空间转化到局部空间</td>
+</tr>
+<tr>
+<td>InverseTransformVector</td>
+<td>将矢量vector从世界空间转化到局部空间</td>
+</tr>
+<tr>
+<td>IsChildOf</td>
+<td>是否是parent的子节点</td>
+</tr>
+<tr>
+<td>LookAt</td>
+<td>旋转transform，以使得forward指向target当前位置</td>
+</tr>
+<tr>
+<td>Rotate</td>
+<td>按照Z-&gt;X-&gt;Y的顺序，沿Z轴旋转eulerAngles.z角度，沿X轴旋转eulerAngles.x角度，沿Y轴旋转eulerAngles.y角度</td>
+</tr>
+<tr>
+<td>RotateAround</td>
+<td>在世界坐标中沿着穿过指定点point的轴axis旋转指定角度angle</td>
+</tr>
+<tr>
+<td>SetAsFirstSibling</td>
+<td>将transform移至同级结点列表的头部</td>
+</tr>
+<tr>
+<td>SetAsLastSibling</td>
+<td>将transform移至同级结点列表的末尾</td>
+</tr>
+<tr>
+<td>SetParent</td>
+<td>设置父节点</td>
+</tr>
+<tr>
+<td>SetPositionAndRotation</td>
+<td>设置transform组件在全局坐标系下的位置和旋转参数</td>
+</tr>
+<tr>
+<td>SetSiblingIndex</td>
+<td>设置在同级结点中的索引</td>
+</tr>
+<tr>
+<td>TransformDirection</td>
+<td>将方向direction从局部空间转化到世界空间</td>
+</tr>
+<tr>
+<td>TransformPoint</td>
+<td>将位置position从局部空间转化到世界空间</td>
+</tr>
+<tr>
+<td>TransformVector</td>
+<td>将矢量vector从局部空间转化到世界空间</td>
+</tr>
+<tr>
+<td>Translate</td>
+<td>使用translation的方向和距离移动transform</td>
+</tr>
+</tbody></table>
+<h2 id="读写xml"><a href="#读写xml" class="headerlink" title="读写xml"></a>读写xml</h2><p>需要额外引入文件/命名空间：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">using System.Xml;</span><br><span class="line">using System.IO;</span><br></pre></td></tr></table></figure>
+
+<h3 id="读取xml"><a href="#读取xml" class="headerlink" title="读取xml"></a>读取xml</h3><p>现有文件test.xml文件如下，文件内容为：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">enemy</span> <span class="attr">id</span>=<span class="string">"1000"</span> <span class="attr">name</span>=<span class="string">"enemy1"</span> <span class="attr">lv</span>=<span class="string">"1"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">attack</span>&gt;</span>10<span class="tag">&lt;/<span class="name">attack</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">hitpoint</span>&gt;</span>100<span class="tag">&lt;/<span class="name">hitpoint</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">enemy</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">enemy</span> <span class="attr">id</span>=<span class="string">"1001"</span> <span class="attr">name</span>=<span class="string">"enemy2"</span> <span class="attr">lv</span>=<span class="string">"2"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">attack</span>&gt;</span>20<span class="tag">&lt;/<span class="name">attack</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">hitpoint</span>&gt;</span>180<span class="tag">&lt;/<span class="name">hitpoint</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">enemy</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>加载并输出xml文件的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">string filepath &#x3D; Application.dataPath + @&quot;&#x2F;XML&#x2F;test.xml&quot;;</span><br><span class="line">if (File.Exists (filepath)) &#123;</span><br><span class="line">	XmlDocument xmlDoc &#x3D; new XmlDocument ();</span><br><span class="line">	xmlDoc.Load (filepath);</span><br><span class="line">	XmlNodeList nodeList &#x3D; xmlDoc.SelectSingleNode (&quot;root&quot;).ChildNodes;</span><br><span class="line">	foreach (XmlElement xe in nodeList) &#123;</span><br><span class="line">		Debug.Log (&quot;Name :&quot; + xe.Name);</span><br><span class="line">		Debug.Log (&quot;Attribute name:&quot; + xe.GetAttribute (&quot;name&quot;));</span><br><span class="line">		Debug.Log (&quot;Attribute lv:&quot; + xe.GetAttribute (&quot;lv&quot;));</span><br><span class="line">		foreach (XmlElement x1 in xe.ChildNodes) &#123;</span><br><span class="line">			Debug.Log (&quot;Inner Name :&quot; + x1.Name);</span><br><span class="line">			Debug.Log (&quot;Inner Value :&quot; + x1.InnerText);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	Debug.Log (&quot;complete XML &#x3D; &quot; + xmlDoc.OuterXml); </span><br><span class="line">&#125; else &#123;</span><br><span class="line">	Debug.Log (&quot;file not exists&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="写入xml"><a href="#写入xml" class="headerlink" title="写入xml"></a>写入xml</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">string filepath &#x3D; Application.dataPath + @&quot;&#x2F;XML&#x2F;test1.xml&quot;;</span><br><span class="line">if(!File.Exists (filepath))</span><br><span class="line">&#123;</span><br><span class="line">	XmlDocument xmlDoc &#x3D; new XmlDocument();</span><br><span class="line">	XmlElement root &#x3D; xmlDoc.CreateElement(&quot;root&quot;);</span><br><span class="line">	XmlElement child &#x3D; xmlDoc.CreateElement(&quot;enemy&quot;);</span><br><span class="line">	child.SetAttribute(&quot;id&quot;,&quot;1000&quot;);</span><br><span class="line">	child.SetAttribute(&quot;name&quot;,&quot;enemy1&quot;);</span><br><span class="line">	child.SetAttribute(&quot;lv&quot;,&quot;1&quot;);</span><br><span class="line">	XmlElement subChild1 &#x3D; xmlDoc.CreateElement(&quot;attack&quot;);</span><br><span class="line">	subChild1.InnerText &#x3D; &quot;10&quot;;</span><br><span class="line">	XmlElement subChild2 &#x3D; xmlDoc.CreateElement(&quot;hitpoint&quot;);</span><br><span class="line">	subChild2.InnerText &#x3D; &quot;100&quot;;</span><br><span class="line">	child.AppendChild(subChild1);</span><br><span class="line">	child.AppendChild(subChild2);</span><br><span class="line">	root.AppendChild(child);</span><br><span class="line">	xmlDoc.AppendChild(root);</span><br><span class="line">	xmlDoc.Save(filepath);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>得到的xml文件内容如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">enemy</span> <span class="attr">id</span>=<span class="string">"1000"</span> <span class="attr">name</span>=<span class="string">"enemy1"</span> <span class="attr">lv</span>=<span class="string">"1"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">attack</span>&gt;</span>10<span class="tag">&lt;/<span class="name">attack</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">hitpoint</span>&gt;</span>100<span class="tag">&lt;/<span class="name">hitpoint</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">enemy</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="编辑xml"><a href="#编辑xml" class="headerlink" title="编辑xml"></a>编辑xml</h3><p>在刚才的文件test1.xml中，将<code>enemy</code>的<code>lv</code>属性改为<code>10</code>，<code>attack</code>节点内容改为<code>30</code>，删除<code>enemy</code>的<code>hitpoint</code>节点，在<code>root</code>下增加一个新的<code>enemy</code>节点并为其设置一些属性和子节点。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">string filepath &#x3D; Application.dataPath + @&quot;&#x2F;test1.xml&quot;;</span><br><span class="line">if(File.Exists (filepath))</span><br><span class="line">&#123;</span><br><span class="line">	XmlDocument xmlDoc &#x3D; new XmlDocument();</span><br><span class="line">	xmlDoc.Load(filepath);</span><br><span class="line">	XmlNodeList nodeList&#x3D;xmlDoc.SelectSingleNode(&quot;root&quot;).ChildNodes;</span><br><span class="line"></span><br><span class="line">	foreach(XmlElement xe in nodeList)</span><br><span class="line">	&#123;</span><br><span class="line">		if(xe.GetAttribute(&quot;id&quot;)&#x3D;&#x3D;&quot;1000&quot;)</span><br><span class="line">		&#123;</span><br><span class="line">			xe.SetAttribute(&quot;lv&quot;,&quot;10&quot;);</span><br><span class="line">			foreach(XmlElement x1 in xe.ChildNodes)</span><br><span class="line">			&#123;</span><br><span class="line">				if(x1.Name&#x3D;&#x3D;&quot;attack&quot;)</span><br><span class="line">				&#123;</span><br><span class="line">					x1.InnerText&#x3D;&quot;30&quot;;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			break;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	Debug.Log(&quot;modify end&quot;);</span><br><span class="line"></span><br><span class="line">	XmlNode root &#x3D; xmlDoc.SelectSingleNode(&quot;root&quot;);</span><br><span class="line">	XmlElement newChild &#x3D; xmlDoc.CreateElement(&quot;enemy&quot;);</span><br><span class="line">	newChild.SetAttribute(&quot;id&quot;,&quot;1000&quot;);</span><br><span class="line">	newChild.SetAttribute(&quot;name&quot;,&quot;enemy2&quot;);</span><br><span class="line">	newChild.SetAttribute(&quot;lv&quot;,&quot;2&quot;);</span><br><span class="line">	XmlElement subChild1 &#x3D; xmlDoc.CreateElement(&quot;attack&quot;);</span><br><span class="line">	subChild1.InnerText &#x3D; &quot;20&quot;;</span><br><span class="line">	XmlElement subChild2 &#x3D; xmlDoc.CreateElement(&quot;hitpoint&quot;);</span><br><span class="line">	subChild2.InnerText &#x3D; &quot;200&quot;;</span><br><span class="line">	newChild.AppendChild(subChild1);</span><br><span class="line">	newChild.AppendChild(subChild2);</span><br><span class="line">	root.AppendChild(newChild);</span><br><span class="line">	xmlDoc.Save(filepath);</span><br><span class="line">	Debug.Log(&quot;add node end&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>得到的xml文件为：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">enemy</span> <span class="attr">id</span>=<span class="string">"1000"</span> <span class="attr">name</span>=<span class="string">"enemy1"</span> <span class="attr">lv</span>=<span class="string">"10"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">attack</span>&gt;</span>30<span class="tag">&lt;/<span class="name">attack</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">hitpoint</span>&gt;</span>100<span class="tag">&lt;/<span class="name">hitpoint</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">enemy</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">enemy</span> <span class="attr">id</span>=<span class="string">"1000"</span> <span class="attr">name</span>=<span class="string">"enemy2"</span> <span class="attr">lv</span>=<span class="string">"2"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">attack</span>&gt;</span>20<span class="tag">&lt;/<span class="name">attack</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">hitpoint</span>&gt;</span>200<span class="tag">&lt;/<span class="name">hitpoint</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">enemy</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="json序列化与反序列化"><a href="#json序列化与反序列化" class="headerlink" title="json序列化与反序列化"></a>json序列化与反序列化</h2><h3 id="json加载与读取（反序列化）"><a href="#json加载与读取（反序列化）" class="headerlink" title="json加载与读取（反序列化）"></a>json加载与读取（反序列化）</h3><p>使用的json文件如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"> &quot;enemyDataList&quot; : [</span><br><span class="line">	&#123; &quot;id&quot;:&quot;1&quot; , &quot;lv&quot;:&quot;1&quot; , &quot;score&quot; :  &quot;1&quot; , &quot;speed&quot; :   &quot;4&quot; , &quot;hitPoint&quot; : &quot;1&quot; ,  &quot;attackInterval&quot; : &quot;100&quot;&#125;,</span><br><span class="line">	&#123; &quot;id&quot;:&quot;2&quot; , &quot;lv&quot;:&quot;2&quot; , &quot;score&quot; :  &quot;2&quot; , &quot;speed&quot; :   &quot;4&quot; , &quot;hitPoint&quot; : &quot;2&quot; ,  &quot;attackInterval&quot; : &quot;100&quot;&#125;,</span><br><span class="line">	&#123; &quot;id&quot;:&quot;3&quot; , &quot;lv&quot;:&quot;3&quot; , &quot;score&quot; :  &quot;4&quot; , &quot;speed&quot; : &quot;4.5&quot; , &quot;hitPoint&quot; : &quot;5&quot; ,  &quot;attackInterval&quot; :  &quot;10&quot;&#125;,</span><br><span class="line">	&#123; &quot;id&quot;:&quot;4&quot; , &quot;lv&quot;:&quot;4&quot; , &quot;score&quot; :  &quot;7&quot; , &quot;speed&quot; :   &quot;5&quot; , &quot;hitPoint&quot; : &quot;10&quot; , &quot;attackInterval&quot; :   &quot;3&quot;&#125;,</span><br><span class="line">	&#123; &quot;id&quot;:&quot;5&quot; , &quot;lv&quot;:&quot;5&quot; , &quot;score&quot; : &quot;10&quot; , &quot;speed&quot; : &quot;5.5&quot; , &quot;hitPoint&quot; : &quot;18&quot; , &quot;attackInterval&quot; :   &quot;1&quot;&#125;,</span><br><span class="line">	&#123; &quot;id&quot;:&quot;6&quot; , &quot;lv&quot;:&quot;6&quot; , &quot;score&quot; : &quot;14&quot; , &quot;speed&quot; :   &quot;6&quot; , &quot;hitPoint&quot; : &quot;30&quot; , &quot;attackInterval&quot; : &quot;0.5&quot;&#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>读取并加载json：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">using System.IO;</span><br><span class="line">using System;</span><br><span class="line"></span><br><span class="line">public class EnemyManager : MonoBehaviour &#123;</span><br><span class="line"></span><br><span class="line">	private EnemyDataList data &#x3D; new EnemyDataList();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;...略去无关代码</span><br><span class="line"></span><br><span class="line">	[Serializable]</span><br><span class="line">	public class EnemyData &#123;</span><br><span class="line">		public int lv;</span><br><span class="line">		public int score;</span><br><span class="line">		public float speed;</span><br><span class="line">		public int hitPoint;</span><br><span class="line">		public float attackInterval;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	[Serializable]</span><br><span class="line">	public class EnemyDataList &#123;</span><br><span class="line">		public EnemyData[] enemyDataList; </span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	private void LoadJson()&#123;</span><br><span class="line"></span><br><span class="line">		string filepath &#x3D; Application.dataPath + &quot;&#x2F;Json&#x2F;Enemy.json&quot;;</span><br><span class="line"></span><br><span class="line">		if (!File.Exists(filepath))</span><br><span class="line">		&#123;</span><br><span class="line">			Debug.Log (filepath + &quot;do not exist&quot;);</span><br><span class="line">			return;</span><br><span class="line">		&#125;</span><br><span class="line">		StreamReader sr &#x3D; new StreamReader(filepath);</span><br><span class="line">		if (sr &#x3D;&#x3D; null)</span><br><span class="line">		&#123;</span><br><span class="line">			Debug.Log (filepath + &quot;read failed&quot;);</span><br><span class="line">			return;</span><br><span class="line">		&#125;</span><br><span class="line">		string json &#x3D; sr.ReadToEnd();</span><br><span class="line"></span><br><span class="line">		if (json.Length &gt; 0) &#123;</span><br><span class="line">			data &#x3D; JsonUtility.FromJson&lt;EnemyDataList&gt; (json);</span><br><span class="line">		&#125; </span><br><span class="line">		else &#123;</span><br><span class="line">			Debug.Log (filepath + &quot;empty file&quot;);</span><br><span class="line">		&#125;</span><br><span class="line">		&#x2F;&#x2F;Debug.Log (data.enemyDataList.Length.ToString());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="json序列化"><a href="#json序列化" class="headerlink" title="json序列化"></a>json序列化</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">[Serializable]</span><br><span class="line">public class EnemyData &#123;</span><br><span class="line">	public int lv;</span><br><span class="line">	public int score;</span><br><span class="line">	public float speed;</span><br><span class="line">	public int hitPoint;</span><br><span class="line">	public float attackInterval;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void WriteJson()</span><br><span class="line">&#123;</span><br><span class="line">	EnemyData enemyData &#x3D; new EnemyData();</span><br><span class="line">	enemyData.lv &#x3D; 1;</span><br><span class="line">	enemyData.score &#x3D; 10;</span><br><span class="line">	enemyData.speed &#x3D; 100;</span><br><span class="line">	enemyData.hitPoint &#x3D; 100;</span><br><span class="line">	enemyData.attackInterval &#x3D; 10;</span><br><span class="line">  </span><br><span class="line">	string json &#x3D; JsonUtility.ToJson(enemyData);</span><br><span class="line"></span><br><span class="line">	Debug.Log(json);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="在游戏预览窗口调整角度和修改数据"><a href="#在游戏预览窗口调整角度和修改数据" class="headerlink" title="在游戏预览窗口调整角度和修改数据"></a>在游戏预览窗口调整角度和修改数据</h2><p>如对于FPS游戏，可以在游戏预览窗口对武器的位置进行调整，调整好以后在游戏预览窗口将需要保存的游戏对象拖拽生成Prefab即可保存即时的状态。</p>
+<p>在编辑窗口中，选中GameObject，使用快捷键command+shift+F（win下是 control+shift+F），可以使选中的游戏对象与当前Scene窗口对齐，可用于调整灯光、摄像机等。</p>
+<h2 id="扩展函数"><a href="#扩展函数" class="headerlink" title="扩展函数"></a>扩展函数</h2><p>例如，可以为<code>Transform</code>定义扩展函数如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static class MyExt &#123;</span><br><span class="line">	public static void SetPositionX (this Transform trans , float x)</span><br><span class="line">	&#123;</span><br><span class="line">		trans.position &#x3D; new Vector3 (x , trans.position.y , trans.position.z);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>脚本内调用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">this.transform.SetPositionX(10);</span><br></pre></td></tr></table></figure>
+
+<h2 id="Coroutine使用案例"><a href="#Coroutine使用案例" class="headerlink" title="Coroutine使用案例"></a>Coroutine使用案例</h2><h3 id="延迟调用"><a href="#延迟调用" class="headerlink" title="延迟调用"></a>延迟调用</h3><p>指定在一段时间后指定某函数，首先有以下封装：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">using UnityEngine;</span><br><span class="line">using System.Collections;</span><br><span class="line">using System;</span><br><span class="line">public class DelayToInvoke : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line">    public static IEnumerator DelayToInvokeDo(Action action, float delaySeconds)  </span><br><span class="line">    &#123;</span><br><span class="line">        yield return new WaitForSeconds(delaySeconds);</span><br><span class="line">        action();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">void OnClick()</span><br><span class="line">&#123;</span><br><span class="line">	StartCoroutine(DelayToInvoke.DelayToInvokeDo(() &#x3D;&gt;</span><br><span class="line">	&#123;</span><br><span class="line">		Debug.Log(&quot;Delay&quot;);</span><br><span class="line">	&#125;, 0.1f));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="将一次move分解到每帧"><a href="#将一次move分解到每帧" class="headerlink" title="将一次move分解到每帧"></a>将一次move分解到每帧</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public virtual void Move()&#123;</span><br><span class="line">	StartCoroutine(IMove());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected IEnumerator IMove()&#123;</span><br><span class="line">	float movedDis &#x3D; 0;</span><br><span class="line">	while(movedDis &lt; cubeDistance)&#123;</span><br><span class="line">		movedDis +&#x3D; updateMove.magnitude * Time.deltaTime;</span><br><span class="line">		transform.localPosition &#x3D; transform.localPosition + updateMove * Time.deltaTime;</span><br><span class="line">		yield return new WaitForFixedUpdate ();</span><br><span class="line">	&#125;</span><br><span class="line">	transform.localPosition &#x3D; targetPos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="自动寻路"><a href="#自动寻路" class="headerlink" title="自动寻路"></a>自动寻路</h2><p>涉及到三个游戏对象</p>
+<h3 id="寻路地形"><a href="#寻路地形" class="headerlink" title="寻路地形"></a>寻路地形</h3><ol>
+<li>需要勾选<code>Navigation Static</code></li>
+<li>在Window-Navigation中设置地形的参数</li>
+<li>Bake</li>
+</ol>
+<h3 id="自动寻路的对象"><a href="#自动寻路的对象" class="headerlink" title="自动寻路的对象"></a>自动寻路的对象</h3><ol>
+<li>添加组件<code>NavMeshAgent</code></li>
+<li>在挂载的脚本中添加以下内容：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;...略去无关内容</span><br><span class="line"></span><br><span class="line">Transform m_target;    </span><br><span class="line">UnityEngine.AI.NavMeshAgent m_agent;</span><br><span class="line">float m_speed &#x3D; 1.0f;</span><br><span class="line"></span><br><span class="line">void Start () &#123;</span><br><span class="line"></span><br><span class="line">	m_target &#x3D; GameObject.FindGameObjectWithTag (&quot;Target&quot;);</span><br><span class="line">	m_agent &#x3D; GetComponent&lt;UnityEngine.AI.NavMeshAgent&gt; ();</span><br><span class="line">	m_agent.SetDestination (m_target.transform.position);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void Update () &#123;</span><br><span class="line">	m_agent.SetDestination (m_target.transform.position);</span><br><span class="line">	MoveTo ();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">void MoveTo()&#123;</span><br><span class="line">	float speed &#x3D; m_speed * Time.deltaTime;</span><br><span class="line">	m_agent.Move (m_transform.TransformDirection(new Vector3(0,0,speed)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="寻路目标"><a href="#寻路目标" class="headerlink" title="寻路目标"></a>寻路目标</h3><ol>
+<li>放置于寻路地形上</li>
+<li>控制目标移动，自动寻路对象会跟随目标</li>
+</ol>
+<h2 id="使用单例"><a href="#使用单例" class="headerlink" title="使用单例"></a>使用单例</h2><h3 id="使用单例方法一"><a href="#使用单例方法一" class="headerlink" title="使用单例方法一"></a>使用单例方法一</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public class Singleton&lt;T&gt; : MonoBehaviour where T : MonoBehaviour &#123;</span><br><span class="line">	protected static T instance;  </span><br><span class="line">	public static T Instance &#123;</span><br><span class="line">		get &#123;</span><br><span class="line">			if(instance &#x3D;&#x3D; null) &#123;</span><br><span class="line">				instance &#x3D; (T) FindObjectOfType(typeof(T));</span><br><span class="line">				if (instance &#x3D;&#x3D; null) &#123;</span><br><span class="line">					Debug.LogError(&quot;An instance of &quot; + typeof(T) + &quot; is needed in the scene, but there is none.&quot;);</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			return instance;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义的单例类需要继承<code>Singleton</code>。</p>
+<h3 id="使用单例方法二"><a href="#使用单例方法二" class="headerlink" title="使用单例方法二"></a>使用单例方法二</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public static ClassSingleton instance &#123; get; private set; &#125;</span><br><span class="line">...</span><br><span class="line">protected void OnEnable() &#123;</span><br><span class="line">	if (ClassSingleton.instance &#x3D;&#x3D; null) &#123;</span><br><span class="line">		ClassSingleton.instance &#x3D; this;</span><br><span class="line">	&#125;</span><br><span class="line">#if UNITY_EDITOR</span><br><span class="line">	else &#123;</span><br><span class="line">		Debug.LogWarning(&quot;Multiple ClassSingleton in scene... this is not supported&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">#endif</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2D碰撞"><a href="#2D碰撞" class="headerlink" title="2D碰撞"></a>2D碰撞</h2><p>碰撞二者必须都要有BoxCollider2D组件，并且其中之一要有Rigidbody2D组件。</p>
+<p>组件之一需要在挂载的脚本中覆写<code>OnTriggerEnter2D</code>方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">void OnTriggerEnter2D(Collider2D other)&#123;</span><br><span class="line">	if (other.gameObject.tag &#x3D;&#x3D; &quot;enemy&quot;) &#123;</span><br><span class="line">		Destroy (this.gameObject);</span><br><span class="line">		other.gameObject.GetComponent&lt;Enemy&gt;().hit (this.damage);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="FPS游戏玩家移动和视角转动"><a href="#FPS游戏玩家移动和视角转动" class="headerlink" title="FPS游戏玩家移动和视角转动"></a>FPS游戏玩家移动和视角转动</h2><p>玩家对象需要挂载组件<code>CharacterController</code>，以及以下脚本：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">using System.Collections;</span><br><span class="line">using System.Collections.Generic;</span><br><span class="line">using UnityEngine;</span><br><span class="line"></span><br><span class="line">public class Player : MonoBehaviour &#123;</span><br><span class="line"></span><br><span class="line">	public Transform m_transform;</span><br><span class="line">	CharacterController m_cc;</span><br><span class="line"></span><br><span class="line">	float m_speed &#x3D; 5.0f;</span><br><span class="line"></span><br><span class="line">	Transform camTransform;</span><br><span class="line">	Vector3 camRot;</span><br><span class="line">	float camHeight &#x3D; 5.5f;</span><br><span class="line"></span><br><span class="line">	void Start () &#123;</span><br><span class="line"></span><br><span class="line">		m_transform &#x3D; this.transform;</span><br><span class="line">		m_cc &#x3D; this.GetComponent&lt;CharacterController&gt; ();</span><br><span class="line"></span><br><span class="line">		camTransform &#x3D; Camera.main.transform;</span><br><span class="line">		Vector3 pos  &#x3D; m_transform.position ;</span><br><span class="line">		pos.y +&#x3D; camHeight;</span><br><span class="line">		camTransform.position &#x3D; pos;</span><br><span class="line"></span><br><span class="line">		camTransform.rotation &#x3D; m_transform.rotation;</span><br><span class="line">		camRot &#x3D; camTransform.eulerAngles;</span><br><span class="line"></span><br><span class="line">		Cursor.lockState &#x3D; CursorLockMode.Locked;</span><br><span class="line">		Cursor.visible &#x3D; false;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line"></span><br><span class="line">	void Update () &#123;</span><br><span class="line"></span><br><span class="line">		ControlCheck ();</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	private void ControlCheck()&#123;</span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F;cam rotation</span><br><span class="line">		float rh &#x3D; Input.GetAxis (&quot;Mouse X&quot;);</span><br><span class="line">		float rv &#x3D; Input.GetAxis (&quot;Mouse Y&quot;);</span><br><span class="line"></span><br><span class="line">		camRot.x -&#x3D; rv;</span><br><span class="line">		camRot.y +&#x3D; rh;</span><br><span class="line">		camTransform.eulerAngles &#x3D; camRot;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F; keep player the same rotation</span><br><span class="line">		Vector3 camR &#x3D; camTransform.eulerAngles;</span><br><span class="line">		camR.x &#x3D; 0;</span><br><span class="line">		camR.z &#x3D; 0;</span><br><span class="line">		m_transform.eulerAngles &#x3D; camR;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F; move player with WASD</span><br><span class="line">		float speed_x &#x3D; 0, speed_y &#x3D; 0, speed_z &#x3D; 0;</span><br><span class="line"></span><br><span class="line">		if (Input.GetKey (KeyCode.W)) &#123;</span><br><span class="line">			speed_z +&#x3D; m_speed * Time.deltaTime;</span><br><span class="line">		&#125;</span><br><span class="line">		else if(Input.GetKey (KeyCode.S))&#123;</span><br><span class="line">			speed_z -&#x3D; m_speed * Time.deltaTime;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		if (Input.GetKey (KeyCode.A)) &#123;</span><br><span class="line">			speed_x -&#x3D; m_speed * Time.deltaTime;</span><br><span class="line">		&#125;</span><br><span class="line">		else if(Input.GetKey (KeyCode.D))&#123;</span><br><span class="line">			speed_x +&#x3D; m_speed * Time.deltaTime;</span><br><span class="line">		&#125;</span><br><span class="line">	</span><br><span class="line">		m_cc.Move (m_transform.TransformDirection(new Vector3(speed_x , speed_y , speed_z)));</span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F; keep camera the same postion</span><br><span class="line">		Vector3 pos &#x3D; m_transform.position;</span><br><span class="line">		pos.y &#x3D; camHeight;</span><br><span class="line">		camTransform.position &#x3D; pos;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="获取点击或触摸操作"><a href="#获取点击或触摸操作" class="headerlink" title="获取点击或触摸操作"></a>获取点击或触摸操作</h2><h3 id="点击或触摸拖动"><a href="#点击或触摸拖动" class="headerlink" title="点击或触摸拖动"></a>点击或触摸拖动</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;...</span><br><span class="line"></span><br><span class="line">bool isMouseDown &#x3D; false;</span><br><span class="line"></span><br><span class="line">void Update () &#123;</span><br><span class="line">	mouseControl ();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">void mouseControl ()&#123;</span><br><span class="line"></span><br><span class="line">	if (Input.GetMouseButtonDown (0)) &#123;</span><br><span class="line">		isMouseDown &#x3D; true;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	if (Input.GetMouseButtonUp (0)) &#123;</span><br><span class="line">			isMouseDown &#x3D; false;</span><br><span class="line">			lastMousePosition &#x3D; Vector3.zero;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	if(isMouseDown)&#123;</span><br><span class="line">		if (Vector3.zero !&#x3D; lastMousePosition) &#123;</span><br><span class="line">			Vector3 offset &#x3D; Camera.main.ScreenToWorldPoint (Input.mousePosition) - lastMousePosition;</span><br><span class="line">			this.transform.position +&#x3D; offset;</span><br><span class="line">		&#125;</span><br><span class="line">		lastMousePosition &#x3D; Camera.main.ScreenToWorldPoint (Input.mousePosition);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="获取点击或触摸点在世界中的位置并移动"><a href="#获取点击或触摸点在世界中的位置并移动" class="headerlink" title="获取点击或触摸点在世界中的位置并移动"></a>获取点击或触摸点在世界中的位置并移动</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class PlaceTargetWithMouse : MonoBehaviour</span><br><span class="line">&#123;</span><br><span class="line">	public float surfaceOffset &#x3D; 1.5f;</span><br><span class="line">	public GameObject setTargetOn;</span><br><span class="line"></span><br><span class="line">	private void Update()</span><br><span class="line">	&#123;</span><br><span class="line">		if (!Input.GetMouseButtonDown(0))</span><br><span class="line">		&#123;</span><br><span class="line">			return;</span><br><span class="line">		&#125;</span><br><span class="line">		Ray ray &#x3D; Camera.main.ScreenPointToRay(Input.mousePosition);</span><br><span class="line">		RaycastHit hit;</span><br><span class="line">		if (!Physics.Raycast(ray, out hit))</span><br><span class="line">		&#123;</span><br><span class="line">			return;</span><br><span class="line">		&#125;</span><br><span class="line">		transform.position &#x3D; hit.point + hit.normal*surfaceOffset;</span><br><span class="line">		&#x2F;&#x2F;if (setTargetOn !&#x3D; null)</span><br><span class="line">		&#x2F;&#x2F;&#123;</span><br><span class="line">		&#x2F;&#x2F;	setTargetOn.SendMessage(&quot;SetTarget&quot;, transform);</span><br><span class="line">		&#x2F;&#x2F;&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://docs.unity3d.com/500/Documentation/Manual/index.html" target="_blank" rel="noopener">https://docs.unity3d.com/500/Documentation/Manual/index.html</a><br><a href="https://docs.unity3d.com/500/Documentation/ScriptReference/index.html" target="_blank" rel="noopener">https://docs.unity3d.com/500/Documentation/ScriptReference/index.html</a><br><a href="https://docs.unity3d.com/ScriptReference/Transform.html" target="_blank" rel="noopener">https://docs.unity3d.com/ScriptReference/Transform.html</a><br><a href="http://www.xuanyusong.com/archives/1901" target="_blank" rel="noopener">http://www.xuanyusong.com/archives/1901</a><br><a href="http://www.xuanyusong.com/archives/3763" target="_blank" rel="noopener">http://www.xuanyusong.com/archives/3763</a><br><a href="http://blog.csdn.net/stalendp/article/details/46707079" target="_blank" rel="noopener">http://blog.csdn.net/stalendp/article/details/46707079</a><br><a href="http://blog.csdn.net/stalendp/article/details/17114135" target="_blank" rel="noopener">http://blog.csdn.net/stalendp/article/details/17114135</a><br><a href="http://blog.csdn.net/neil3d/article/details/38534809" target="_blank" rel="noopener">http://blog.csdn.net/neil3d/article/details/38534809</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-03-27-working-with-excel-files-in-python/" rel="prev" title="使用Python处理Excel文档">
+      <i class="fa fa-chevron-left"></i> 使用Python处理Excel文档
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-04-08-algorithm-string-kmp/" rel="next" title="字符串匹配的KMP算法">
+      字符串匹配的KMP算法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Unity3D的四种坐标系"><span class="nav-number">1.</span> <span class="nav-text">Unity3D的四种坐标系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Unity3D的四种坐标系-1"><span class="nav-number">1.1.</span> <span class="nav-text">Unity3D的四种坐标系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四种坐标系的转换"><span class="nav-number">1.2.</span> <span class="nav-text">四种坐标系的转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#世界坐标中的固有方向"><span class="nav-number">1.3.</span> <span class="nav-text">世界坐标中的固有方向</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问其它的GameObject或Component"><span class="nav-number">2.</span> <span class="nav-text">访问其它的GameObject或Component</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查找GameObject"><span class="nav-number">2.1.</span> <span class="nav-text">查找GameObject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#查找GameObject下挂载的Component"><span class="nav-number">2.2.</span> <span class="nav-text">查找GameObject下挂载的Component</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内置事件函数执行顺序"><span class="nav-number">3.</span> <span class="nav-text">内置事件函数执行顺序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编辑器（Editor）"><span class="nav-number">3.1.</span> <span class="nav-text">编辑器（Editor）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第一次加载场景（First-Scene-Load）"><span class="nav-number">3.2.</span> <span class="nav-text">第一次加载场景（First Scene Load）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第一帧更新之前（Before-the-first-frame-update）"><span class="nav-number">3.3.</span> <span class="nav-text">第一帧更新之前（Before the first frame update）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#帧之间（In-between-frames）"><span class="nav-number">3.4.</span> <span class="nav-text">帧之间（In between frames）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新顺序（Update-Order）"><span class="nav-number">3.5.</span> <span class="nav-text">更新顺序（Update Order）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#渲染（Rendering）"><span class="nav-number">3.6.</span> <span class="nav-text">渲染（Rendering）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#协程（Coroutines）"><span class="nav-number">3.7.</span> <span class="nav-text">协程（Coroutines）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#销毁对象（When-the-Object-is-Destroyed）"><span class="nav-number">3.8.</span> <span class="nav-text">销毁对象（When the Object is Destroyed）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#退出（When-Quitting）"><span class="nav-number">3.9.</span> <span class="nav-text">退出（When Quitting）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transform主要变量和方法"><span class="nav-number">4.</span> <span class="nav-text">Transform主要变量和方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主要变量"><span class="nav-number">4.1.</span> <span class="nav-text">主要变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#主要方法"><span class="nav-number">4.2.</span> <span class="nav-text">主要方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#读写xml"><span class="nav-number">5.</span> <span class="nav-text">读写xml</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#读取xml"><span class="nav-number">5.1.</span> <span class="nav-text">读取xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#写入xml"><span class="nav-number">5.2.</span> <span class="nav-text">写入xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编辑xml"><span class="nav-number">5.3.</span> <span class="nav-text">编辑xml</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#json序列化与反序列化"><span class="nav-number">6.</span> <span class="nav-text">json序列化与反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#json加载与读取（反序列化）"><span class="nav-number">6.1.</span> <span class="nav-text">json加载与读取（反序列化）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#json序列化"><span class="nav-number">6.2.</span> <span class="nav-text">json序列化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在游戏预览窗口调整角度和修改数据"><span class="nav-number">7.</span> <span class="nav-text">在游戏预览窗口调整角度和修改数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展函数"><span class="nav-number">8.</span> <span class="nav-text">扩展函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Coroutine使用案例"><span class="nav-number">9.</span> <span class="nav-text">Coroutine使用案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#延迟调用"><span class="nav-number">9.1.</span> <span class="nav-text">延迟调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#将一次move分解到每帧"><span class="nav-number">9.2.</span> <span class="nav-text">将一次move分解到每帧</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动寻路"><span class="nav-number">10.</span> <span class="nav-text">自动寻路</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#寻路地形"><span class="nav-number">10.1.</span> <span class="nav-text">寻路地形</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自动寻路的对象"><span class="nav-number">10.2.</span> <span class="nav-text">自动寻路的对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#寻路目标"><span class="nav-number">10.3.</span> <span class="nav-text">寻路目标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用单例"><span class="nav-number">11.</span> <span class="nav-text">使用单例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用单例方法一"><span class="nav-number">11.1.</span> <span class="nav-text">使用单例方法一</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用单例方法二"><span class="nav-number">11.2.</span> <span class="nav-text">使用单例方法二</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2D碰撞"><span class="nav-number">12.</span> <span class="nav-text">2D碰撞</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FPS游戏玩家移动和视角转动"><span class="nav-number">13.</span> <span class="nav-text">FPS游戏玩家移动和视角转动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取点击或触摸操作"><span class="nav-number">14.</span> <span class="nav-text">获取点击或触摸操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#点击或触摸拖动"><span class="nav-number">14.1.</span> <span class="nav-text">点击或触摸拖动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#获取点击或触摸点在世界中的位置并移动"><span class="nav-number">14.2.</span> <span class="nav-text">获取点击或触摸点在世界中的位置并移动</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">15.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '6da4502ef040b3cc261f791d2ebbead0',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

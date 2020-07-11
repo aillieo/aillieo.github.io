@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="阅读《Effective C#》一书的总结，第五部分，C#中的动态编程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《Effective C#》笔记 C#中的动态编程">
+<meta property="og:url" content="http://aillieo.cn/post/2019-03-29-effective-c-sharp-notes-05/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="阅读《Effective C#》一书的总结，第五部分，C#中的动态编程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-03-29T15:14:09.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.080Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C#">
+<meta property="article:tag" content="动态">
+<meta property="article:tag" content="dynamic">
+<meta property="article:tag" content="表达式">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2019-03-29-effective-c-sharp-notes-05/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>《Effective C#》笔记 C#中的动态编程 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2019-03-29-effective-c-sharp-notes-05/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《Effective C#》笔记 C#中的动态编程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-03-29 23:14:09" itemprop="dateCreated datePublished" datetime="2019-03-29T23:14:09+08:00">2019-03-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/" itemprop="url" rel="index"><span itemprop="name">C&#35;</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-35/Effective-C-35/" itemprop="url" rel="index"><span itemprop="name">Effective C&#35;</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>阅读《Effective C#》一书的总结，第五部分，C#中的动态编程。</p>
+<a id="more"></a>
+
+<h2 id="Dynamic-Programming-in-C-35"><a href="#Dynamic-Programming-in-C-35" class="headerlink" title="Dynamic Programming in C&#35;"></a>Dynamic Programming in C&#35;</h2><p>动态类型可加速开发的过程，更易于与其它的系统进行交互，静态类型在运行时的执行效率更高；</p>
+<p>在C#中绝大多数情况下使用静态类型。在某些时候使用动态类型会更加高效，C#也提供了动态类型编程的支持；</p>
+<h3 id="38-理解动态类型的优劣"><a href="#38-理解动态类型的优劣" class="headerlink" title="38 理解动态类型的优劣"></a>38 理解动态类型的优劣</h3><p>泛型的一个限制就是，如果想访问定义在System.Object之外的方法，就必须给出约束。泛型的约束可以限制为基类、一系列的接口、值类型/引用类型、存在公有的无参构造函数等。约束无法定义必须存在某个方法。如果需要创建一个通用的操作如“<code>+</code>”时，这个限制会让人无所适从，而使用动态调用则可以解决此类问题；</p>
+<p>动态类型的一个示例。只要求在运行时两个对象存在可用的“<code>+</code>”操作即可：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public static dynamic Add(dynamic left, dynamic right)</span><br><span class="line">&#123;</span><br><span class="line">    return left + right;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在编译期，动态变量仅拥有那些定义于System.Object中的方法，编译器会添加必要的代码让每个成员访问都以动态调用的方式进行。在运行时，代码将检查该对象并判断将要执行的方法是否存在，只要所需要的成员在运行时存在，那么即可正常工作。上边的<code>Add</code>方法不仅可用于两个数的相加，还可以用于字符串拼接，甚至将DataTime和TimeSpan相加，只要两个对象之间存在“<code>+</code>”操作符即可；</p>
+<p>动态类型的缺点在于它抛弃了类型系统的安全性，并限制了编译器能够提供的辅助功能，所有与类型解释相关的问题只能在运行时才能发现；</p>
+<p>动态类型要想被其它大多数代码使用，需要将其转换为静态类型，如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; dynamic answer &#x3D; ...</span><br><span class="line"></span><br><span class="line">answer &#x3D; Add(5, 12.3);</span><br><span class="line">int value &#x3D; (int)answer;</span><br><span class="line">string stringLabel &#x3D; System.Convert.ToString(answer);</span><br></pre></td></tr></table></figure>
+
+<p>使用表达式树（Expression Tree）也不需要在编译期知道类型，这是在运行时创建代码的另一种方法（lambda表达式和函数式编程都需要编译器的类型）。以下是使用表达式方法版本的<code>Add</code>方法，在真正的<code>+</code>操作前，会把两个操作数都转换为返回值类型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public static TResult AddExpressionWithConversion&lt;T1, T2, TResult&gt;(T1 left, T2 right)</span><br><span class="line">&#123;</span><br><span class="line">    var leftOperand &#x3D; Expression.Parameter(typeof(T1), &quot;left&quot;);</span><br><span class="line">    Expression convertedLeft &#x3D; leftOperand;</span><br><span class="line">    if (typeof(T1) !&#x3D; typeof(TResult))</span><br><span class="line">    &#123;</span><br><span class="line">        convertedLeft &#x3D; Expression.Convert(leftOperand,</span><br><span class="line">            typeof(TResult));</span><br><span class="line">    &#125;</span><br><span class="line">    var rightOperand &#x3D; Expression.Parameter(typeof(T2), &quot;right&quot;);</span><br><span class="line">    Expression convertedRight &#x3D; rightOperand;</span><br><span class="line">    if (typeof(T2) !&#x3D; typeof(TResult))</span><br><span class="line">    &#123;</span><br><span class="line">        convertedRight &#x3D; Expression.Convert(rightOperand,</span><br><span class="line">        typeof(TResult));</span><br><span class="line">    &#125;</span><br><span class="line">    var body &#x3D; Expression.Add(convertedLeft, convertedRight);</span><br><span class="line">    var adder &#x3D; Expression.Lambda&lt;Func&lt;T1, T2, TResult&gt;&gt;(body, leftOperand, rightOperand);</span><br><span class="line">    return adder.Compile()(left, right);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于返回值类型和操作数类型不相同的情况，则需要更进一步增加代码来确保类型，这么做的话基本等于是重新实现了C#中处理动态分发的代码（条目41），此时使用动态类型会更好；</p>
+<p>一个建议是：当操作数和返回值为同一类型时，应该使用表达式。这样既能提供泛型类型的参数，又能降低运行时出错的可能。以下是使用表达式实现运行时分发的建议版本：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public static class BinaryOperators&lt;T&gt;</span><br><span class="line">&#123;</span><br><span class="line">    static Func&lt;T, T, T&gt; compiledExpression;</span><br><span class="line">    public static T Add(T left, T right)</span><br><span class="line">    &#123;</span><br><span class="line">        if (compiledExpression &#x3D;&#x3D; null)</span><br><span class="line">            createFunc();</span><br><span class="line">        return compiledExpression(left, right);</span><br><span class="line">    &#125;</span><br><span class="line">    private static void createFunc()</span><br><span class="line">    &#123;</span><br><span class="line">        var leftOperand &#x3D; Expression.Parameter(typeof(T), &quot;left&quot;);</span><br><span class="line">        var rightOperand &#x3D; Expression.Parameter(typeof(T), &quot;right&quot;);</span><br><span class="line">        var body &#x3D; Expression.Add(leftOperand, rightOperand);</span><br><span class="line">        var adder &#x3D; Expression.Lambda&lt;Func&lt;T, T, T&gt;&gt;(body, leftOperand, rightOperand);</span><br><span class="line">        compiledExpression &#x3D; adder.Compile();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用动态类型和在运行时创建表达式树都会带来性能上的影响。大多数情况下，使用动态类型会比使用反射手工实现延迟绑定更加高效。如果能使用静态类型解决问题，那么一定会比使用动态类型更加高效；</p>
+<h3 id="39-使用动态类型表达泛型类型参数的运行时类型"><a href="#39-使用动态类型表达泛型类型参数的运行时类型" class="headerlink" title="39 使用动态类型表达泛型类型参数的运行时类型"></a>39 使用动态类型表达泛型类型参数的运行时类型</h3><p><code>System.Linq.Enumerable.Cast&lt;T&gt;</code>可将序列中的每个元素都转换为类型<code>T</code>，进而使用<code>IEnumerable</code>（而非<code>IEnumerable&lt;T&gt;</code>）。<code>Cast&lt;T&gt;</code>存在很多限制，下边通过一个实例展开；</p>
+<p>定义一个类，定义和实现该类型和string类型互相转换的操作符：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class MyType</span><br><span class="line">&#123;</span><br><span class="line">    public String StringMember &#123; get; set; &#125;</span><br><span class="line">    public static implicit operator String(MyType aString)</span><br><span class="line">    &#123;</span><br><span class="line">        return aString.StringMember;</span><br><span class="line">    &#125;</span><br><span class="line">    public static implicit operator MyType(String aString)</span><br><span class="line">    &#123;</span><br><span class="line">        return new MyType &#123; StringMember &#x3D; aString &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假设方法<code>GetSomeStrings()</code>返回一个字符串组成的序列，则有：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">var answer1 &#x3D; GetSomeStrings().Cast&lt;MyType&gt;();</span><br><span class="line">try</span><br><span class="line">&#123;</span><br><span class="line">    foreach (var v in answer1)</span><br><span class="line">        Console.WriteLine(v);</span><br><span class="line">&#125;</span><br><span class="line">catch (InvalidCastException)</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(&quot;Cast Failed!&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var answer2 &#x3D; from MyType v in GetSomeStrings()</span><br><span class="line">            select v;</span><br><span class="line">try</span><br><span class="line">&#123;</span><br><span class="line">    foreach (var v in answer2)</span><br><span class="line">        Console.WriteLine(v);</span><br><span class="line">&#125;</span><br><span class="line">catch (InvalidCastException)</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(&quot;Cast failed again&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这两种写法都会使用<code>Cast&lt;T&gt;</code>，会抛出<code>InvalidCastException</code>异常，而下边的写法显式类型转换，避免了使用<code>Cast&lt;T&gt;</code>，可以正常运行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">var answer3 &#x3D; from v in GetSomeStrings()</span><br><span class="line">              select (MyType)v;</span><br><span class="line">foreach (var v in answer3)</span><br><span class="line">    Console.WriteLine(v);</span><br></pre></td></tr></table></figure>
+
+<p>这是因为<code>Cast&lt;T&gt;</code>无法获取类型<code>T</code>中的方法。注意<code>Cast&lt;T&gt;</code>仅适用于两种情况：引用类型的转型（<code>is</code>操作符返回成功时，引用类型的转型也会成功），值类型和引用类型之间的装箱/拆箱操作；</p>
+<p>使用dynamic类型则可以一定程度上绕开这一问题，会在类型转换时调用类型声明的类型转换操作符。如定义一个<code>Convert&lt;T&gt;</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public static IEnumerable&lt;TResult&gt; Convert&lt;TResult&gt;(</span><br><span class="line">    this System.Collections.IEnumerable sequence)</span><br><span class="line"> &#123;</span><br><span class="line">    foreach (object item in sequence)</span><br><span class="line">    &#123;</span><br><span class="line">        dynamic coercion &#x3D; (dynamic)item;</span><br><span class="line">        yield return (TResult)coercion;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>回到刚才的情景，使用<code>Convert&lt;T&gt;</code>，可以实现MyType和string之间转换：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">var convertedSequence &#x3D; GetSomeStrings().Convert&lt;MyType&gt;();</span><br></pre></td></tr></table></figure>
+
+<p><code>Convert&lt;T&gt;</code>适用性更广，会兼容更多的情况，但是也会执行更多工作；</p>
+<h3 id="40-将接受匿名类型的参数声明为dynamic"><a href="#40-将接受匿名类型的参数声明为dynamic" class="headerlink" title="40 将接受匿名类型的参数声明为dynamic"></a>40 将接受匿名类型的参数声明为dynamic</h3><p>当你需要操作可能带有同样属性名称的不同匿名类型，且这些类型不属于你的核心应用程序，你又因为各种原因不能创建具名类型时，考虑使用dynamic这个类型来绕开这些限制。动态类型支持运行时绑定，还会让编译器生成所有必须的代码，以便配合运行时出现的各种可能类型；</p>
+<p>一个示例：现在需要打印出一张价格单的信息，价格单中的信息来自多个不同的数据库，其中的商品product对象定义方式不同，既不会有共同的基类，也不会实现同一个接口。此时可以考虑使用适配器模式，也可以使用基于动态类型的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public static void WritePricingInformation(dynamic product)</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(&quot;The price of one &#123;0&#125; is &#123;1&#125;&quot;,</span><br><span class="line">        product.Name, product.Price);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还需要创建一个匿名类型，给出上边方法中所需要的属性名称，并用从任意一个数据源中查询的数据填充，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var price &#x3D; from n in Inventory</span><br><span class="line">            where n.Cost &gt; 20</span><br><span class="line">            select new &#123; n.Name, Price &#x3D; n.Cost * 1.15M &#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以使用任何必要的类型转换操作，只要生成的匿名类型中包括<code>Price</code>和<code>Name</code>两个属性即可；除此之外也可以包含其它额外的属性信息。对于静态类型，如果这个静态类型中包含了属性<code>Price</code>和<code>Name</code>，就也可以在<code>WritePricingInformation</code>中使用（类型不相符也不会有问题，例如匿名类型中<code>Price</code>类行为decimal而使用的静态类型中<code>Price</code>为double，不会有问题）；</p>
+<p>大量使用动态类型，会带来额外性能开销。一种做法是为<code>WritePricingInformation</code>方法提供重载，用于特定的商品静态类型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public class Product</span><br><span class="line">&#123;</span><br><span class="line">    public decimal Cost &#123; get; set; &#125;</span><br><span class="line">    public string Name &#123; get; set; &#125;</span><br><span class="line">    public decimal Price</span><br><span class="line">    &#123;</span><br><span class="line">        get &#123; return Cost * 1.15M; &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Derived Product class:</span><br><span class="line">public class SpecialProduct : Product</span><br><span class="line">&#123;</span><br><span class="line">    public string ReasonOnSpecial &#123; get; set; &#125;</span><br><span class="line">    &#x2F;&#x2F; other methods elided</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; elsewhere</span><br><span class="line">public static void WritePricingInformation(dynamic product)</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(&quot;The price of one &#123;0&#125; is &#123;1&#125;&quot;,</span><br><span class="line">        product.Name, product.Price);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public static void WritePricingInformation(Product product)</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(&quot;In type safe version&quot;);</span><br><span class="line">    Console.WriteLine(&quot;The price of one &#123;0&#125; is &#123;1&#125;&quot;,        product.Name, product.Price);&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这么做之后，对于任何<code>Product</code>和<code>SpecialProduct</code>或二者的衍生类，都会使用静态类型版本，而其它对象（含匿名对象）编译器会选择动态类型的版本。在内部实现中，动态绑定将用各种方法缓存下你常用的方法，以尽可能降低开销，某个方法绑定在第一次调用执行之后，后续的每个调用都会直接重用它，此举虽不能完全避免开销，但动态实现也已经尽可能地降低了动态所带来的代价；</p>
+<h3 id="41-用DynamicObject或IDynamicMetaObjectProvider实现数据驱动的动态类型"><a href="#41-用DynamicObject或IDynamicMetaObjectProvider实现数据驱动的动态类型" class="headerlink" title="41 用DynamicObject或IDynamicMetaObjectProvider实现数据驱动的动态类型"></a>41 用DynamicObject或IDynamicMetaObjectProvider实现数据驱动的动态类型</h3><p>C#通过动态类型、<code>System.Dynamic.DynamicObject</code>基类和<code>System.Dynamic.IDynamicMetaObjectProvider</code>接口来创建带有动态功能的类型，类型的公有接口可以在运行时改变；</p>
+<p>最简单的方法是继承于<code>System.Dynamic.DynamicObject</code>。以下是一个示例，创造一个名为<code>DynamicPropertyBag</code>的动态类型，可以获取和设置它的属性，如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">dynamic dynamicProperties &#x3D; new DynamicPropertyBag();</span><br><span class="line">try</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(dynamicProperties.Marker);</span><br><span class="line">&#125;</span><br><span class="line">catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)</span><br><span class="line">&#123;</span><br><span class="line">    Console.WriteLine(&quot;There are no properties&quot;);</span><br><span class="line">&#125;</span><br><span class="line">dynamicProperties.Date &#x3D; DateTime.Now;</span><br><span class="line">dynamicProperties.Name &#x3D; &quot;Bill Wagner&quot;;</span><br><span class="line">dynamicProperties.Title &#x3D; &quot;Effective C#&quot;;</span><br><span class="line">dynamicProperties.Content &#x3D; &quot;Building a dynamic dictionary&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>上边的<code>DynamicPropertyBag</code>类应当这样定义，继承于<code>DynamicObject</code>，覆写<code>TrySetMember</code>和<code>TryGetMember</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">class DynamicPropertyBag : DynamicObject</span><br><span class="line">&#123;</span><br><span class="line">    private Dictionary&lt;string, object&gt; storage &#x3D;</span><br><span class="line">        new Dictionary&lt;string, object&gt;();</span><br><span class="line">    public override bool TryGetMember(GetMemberBinder binder, out object result)</span><br><span class="line">    &#123;</span><br><span class="line">        if (storage.ContainsKey(binder.Name))</span><br><span class="line">        &#123;</span><br><span class="line">            result &#x3D; storage[binder.Name];</span><br><span class="line">            return true;</span><br><span class="line">        &#125;</span><br><span class="line">        result &#x3D; null;</span><br><span class="line">        return false;</span><br><span class="line">    &#125;</span><br><span class="line">    public override bool TrySetMember(SetMemberBinder binder, object value)</span><br><span class="line">    &#123;</span><br><span class="line">        string key &#x3D; binder.Name;</span><br><span class="line">        if (storage.ContainsKey(key))</span><br><span class="line">            storage[key] &#x3D; value;</span><br><span class="line">        else</span><br><span class="line">            storage.Add(key, value);</span><br><span class="line">        return true;</span><br><span class="line">    &#125;</span><br><span class="line">    public override string ToString()</span><br><span class="line">    &#123;</span><br><span class="line">        StringWriter message &#x3D; new StringWriter();</span><br><span class="line">        foreach (var item in  storage)</span><br><span class="line">            message.WriteLine(&quot;&#123;0&#125;:\t&#123;1&#125;&quot;, item.Key, item.Value);</span><br><span class="line">        return message.ToString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>DynamicObject</code>包含了用来处理索引器、方法、构造函数、一元和二元操作符的调用的相关方法。覆写这些方法来创建更适合需要的动态对象。返回的布尔值表示你的重载是否处理了本次请求；</p>
+<p>使用动态类型可以简化对xml对象的访问，将类型用数据驱动，使用点（<code>.</code>）和元素名称来逐层深入访问xml对象；</p>
+<p>有的时候，动态类型必须要继承于其它的基类，即无法继承<code>DynamicObject</code>，此时可以选择实现接口<code>IDynamicMetaObjectProvider</code>。实现该接口需要实现<code>GetMetaObject()</code>方法，以下是一个示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">class DynamicDictionary2 : IDynamicMetaObjectProvider</span><br><span class="line">&#123;</span><br><span class="line">    #region IDynamicMetaObjectProvider Members</span><br><span class="line">    DynamicMetaObject IDynamicMetaObjectProvider.</span><br><span class="line">        GetMetaObject(</span><br><span class="line">            System.Linq.Expressions.Expression parameter)</span><br><span class="line">    &#123;</span><br><span class="line">        return new DynamicDictionaryMetaObject(parameter,</span><br><span class="line">            this);</span><br><span class="line">    &#125;</span><br><span class="line">    #endregion</span><br><span class="line">    </span><br><span class="line">    private Dictionary&lt;string, object&gt; storage &#x3D; new</span><br><span class="line">        Dictionary&lt;string, object&gt;();</span><br><span class="line">        </span><br><span class="line">    public object SetDictionaryEntry(string key,</span><br><span class="line">        object value)</span><br><span class="line">    &#123;</span><br><span class="line">        if (storage.ContainsKey(key))</span><br><span class="line">            storage[key] &#x3D; value;</span><br><span class="line">        else</span><br><span class="line">            storage.Add(key, value);</span><br><span class="line">        return value;</span><br><span class="line">    &#125;</span><br><span class="line">        </span><br><span class="line">    public object GetDictionaryEntry(string key)</span><br><span class="line">    &#123;</span><br><span class="line">        object result &#x3D; null;</span><br><span class="line">        if (storage.ContainsKey(key))</span><br><span class="line">        &#123;</span><br><span class="line">            result &#x3D; storage[key];</span><br><span class="line">        &#125;</span><br><span class="line">        return result;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public override string ToString()</span><br><span class="line">    &#123;</span><br><span class="line">        StringWriter message &#x3D; new StringWriter();</span><br><span class="line">        foreach (var item in storage)</span><br><span class="line">            message.WriteLine(&quot;&#123;0&#125;:\t&#123;1&#125;&quot;, item.Key,</span><br><span class="line">                item.Value);</span><br><span class="line">        return message.ToString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用<code>GetMetaObject</code>时会返回一个新的<code>DynamicDictionaryMetaObject</code>对象，且<code>GetMetaObject</code>会在每次访问<code>DynamicDictionary2</code>的成员时被调用，即便是<code>DynamicDictionary2</code>中提供了静态定义的方法，因为需要解析这些方法来唤醒可能出现的动态行为；</p>
+<p>使用动态对象编程较为复杂，表达式树很难调试也很难保证正确性。编写动态对象的代码时需要注意效率和性能，使用动态类型会带来性能上的损失，而手工实现所带来的损失往往会更大一些。</p>
+<h3 id="42-如何使用表达式API"><a href="#42-如何使用表达式API" class="headerlink" title="42 如何使用表达式API"></a>42 如何使用表达式API</h3><p>在运行时基于反射检查代码或创建代码的功能非常强大，但是太过底层且难用，可以使用表达式和表达式树作为替代方案。以下会有两个示例：</p>
+<p>第一个例子是通过解析表达式将代码转换成能实现运行时算法的数据元素。在通信框架中常常会使用某种代码生成工具来为特定的服务生成客户端的代理。<code>ClientProxy&lt;T&gt;</code>了解如何将方法和各个参数转换成最终的调用，不过它实际上并不了解所访问的服务，调用方式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var client &#x3D; new ClientProxy&lt;IService&gt;();</span><br><span class="line">var result &#x3D; client.CallInterface&lt;string&gt;(</span><br><span class="line">    srver &#x3D;&gt; srver.DoWork(172));</span><br></pre></td></tr></table></figure>
+
+<p><code>ClientProxy&lt;T&gt;</code>没有使用老式的代码生成器，而是使用表达式树和泛型来判断调用了哪个方法以及使用了哪些参数。重点就在这个<code>CallInterface</code>方法，这里其实并不需要实现了<code>IService</code>接口的实例对象：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">public TResult CallInterface&lt;TResult&gt;(Expression&lt;</span><br><span class="line">    Func&lt;T, TResult&gt;&gt; op)</span><br><span class="line">&#123;</span><br><span class="line">    var exp &#x3D; op.Body as MethodCallExpression;</span><br><span class="line">    var methodName &#x3D; exp.Method.Name;</span><br><span class="line">    var methodInfo &#x3D; exp.Method;</span><br><span class="line">    var allParameters &#x3D; from element in exp.Arguments</span><br><span class="line">                            select processArgument(element);</span><br><span class="line">    Console.WriteLine(&quot;Calling &#123;0&#125;&quot;, methodName);</span><br><span class="line">    foreach (var parm in allParameters)</span><br><span class="line">        Console.WriteLine(</span><br><span class="line">            &quot;\tParameter type &#x3D; &#123;0&#125;, Value &#x3D; &#123;1&#125;&quot;,</span><br><span class="line">            parm.Item1, parm.Item2);</span><br><span class="line">    return default(TResult);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private Tuple&lt;Type, object&gt; processArgument(Expression</span><br><span class="line">    element)</span><br><span class="line">&#123;</span><br><span class="line">    object argument &#x3D; default(object);</span><br><span class="line">    LambdaExpression l &#x3D; Expression.Lambda(</span><br><span class="line">        Expression.Convert(element, element.Type));</span><br><span class="line">    Type parmType &#x3D; l.ReturnType;</span><br><span class="line">    argument &#x3D; l.Compile().DynamicInvoke();</span><br><span class="line">    return Tuple.Create(parmType, argument);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>方法<code>processArgument</code>将每个参数当作表达式来求值，这里只需要在表达式中提供一个定义在服务器端的一个成员方法即可；</p>
+<p>第二个例子是在运行时生成代码。比如在一个大型的系统中，用于将不同子系统中的不同类型互相转换，代码类似于这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var converter &#x3D; new Converter&lt;SourceContact,</span><br><span class="line">    DestinationContact&gt;();</span><br><span class="line">DestinationContact dest2 &#x3D; converter.ConvertFrom(source);</span><br></pre></td></tr></table></figure>
+
+<p>实现的功能是这样的：将源对象中公有的<code>get</code>访问器且目标类型中有公有的同名的<code>set</code>访问器的属性值逐一复制，即实现类似这样的功能（并非合法的C#代码，仅用来解释）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">TDest ConvertFromImaginary(TSource source)</span><br><span class="line">&#123;</span><br><span class="line">    TDest destination &#x3D; new TDest();</span><br><span class="line">    foreach (var prop in sharedProperties)</span><br><span class="line">        destination.prop &#x3D; source.prop;</span><br><span class="line">    return destination;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了实现上边的伪代码，我们需要创建一个表达式，完整的代码如下（实现前边的<code>converter</code>）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">private void createConverterIfNeeded()</span><br><span class="line">&#123;</span><br><span class="line">    if (converter &#x3D;&#x3D; null)</span><br><span class="line">    &#123;</span><br><span class="line">        var source &#x3D; Expression.Parameter(typeof(TSource),</span><br><span class="line">            &quot;source&quot;);</span><br><span class="line">        var dest &#x3D; Expression.Variable(typeof(TDest),</span><br><span class="line">            &quot;dest&quot;);</span><br><span class="line">        var assignments &#x3D; from srcProp in</span><br><span class="line">                        typeof(TSource).GetProperties(</span><br><span class="line">                            BindingFlags.Public |</span><br><span class="line">                            BindingFlags.Instance)</span><br><span class="line">                        where srcProp.CanRead</span><br><span class="line">                        let destProp &#x3D; typeof(TDest).</span><br><span class="line">                            GetProperty(</span><br><span class="line">                            srcProp.Name,</span><br><span class="line">                            BindingFlags.Public |</span><br><span class="line">                            BindingFlags.Instance)</span><br><span class="line">                        where (destProp !&#x3D; null) &amp;&amp;</span><br><span class="line">                            (destProp.CanWrite)</span><br><span class="line">                        select Expression.Assign(</span><br><span class="line">                            Expression.Property(dest,</span><br><span class="line">                                destProp),</span><br><span class="line">                            Expression.Property(source,</span><br><span class="line">                                srcProp));</span><br><span class="line">        </span><br><span class="line">        &#x2F;&#x2F; put together the body:</span><br><span class="line">        var body &#x3D; new List&lt;Expression&gt;();</span><br><span class="line">        body.Add(Expression.Assign(dest,</span><br><span class="line">            Expression.New(typeof(TDest))));</span><br><span class="line">        body.AddRange(assignments);</span><br><span class="line">        body.Add(dest);</span><br><span class="line">        var expr &#x3D;</span><br><span class="line">            Expression.Lambda&lt;Func&lt;TSource, TDest&gt;&gt;(</span><br><span class="line">                Expression.Block(</span><br><span class="line">                new[] &#123; dest &#125;, &#x2F;&#x2F; expression parameters</span><br><span class="line">                body.ToArray() &#x2F;&#x2F; body</span><br><span class="line">                ),</span><br><span class="line">                source  &#x2F;&#x2F; lambda expression</span><br><span class="line">            );</span><br><span class="line">        </span><br><span class="line">        var func &#x3D; expr.Compile();</span><br><span class="line">        converter &#x3D; func;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码中涉及的主要步骤如下：</p>
+<ul>
+<li>源和目标的参数表达式，<code>source</code>和<code>dest</code>；</li>
+<li>筛选满足条件的属性，<code>srcProp</code>和<code>destProp</code>；</li>
+<li>赋值，使用<code>Expression.Assign</code>；</li>
+<li>组装成表达式的主体部分，是一个<code>List&lt;Expression&gt;</code>；</li>
+<li>创建lambda表达式<code>expr</code>；</li>
+<li>编译成一个委托，赋值给<code>converter</code>；</li>
+</ul>
+<h3 id="43-使用表达式将延迟绑定转换为预先绑定"><a href="#43-使用表达式将延迟绑定转换为预先绑定" class="headerlink" title="43 使用表达式将延迟绑定转换为预先绑定"></a>43 使用表达式将延迟绑定转换为预先绑定</h3><p>延迟绑定API需要使用符号（symbol）信息来实现，而预先编译好的API则无需这些信息，因为编译器已经解释了符号引用。表达式API可以在二者之间架起桥梁。表达式对象包含了一种抽象的符号树，用于表示想要执行的算法。你可以使用表达式API执行那些代码，也可以检查所有的符号，包括变量、方法和属性的名称等。你可以使用表达式API创建强类型的、编译后的方法，与系统中依赖延迟绑定的部分交互，并使用属性或其他符号的名称；</p>
+<p>还是拿一个例子来说明。首先是延迟绑定的例子，在Silverlight和WPF中使用的属性通知接口，需要支持对绑定属性变化的响应，以便让用户界面元素能够在底层数据该懂事做出更新，需要实现两个接口，<code>INotifyPropertyChanged</code>和<code>INotifyPropertyChanging</code>。接口的实现很简单，每个里边定义了一个事件，事件的参数也只是简单地包含了发生变化的属性的名称，以下是一个示例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">public class MemoryMonitor : INotifyPropertyChanged,</span><br><span class="line">        INotifyPropertyChanging</span><br><span class="line">&#123;</span><br><span class="line">    System.Threading.Timer updater;</span><br><span class="line">    public MemoryMonitor()</span><br><span class="line">    &#123;</span><br><span class="line">        updater &#x3D; new System.Threading.Timer((_) &#x3D;&gt;</span><br><span class="line">            timerCallback(_),</span><br><span class="line">            null, 0, 5000);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    private void timerCallback(object unused)</span><br><span class="line">    &#123;</span><br><span class="line">        UsedMemory &#x3D; GC.GetTotalMemory(false);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public long UsedMemory</span><br><span class="line">    &#123;</span><br><span class="line">        get &#123; return mem; &#125;</span><br><span class="line">        private set</span><br><span class="line">        &#123;</span><br><span class="line">            if (value !&#x3D; mem)</span><br><span class="line">            &#123;</span><br><span class="line">                if (PropertyChanging !&#x3D; null)</span><br><span class="line">                    PropertyChanging(this,</span><br><span class="line">                        new PropertyChangingEventArgs(</span><br><span class="line">                        &quot;UsedMemory&quot;));</span><br><span class="line">                mem &#x3D; value;</span><br><span class="line">                if (PropertyChanged !&#x3D; null)</span><br><span class="line">                    PropertyChanged(this,</span><br><span class="line">                        new PropertyChangedEventArgs(</span><br><span class="line">                        &quot;UsedMemory&quot;));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    private long mem;</span><br><span class="line">    </span><br><span class="line">    #region INotifyPropertyChanged Members</span><br><span class="line">    public event PropertyChangedEventHandler</span><br><span class="line">        PropertyChanged;</span><br><span class="line">    #endregion</span><br><span class="line">    #region INotifyPropertyChanging Members</span><br><span class="line">    public event PropertyChangingEventHandler</span><br><span class="line">        PropertyChanging;</span><br><span class="line">    #endregion</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码如上。问题在于，每次实现这个接口时都要重复这么一段冗长的代码，每个属性的setter都要触发事件（变化前和变化后），并且事件参数中使用字符串来表示属性的名字。为了解决这些问题，可以借助扩展方法来实现，主要分为以下几步：</p>
+<ol>
+<li>查看新的值和旧的值是否有差别；</li>
+<li>触发<code>INotifyPropertyChanging</code>的事件；</li>
+<li>更新值；</li>
+<li>触发<code>INotifyPropertyChanged</code>的事件；</li>
+</ol>
+<p>为了增强代码的健壮性，应避免使用属性名称的字符串来硬编码。我们可以使用扩展方法来扩展<code>PropertyChanged</code>事件，改为类似下边这样的实现形式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; MemoryMonitor, using the extension methods</span><br><span class="line">private void timerCallback(object unused)</span><br><span class="line">&#123;</span><br><span class="line">    long updatedValue &#x3D; GC.GetTotalMemory(false);</span><br><span class="line">    PropertyChanged.SetNotifyProperty(updatedValue,</span><br><span class="line">        () &#x3D;&gt; UsedMemory);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public long UsedMemory</span><br><span class="line">&#123;</span><br><span class="line">    get;</span><br><span class="line">    private set;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这使<code>MemoryMonitor</code>的实现大大简化，避免了使用硬编码字符串，<code>UsedMemory</code>是一个自动的隐式属性，代码中也无需做复杂的逻辑。但是实现这些功能的代码稍微有点复杂，其中使用了反射和表达式树，下面是完整的扩展方法实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">public static class PropertyNotifyExtensions</span><br><span class="line">&#123;</span><br><span class="line">    public static T SetNotifyProperty&lt;T&gt;(this</span><br><span class="line">        PropertyChangedEventHandler handler,</span><br><span class="line">        T newValue, Expression&lt;Func&lt;T&gt;&gt; oldValueExpression,</span><br><span class="line">            Action&lt;T&gt; setter)</span><br><span class="line">    &#123;</span><br><span class="line">        return SetNotifyProperty(handler, null, newValue,</span><br><span class="line">            oldValueExpression, setter);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public static T SetNotifyProperty&lt;T&gt;(this</span><br><span class="line">        PropertyChangedEventHandler postHandler,</span><br><span class="line">        PropertyChangingEventHandler preHandler,</span><br><span class="line">        T newValue, Expression&lt;Func&lt;T&gt;&gt; oldValueExpression,</span><br><span class="line">        Action&lt;T&gt; setter)</span><br><span class="line">    &#123;</span><br><span class="line">        Func&lt;T&gt; getter &#x3D; oldValueExpression.Compile();</span><br><span class="line">        T oldValue &#x3D; getter();</span><br><span class="line">        if (!oldValue.Equals(newValue))</span><br><span class="line">        &#123;</span><br><span class="line">            var body &#x3D; oldValueExpression.Body as</span><br><span class="line">                System.Linq.Expressions.MemberExpression;</span><br><span class="line">            var propInfo &#x3D; body.Member as PropertyInfo;</span><br><span class="line">            string propName &#x3D; body.Member.Name;</span><br><span class="line">            &#x2F;&#x2F; Get the target object</span><br><span class="line">            var targetExpression &#x3D; body.Expression as</span><br><span class="line">                ConstantExpression;</span><br><span class="line">            object target &#x3D; targetExpression.Value;</span><br><span class="line">            if (preHandler !&#x3D; null)</span><br><span class="line">                preHandler(target, new</span><br><span class="line">                PropertyChangingEventArgs(propName));</span><br><span class="line">            &#x2F;&#x2F; Use Reflection to do the set:</span><br><span class="line">            &#x2F;&#x2F; propInfo.SetValue(target, newValue, null);</span><br><span class="line">            &#x2F;&#x2F;var compiledSetter &#x3D; setter.Compile();</span><br><span class="line">            setter(newValue);</span><br><span class="line">        </span><br><span class="line">            if (postHandler !&#x3D; null)</span><br><span class="line">                postHandler(target, new</span><br><span class="line">                PropertyChangedEventArgs(propName));</span><br><span class="line">        &#125;</span><br><span class="line">        return newValue;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上代码省略了一些错误处理的逻辑，如类型转换是否成功或者属性的setter是否存在等。<code>SetNotifyProperty</code>的实现可以分为以下的步骤：</p>
+<ol>
+<li>编译并执行getter表达式，即<code>oldValueExpression</code>，对应于前边的例子就是<code>() =&gt; UsedMemory</code>。执行getter得到<code>oldValue</code>；</li>
+<li>只有当<code>oldValue</code>和<code>newValue</code>不相等时才会走后边的逻辑；</li>
+<li>解析表达式<code>oldValueExpression</code>，从中取出属性的名称、目标对象的类型、属性的setter；</li>
+<li>如果有<code>preHandler</code>，调用，即<code>PropertyChangingEvent</code>；</li>
+<li>修改属性的值，即调用setter；</li>
+<li>如果有<code>postHandler</code>，调用，即<code>PropertyChangedEvent</code>；</li>
+</ol>
+<p>在其它需要方法或属性名称的地方，也可以使用同样的技术，LINQ to SQL和Entity Framework都构建于System.Linq.Expression API之上，这些API可以让你将代码当作数据来使用。你可以使用表达式API检查这些代码、修改实现逻辑、创建新的代码并最终执行；</p>
+<h3 id="44-尽量减少在公有API中使用动态对象"><a href="#44-尽量减少在公有API中使用动态对象" class="headerlink" title="44 尽量减少在公有API中使用动态对象"></a>44 尽量减少在公有API中使用动态对象</h3><p>动态对象有一些强制性，如果某个操作的某个参数是动态的，那么其结果也会是动态的；</p>
+<p>若要在程序中使用动态特性，尽量不要在公有接口中使用，这样即可将动态类型限制在一个单独的对象（或类型）中，避免动态类型脱离控制，影响到程序的其他部分或其他使用你的程序的代码中；</p>
+<p>当代码依赖于其他环境中创建的动态类型时，可以用专门的静态类型封装这些动态对象，并提供静态的公有接口；</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/5360961/" target="_blank" rel="noopener">《C#高效编程 改进C#代码的50个行之有效的办法》</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-35/" rel="tag"># C&#35;</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2019-03-01-game-instruction-notes-02/" rel="prev" title="游戏新手引导系统总结">
+      <i class="fa fa-chevron-left"></i> 游戏新手引导系统总结
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2019-05-20-effective-c-sharp-notes-06/" rel="next" title="《Effective C#》笔记 杂项">
+      《Effective C#》笔记 杂项 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dynamic-Programming-in-C-35"><span class="nav-number">1.</span> <span class="nav-text">Dynamic Programming in C&amp;#35;</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#38-理解动态类型的优劣"><span class="nav-number">1.1.</span> <span class="nav-text">38 理解动态类型的优劣</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#39-使用动态类型表达泛型类型参数的运行时类型"><span class="nav-number">1.2.</span> <span class="nav-text">39 使用动态类型表达泛型类型参数的运行时类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#40-将接受匿名类型的参数声明为dynamic"><span class="nav-number">1.3.</span> <span class="nav-text">40 将接受匿名类型的参数声明为dynamic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#41-用DynamicObject或IDynamicMetaObjectProvider实现数据驱动的动态类型"><span class="nav-number">1.4.</span> <span class="nav-text">41 用DynamicObject或IDynamicMetaObjectProvider实现数据驱动的动态类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#42-如何使用表达式API"><span class="nav-number">1.5.</span> <span class="nav-text">42 如何使用表达式API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#43-使用表达式将延迟绑定转换为预先绑定"><span class="nav-number">1.6.</span> <span class="nav-text">43 使用表达式将延迟绑定转换为预先绑定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#44-尽量减少在公有API中使用动态对象"><span class="nav-number">1.7.</span> <span class="nav-text">44 尽量减少在公有API中使用动态对象</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">2.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '8a082e0a86b07e5d82ab3fd5210a03b5',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

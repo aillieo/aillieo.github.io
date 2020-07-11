@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="UI结构中的Mask组件用于对其子节点产生遮罩。通过修改模板值来实现其子结点中各MaskableGraphic组件的遮罩控制。阅读本文之前强烈建议先阅读Unity3D UGUI 源码学习 MaskableGraphic。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity3D UGUI 源码学习 Mask">
+<meta property="og:url" content="http://aillieo.cn/post/2018-08-02-unity-3d-ugui-source-code-13/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="UI结构中的Mask组件用于对其子节点产生遮罩。通过修改模板值来实现其子结点中各MaskableGraphic组件的遮罩控制。阅读本文之前强烈建议先阅读Unity3D UGUI 源码学习 MaskableGraphic。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-08-02T05:24:19.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.071Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="ugui">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="source code">
+<meta property="article:tag" content="mask">
+<meta property="article:tag" content="遮罩">
+<meta property="article:tag" content="stencil">
+<meta property="article:tag" content="模板缓冲">
+<meta property="article:tag" content="模板测试">
+<meta property="article:tag" content="MaskableGraphic">
+<meta property="article:tag" content="材质">
+<meta property="article:tag" content="maskmaterial">
+<meta property="article:tag" content="unmaskmaterial">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-08-02-unity-3d-ugui-source-code-13/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity3D UGUI 源码学习 Mask | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-08-02-unity-3d-ugui-source-code-13/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity3D UGUI 源码学习 Mask
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-02 13:24:19" itemprop="dateCreated datePublished" datetime="2018-08-02T13:24:19+08:00">2018-08-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/UGUI/" itemprop="url" rel="index"><span itemprop="name">UGUI</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>UI结构中的<code>Mask</code>组件用于对其子节点产生遮罩。通过修改模板值来实现其子结点中各<code>MaskableGraphic</code>组件的遮罩控制。阅读本文之前强烈建议先阅读<a href="../2018-04-07-unity-3d-ugui-source-code-03">Unity3D UGUI 源码学习 MaskableGraphic</a>。</p>
+<a id="more"></a>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[AddComponentMenu(&quot;UI&#x2F;Mask&quot;, 13)]</span><br><span class="line">[ExecuteInEditMode]</span><br><span class="line">[RequireComponent(typeof(RectTransform))]</span><br><span class="line">[DisallowMultipleComponent]</span><br><span class="line">public class Mask : UIBehaviour, ICanvasRaycastFilter, IMaterialModifier</span><br></pre></td></tr></table></figure>
+
+<h2 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h2><p><code>Mask</code>覆写了<code>UIBehaviour</code>中的一些方法：在<code>OnEnable</code>和<code>OnDisable</code>中会对其自身的<code>Graghic</code>组件进行对应操作，重置材质脏标记、设置<code>CanvasRenderer</code>的<code>hasPopInstruction</code>属性等。最后调用<code>MaskUtilities.NotifyStencilStateChanged</code>方法，并传入自己为参数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">protected override void OnEnable()</span><br><span class="line">&#123;</span><br><span class="line">    base.OnEnable();</span><br><span class="line">    if (graphic !&#x3D; null)</span><br><span class="line">    &#123;</span><br><span class="line">        graphic.canvasRenderer.hasPopInstruction &#x3D; true;</span><br><span class="line">        graphic.SetMaterialDirty();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    MaskUtilities.NotifyStencilStateChanged(this);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected override void OnDisable()</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F; we call base OnDisable first here</span><br><span class="line">    &#x2F;&#x2F; as we need to have the IsActive return the</span><br><span class="line">    &#x2F;&#x2F; correct value when we notify the children</span><br><span class="line">    &#x2F;&#x2F; that the mask state has changed.</span><br><span class="line">    base.OnDisable();</span><br><span class="line">    if (graphic !&#x3D; null)</span><br><span class="line">    &#123;</span><br><span class="line">        graphic.SetMaterialDirty();</span><br><span class="line">        graphic.canvasRenderer.hasPopInstruction &#x3D; false;</span><br><span class="line">        graphic.canvasRenderer.popMaterialCount &#x3D; 0;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    StencilMaterial.Remove(m_MaskMaterial);</span><br><span class="line">    m_MaskMaterial &#x3D; null;</span><br><span class="line">    StencilMaterial.Remove(m_UnmaskMaterial);</span><br><span class="line">    m_UnmaskMaterial &#x3D; null;</span><br><span class="line"></span><br><span class="line">    MaskUtilities.NotifyStencilStateChanged(this);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>hasPopInstruction</code>设置为true，表示其对应的Renderer（<code>CanvasRenderer</code>）插入<code>pop</code>指令，在所有的子节点被绘制完成后会执行<code>pop</code>指令。对于Mask来说就是在绘制时设置材质的模板参数，并在完成所有子节点的绘制之后重置模板参数。</p>
+<p><code>MaskUtilities.NotifyStencilStateChanged</code>会通知该<code>Mask</code>的所有子节点中的<code>IMaskable</code>来重新计算遮罩。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public static void NotifyStencilStateChanged(Component mask)</span><br><span class="line">&#123;</span><br><span class="line">    var components &#x3D; ListPool&lt;Component&gt;.Get();</span><br><span class="line">    mask.GetComponentsInChildren(components);</span><br><span class="line">    for (var i &#x3D; 0; i &lt; components.Count; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        if (components[i] &#x3D;&#x3D; null || components[i].gameObject &#x3D;&#x3D; mask.gameObject)</span><br><span class="line">            continue;</span><br><span class="line"></span><br><span class="line">        var toNotify &#x3D; components[i] as IMaskable;</span><br><span class="line">        if (toNotify !&#x3D; null)</span><br><span class="line">            toNotify.RecalculateMasking();</span><br><span class="line">    &#125;</span><br><span class="line">    ListPool&lt;Component&gt;.Release(components);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>RecalculateMasking()</code>的实现可以在<code>MaskableGraphic</code>中看到，不再赘述。</p>
+<h2 id="Raycast相关"><a href="#Raycast相关" class="headerlink" title="Raycast相关"></a>Raycast相关</h2><p><code>Mask</code>实现了接口<code>ICanvasRaycastFilter</code>，需要实现方法<code>IsRaycastLocationValid</code>，以对射线投射的位置有效性作出判断。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public virtual bool IsRaycastLocationValid(Vector2 sp, Camera eventCamera)</span><br><span class="line">&#123;</span><br><span class="line">    if (!isActiveAndEnabled)</span><br><span class="line">        return true;</span><br><span class="line"></span><br><span class="line">    return RectTransformUtility.RectangleContainsScreenPoint(rectTransform, sp, eventCamera);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="修改材质"><a href="#修改材质" class="headerlink" title="修改材质"></a>修改材质</h2><p><code>Mask</code>最核心的遮罩功能就是通过修改材质来完成的，它实现了<code>GetModifiedMaterial</code>方法，具体如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;&#x2F; Stencil calculation time!</span><br><span class="line">public virtual Material GetModifiedMaterial(Material baseMaterial)</span><br><span class="line">&#123;</span><br><span class="line">    if (!MaskEnabled())</span><br><span class="line">        return baseMaterial;</span><br><span class="line"></span><br><span class="line">    var rootSortCanvas &#x3D; MaskUtilities.FindRootSortOverrideCanvas(transform);</span><br><span class="line">    var stencilDepth &#x3D; MaskUtilities.GetStencilDepth(transform, rootSortCanvas);</span><br><span class="line">    if (stencilDepth &gt;&#x3D; 8)</span><br><span class="line">    &#123;</span><br><span class="line">        Debug.LogError(&quot;Attempting to use a stencil mask with depth &gt; 8&quot;, gameObject);</span><br><span class="line">        return baseMaterial;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    int desiredStencilBit &#x3D; 1 &lt;&lt; stencilDepth;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F; if we are at the first level...</span><br><span class="line">    &#x2F;&#x2F; we want to destroy what is there</span><br><span class="line">    if (desiredStencilBit &#x3D;&#x3D; 1)</span><br><span class="line">    &#123;</span><br><span class="line">        var maskMaterial &#x3D; StencilMaterial.Add(baseMaterial, 1, StencilOp.Replace, CompareFunction.Always, m_ShowMaskGraphic ? ColorWriteMask.All : 0);</span><br><span class="line">        StencilMaterial.Remove(m_MaskMaterial);</span><br><span class="line">        m_MaskMaterial &#x3D; maskMaterial;</span><br><span class="line"></span><br><span class="line">        var unmaskMaterial &#x3D; StencilMaterial.Add(baseMaterial, 1, StencilOp.Zero, CompareFunction.Always, 0);</span><br><span class="line">        StencilMaterial.Remove(m_UnmaskMaterial);</span><br><span class="line">        m_UnmaskMaterial &#x3D; unmaskMaterial;</span><br><span class="line">        graphic.canvasRenderer.popMaterialCount &#x3D; 1;</span><br><span class="line">        graphic.canvasRenderer.SetPopMaterial(m_UnmaskMaterial, 0);</span><br><span class="line"></span><br><span class="line">        return m_MaskMaterial;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;otherwise we need to be a bit smarter and set some read &#x2F; write masks</span><br><span class="line">    var maskMaterial2 &#x3D; StencilMaterial.Add(baseMaterial, desiredStencilBit | (desiredStencilBit - 1), StencilOp.Replace, CompareFunction.Equal, m_ShowMaskGraphic ? ColorWriteMask.All : 0, desiredStencilBit - 1, desiredStencilBit | (desiredStencilBit - 1));</span><br><span class="line">    StencilMaterial.Remove(m_MaskMaterial);</span><br><span class="line">    m_MaskMaterial &#x3D; maskMaterial2;</span><br><span class="line"></span><br><span class="line">    graphic.canvasRenderer.hasPopInstruction &#x3D; true;</span><br><span class="line">    var unmaskMaterial2 &#x3D; StencilMaterial.Add(baseMaterial, desiredStencilBit - 1, StencilOp.Replace, CompareFunction.Equal, 0, desiredStencilBit - 1, desiredStencilBit | (desiredStencilBit - 1));</span><br><span class="line">    StencilMaterial.Remove(m_UnmaskMaterial);</span><br><span class="line">    m_UnmaskMaterial &#x3D; unmaskMaterial2;</span><br><span class="line">    graphic.canvasRenderer.popMaterialCount &#x3D; 1;</span><br><span class="line">    graphic.canvasRenderer.SetPopMaterial(m_UnmaskMaterial, 0);</span><br><span class="line"></span><br><span class="line">    return m_MaskMaterial;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先是使用<code>MaskUtilities</code>的两个方法，<code>FindRootSortOverrideCanvas</code>获取顶层Canvas或<code>overrideSorting</code>的Canvas，<code>GetStencilDepth</code>传入之前获取到的Canvas并获取Mask所在结点的模板深度值，保存在<code>stencilDepth</code>中。如果深度大于8则输出错误并返回原材质。深度值做位运算得到<code>desiredStencilBit</code>，这个值是真正写入材质里边模板参考值。稍后回频繁地用到一个方法<code>StencilMaterial.Add(...)</code>，传入一组参数，这一组参数会作为模板参数被加到材质中去，返回修改之后的材质，同时新加的材质会保存到<code>StencilMaterial</code>所管理的一个材质容器中。另有一个<code>StencilMaterial.Remove</code>方法，从<code>StencilMaterial</code>管理的材质中移除指定材质。</p>
+<p><code>Mask</code>中保存的有两个材质<code>m_MaskMaterial</code>和<code>m_UnmaskMaterial</code>，前者会在调用<code>GetModifiedMaterial</code>时被返回，即是绘制Mask本身所使用的的材质，后者会被使用<code>SetPopMaterial</code>方法传给<code>graphic.canvasRenderer</code>，推断会在pop指令时使用。<code>m_MaskMaterial</code>对模板值的修改会影响到<code>Mask</code>所有的子结点的绘制（模板测试），而<code>m_UnmaskMaterial</code>则会恢复（重置）<code>m_MaskMaterial</code>及子结点元素对模板值的修改。</p>
+<p>此处会根据是否是第一层的遮罩来走两个分支，分别设置<code>m_MaskMaterial</code>和<code>m_UnmaskMaterial</code>。为便于对比，将四次调用<code>StencilMaterial.Add(...)</code>时模板参数的设置列出来放在下表中（表中用Bit指代<code>desiredStencilBit</code>）。为便于对比说明将<code>MaskableGraphic</code>对材质的修改操作也列入表内（第五行）：</p>
+<table>
+<thead>
+<tr>
+<th>首层</th>
+<th>材质</th>
+<th>Stencil</th>
+<th>StencilOp</th>
+<th>Compare Function</th>
+<th>Stencil Read Mask</th>
+<th>Stencil Write Mask</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>是</td>
+<td>mask</td>
+<td>1</td>
+<td>Replace</td>
+<td>Always</td>
+<td>255</td>
+<td>255</td>
+</tr>
+<tr>
+<td>是</td>
+<td>unmask</td>
+<td>1</td>
+<td>Zero</td>
+<td>Always</td>
+<td>255</td>
+<td>255</td>
+</tr>
+<tr>
+<td>否</td>
+<td>mask</td>
+<td>Bit &#124; (Bit - 1)</td>
+<td>Replace</td>
+<td>Equal</td>
+<td>Bit - 1</td>
+<td>Bit &#124; (Bit - 1)</td>
+</tr>
+<tr>
+<td>否</td>
+<td>unmask</td>
+<td>Bit - 1</td>
+<td>Replace</td>
+<td>Equal</td>
+<td>Bit - 1</td>
+<td>Bit &#124;(Bit - 1)</td>
+</tr>
+<tr>
+<td>-</td>
+<td>-</td>
+<td>Bit - 1</td>
+<td>Keep</td>
+<td>Equal</td>
+<td>Bit - 1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<ol>
+<li><p>首先是考虑首层Mask与非首层Mask的区别，首层级别的<code>Mask</code>对模板的读写不使用Mask，8位全部读/写，而对于非首层的<code>Mask</code>则借助读写Mask，读取时只读取低于<code>stencilDepth</code>的位的模板值，写入的时候只写入小于等于<code>stencilDepth</code>的位的模板值。首层的<code>Mask</code>使用比较函数是<code>Always</code>，非首层使用<code>Equal</code>，当通过测试后均会使用自己的模板值来取代模板缓冲中的模板值（首层Mask的Bit值为1，其对应的unmask材质使用非首层的unmask材质参数同样适用）。</p>
+</li>
+<li><p>较低层级的<code>Mask</code>（<code>stencilDepth</code>更大）会覆盖掉较高层级的<code>Mask</code>对模板的操作，各层级的maskMaterial会把所在层级及更低层级（对应<code>desiredStencilBit</code>中的位）的模板值置为<code>1</code>，而各层级unmaskMaterial会将所在的层级（对应<code>desiredStencilBit</code>中的位）写成<code>0</code>。</p>
+</li>
+<li><p>对于<code>MaskableGraphic</code>，与unmaskMaterial的模板参考值和比较函数相同，但是它只会使用模板值来进行测试，不会修改模板值，以此来实现图片的遮罩。</p>
+</li>
+</ol>
+<hr>
+<p>本系列其它文章详见<a href="../2018-03-09-unity-3d-ugui-source-code-01">Unity3D UGUI 源码学习</a></p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/UGUI/" rel="tag"># UGUI</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-07-27-unity-3d-ugui-source-code-12/" rel="prev" title="Unity3D UGUI 源码学习 Button">
+      <i class="fa fa-chevron-left"></i> Unity3D UGUI 源码学习 Button
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-08-08-unity-3d-ugui-source-code-14/" rel="next" title="Unity3D UGUI 源码学习 BaseMeshEffect">
+      Unity3D UGUI 源码学习 BaseMeshEffect <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#生命周期"><span class="nav-number">1.</span> <span class="nav-text">生命周期</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Raycast相关"><span class="nav-number">2.</span> <span class="nav-text">Raycast相关</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改材质"><span class="nav-number">3.</span> <span class="nav-text">修改材质</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">4.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '555d62face0870cafc920256f1eacf57',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本文介绍了C++11中的移动语义和右值引用相关内容，翻译自Move semantics and rvalue references in C++11">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ 移动语义和右值引用">
+<meta property="og:url" content="http://aillieo.cn/post/2017-10-08-cpp-rvalue-references-and-move-semantics/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="本文介绍了C++11中的移动语义和右值引用相关内容，翻译自Move semantics and rvalue references in C++11">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-10-08T14:40:12.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.051Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="C&amp;#43;&amp;#43;">
+<meta property="article:tag" content="右值">
+<meta property="article:tag" content="右值引用">
+<meta property="article:tag" content="引用">
+<meta property="article:tag" content="移动">
+<meta property="article:tag" content="move">
+<meta property="article:tag" content="std::move">
+<meta property="article:tag" content="rvalue">
+<meta property="article:tag" content="copy">
+<meta property="article:tag" content="move constructor">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2017-10-08-cpp-rvalue-references-and-move-semantics/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>C++ 移动语义和右值引用 | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2017-10-08-cpp-rvalue-references-and-move-semantics/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++ 移动语义和右值引用
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-10-08 22:40:12" itemprop="dateCreated datePublished" datetime="2017-10-08T22:40:12+08:00">2017-10-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/C-43-43/" itemprop="url" rel="index"><span itemprop="name">C&#43;&#43;</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文介绍了C++11中的移动语义和右值引用相关内容，翻译自<a href="http://www.cprogramming.com/c++11/rvalue-references-and-move-semantics-in-c++11.html" target="_blank" rel="noopener">Move semantics and rvalue references in C++11</a></p>
+<a id="more"></a>
+
+<p>C++总是用来编写快速的程序。不幸的是，直到C++11之前，C++程序一直有一个长久存在的降低运行速度的缺陷：临时对象的创建。有些时候编译器会优化掉这些临时对象（例如返回值的优化）。但是总会有其它的情况，这样带来的后果是昂贵的对象复制。什么意思呢？</p>
+<p>我们假设有以下的代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; <span class="title">doubleValues</span> <span class="params">(<span class="keyword">const</span> <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt;&amp; v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; new_values;</span><br><span class="line">    new_values.reserve(v.<span class="built_in">size</span>());</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> itr = v.<span class="built_in">begin</span>(), end_itr = v.<span class="built_in">end</span>(); itr != end_itr; ++itr )</span><br><span class="line">    &#123;</span><br><span class="line">        new_values.push_back( <span class="number">2</span> * *itr );</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> new_values;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">vector</span>&lt;<span class="keyword">int</span>&gt; v;</span><br><span class="line">    <span class="keyword">for</span> ( <span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++ )</span><br><span class="line">    &#123;</span><br><span class="line">        v.push_back( i );</span><br><span class="line">    &#125;</span><br><span class="line">    v = doubleValues( v );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果你使用C++完成过很多高性能的工作，那么很抱歉其带来的痛苦。如果没有的话，那么，现在来仔细看看为什么说这是很糟糕的C++03代码（本教程的剩余部分将会讨论为什么它是良好的C++11代码）。问题在于复制。当调用<code>doubleValues</code>时，它会构造一个名为<code>new_values</code>的<code>vector</code>，并向其中填充数据。单单如此可能并不能达到理想的性能，但是如果我们想保留原有的<code>vector</code>不被修改，我们就需要一份拷贝。然而当我们到达<code>return</code>语句时会发生什么呢？</p>
+<p><code>new_values</code>的全部内容必须被复制一遍！原则上讲，这一过程可能会发生最多两次复制：一次是复制到要返回的临时对象，第二次是运行到<code>v = doubleValues( v );</code>时<code>vector</code>的赋值操作。第一次的复制可以被编译器自动优化掉，但是无法避免的是对<code>v</code>的赋值操作会将全部的值再复制一遍，这需要一次新的内存分配以及额外的对整个<code>vector</code>的一轮迭代。</p>
+<p>这个示例似乎有点蓄意为之，并且当然你可以想办法避免这种问题，例如存储和返回<code>vector</code>的指针，或者传入一个<code>vector</code>并将其填充。问题是，这两种编程方式都显得很不自然。并且需要返回指针的方法将会引入至少一次内存分配，但C++的一个设计目的就是避免内存分配。</p>
+<p>这一示例中最糟糕的部分就在于由<code>doubleValues</code>返回的临时对象再也不会用到。当运行到代码<code>v = doubleValues( v )</code>时，<code>doubleValues( v )</code>的结果仅仅是在它被复制之后就丢弃掉！理论上讲，应该可以跳过整个复制过程并仅仅是窃取临时<code>vector</code>内部的指针并将其存进<code>v</code>。实际上讲就是，为什么我们不能<strong>移动（move）</strong>这个对象？在C++03中，答案是我们无法确定一个对象是否是临时的，在赋值运算符或拷贝构造函数中你必须运行同样的代码，无论值是从哪来，所以没有窃取的可能。但在C++11中，答案是——可以！</p>
+<p>这就是右值引用（rvalue references）和移动语义（move semantics）的目的！移动语义使你在使用即将销毁的临时对象时可以避免不必要的对象复制，并且这些资源可以安全地从临时对象中拿来给其它的对象使用。</p>
+<p>移动语义依赖于C++11中名为右值引用的新特性，理解了它之后你才会真正领会后边的内容。所以我们先来讨论什么是右值（rvalue），然后什么是右值引用。最后我们再回到移动语义以及解释它是如何基于右值引用来实现的。</p>
+<h2 id="右值和左值——是冤家对头，还是好朋友？"><a href="#右值和左值——是冤家对头，还是好朋友？" class="headerlink" title="右值和左值——是冤家对头，还是好朋友？"></a>右值和左值——是冤家对头，还是好朋友？</h2><p>在C++中，有右值和左值。左值是可以获取到地址的表达式，是一个定位值（locator value）。本质上来说，左值提供了（半）永久的内存。你可以对左值进行赋值操作。例如：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a;</span><br><span class="line">a = <span class="number">1</span>; <span class="comment">// here, a is an lvalue</span></span><br></pre></td></tr></table></figure>
+<p>也可以有不是变量的左值：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> x;</span><br><span class="line"><span class="function"><span class="keyword">int</span>&amp; <span class="title">getRef</span> <span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">getRef() = <span class="number">4</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，<code>getRef</code>返回的是一个全局变量的引用，所以它的返回值是在永久位置存储的（如果你愿意你可以直接写出<code>&amp;getRef()</code>的值，它会给你<code>x</code>的地址）。</p>
+<p>右值与左值不同。如果一个表达式的结果是一个临时对象，则它是右值。例如：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> x;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getVal</span> <span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line">getVal();</span><br></pre></td></tr></table></figure>
+<p>这里的 <code>getVal()</code>是一个右值，返回的值并不是<code>x</code>的引用，它仅仅是个临时的值。如果我们用一个对象来取代数字，这一切会变得更有意思：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">getName</span> <span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"Alex"</span>;</span><br><span class="line">&#125;</span><br><span class="line">getName();</span><br></pre></td></tr></table></figure>
+
+<p>这里的<code>getName</code>返回一个在函数内部构造的字符串。你可以把<code>getName</code>的结果赋给一个变量：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span> name = getName();</span><br></pre></td></tr></table></figure>
+
+<p>但是你是从一个临时对象赋值，而不是一个固定存储的值，<code>getName()</code>是一个右值。</p>
+<h2 id="使用右值引用来检测临时对象"><a href="#使用右值引用来检测临时对象" class="headerlink" title="使用右值引用来检测临时对象"></a>使用右值引用来检测临时对象</h2><p>重要的一点是右值引用的是临时对象，如<code>doubleValues</code>的返回值。如果我们可以不用犹豫，明确地知道从某个表达式返回的是临时对象，然后以某种形式来写重载的代码，以使其对临时对象有不同的行为，这样会不会很棒？为什么不呢，是的，确实会很棒。这就是右值引用的目的。右值引用是一个绑定给临时对象的引用。什么意思呢？</p>
+<p>在C++11之前，如果你有一个临时对象，你可以使用常规（regular）或左值引用来绑定它，但仅限于它是<code>const</code>：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="built_in">string</span>&amp; name = getName(); <span class="comment">// ok</span></span><br><span class="line"><span class="built_in">string</span>&amp; name = getName(); <span class="comment">// NOT ok</span></span><br></pre></td></tr></table></figure>
+
+<p>表面上看，你不能使用可修改的（mutable）引用，因为如果使用的话，你就能够修改一个即将消失的对象，这很危险。顺便注意，持有一个临时对象的常引用（const reference）可以确保该临时对象不会立即被析构。这是C++一个很好的保证机制，但是因为他仍然是一个临时对象，所以你不会修改它。</p>
+<p>然而，在C++11中，有一种新的引用类型，叫做右值引用，它允许你对右值绑定一个可变引用，而不是一个左值。换句话说，右值引用可以完美地检测一个值是否是临时对象。右值引用使用<code>&amp;&amp;</code>语法取代了<code>&amp;</code>，并且可以是<code>const</code>也可以不是，就像左值引用一样，虽然你可能很少见到有左值的常引用（就像我们即将看到的一样，可修改的引用有点像此类）：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="built_in">string</span>&amp;&amp; name = getName(); <span class="comment">// ok</span></span><br><span class="line"><span class="built_in">string</span>&amp;&amp; name = getName(); <span class="comment">// also ok - praise be!</span></span><br></pre></td></tr></table></figure>
+
+<p>目前为止一切都很好，但是它会起到什么帮助呢？左值引用和右值引用相比最重要的一点就在你写下一个以左值或右值引用为参数的函数时。假设我们有以下两个函数：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">printReference (<span class="keyword">const</span> <span class="keyword">String</span>&amp; str)</span><br><span class="line">&#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; str;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">printReference (<span class="keyword">String</span>&amp;&amp; str)</span><br><span class="line">&#123;</span><br><span class="line">        <span class="built_in">cout</span> &lt;&lt; str;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Now the behavior gets interesting–the printReference function taking a const lvalue reference will accept any argument that it’s given, whether it be an lvalue or an rvalue, and regardless of whether the lvalue or rvalue is mutable or not. However, in the presence of the second overload, printReference taking an rvalue reference, it will be given all values <em>except</em> mutable rvalue-references. In other words, if you write:</p>
+<p>现在表现得有意思了，以常左值引用为参数的<code>printReference</code>函数将会接收所提供的任何参数，无论是左值还是右值，也无论左值或右值是否是可修改的。然而，在第二个重载形式中，<code>printReference</code>可以接收的是一个右值引用，它可以接收除了可修改的右值引用（mutable rvalue-references）以外的任何参数。换句话说，如果你这么写：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="built_in">string</span> <span class="title">me</span><span class="params">( <span class="string">"alex"</span> )</span></span>;</span><br><span class="line">printReference(  me ); <span class="comment">// calls the first printReference function, taking an lvalue reference</span></span><br><span class="line"></span><br><span class="line">printReference( getName() ); <span class="comment">// calls the second printReference function, taking a mutable rvalue reference</span></span><br></pre></td></tr></table></figure>
+
+<p>现在我们得到了一种判定一个引用变量引用的是临时对象还是永久对象的方法。该方法的右值引用版本像是一个进入只有临时对象才能进入的会所的隐秘的后门（我猜一定是个无聊的会所）。既然我们已经有了判定一个对象是临时还是永久的方法，我们该如何使用它呢？</p>
+<h2 id="移动构造函数和移动赋值运算符"><a href="#移动构造函数和移动赋值运算符" class="headerlink" title="移动构造函数和移动赋值运算符"></a>移动构造函数和移动赋值运算符</h2><p>你将看到，使用右值引用的最常用的方式是创建移动构造函数（move constructor）和遵循相同原则的移动赋值运算符（move assignment operator）。移动构造函数，与拷贝构造函数相似，使用一个对象实例作为参数，并基于原对象创建一个新的实例。然而，移动构造函数可以避免内存的重分配，因为它避免了临时对象的使用，因此，我们将移动而不是复制对象的各个字段。</p>
+<p>移动一个对象的字段的是什么意思？如果字段是基础类型，像<code>int</code>，我们会复制它。当字段是一个指针时就比较有意思了：这里我们不去分配和初始化新的内存，而是可以直接窃取这一指针并将临时对象中的指针置为<code>null</code>！我们知道我们不再需要这个临时对象，所以我们可以从其中取走指针。</p>
+<p>想象一下我们有一个简单的<code>ArrayWrapper</code>类，像这样：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArrayWrapper</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        ArrayWrapper (<span class="keyword">int</span> n)</span><br><span class="line">            : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ n ] )</span><br><span class="line">            , _size( n )</span><br><span class="line">        &#123;&#125;</span><br><span class="line">        <span class="comment">// copy constructor</span></span><br><span class="line">        ArrayWrapper (<span class="keyword">const</span> ArrayWrapper&amp; other)</span><br><span class="line">            : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ other._size  ] )</span><br><span class="line">            , _size( other._size )</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">for</span> ( <span class="keyword">int</span> i = <span class="number">0</span>; i &lt; _size; ++i )</span><br><span class="line">            &#123;</span><br><span class="line">                _p_vals[ i ] = other._p_vals[ i ];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        ~ArrayWrapper ()</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">delete</span> [] _p_vals;</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> *_p_vals;</span><br><span class="line">    <span class="keyword">int</span> _size;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>注意拷贝构造函数不得不分配内存并且将数组中的值逐个复制。复制的工作量很大。我们添加一个移动构造函数来大大提高效率。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArrayWrapper</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// default constructor produces a moderately sized array</span></span><br><span class="line">    ArrayWrapper ()</span><br><span class="line">        : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ <span class="number">64</span> ] )</span><br><span class="line">        , _size( <span class="number">64</span> )</span><br><span class="line">    &#123;&#125;</span><br><span class="line"></span><br><span class="line">    ArrayWrapper (<span class="keyword">int</span> n)</span><br><span class="line">        : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ n ] )</span><br><span class="line">        , _size( n )</span><br><span class="line">    &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// move constructor</span></span><br><span class="line">    ArrayWrapper (ArrayWrapper&amp;&amp; other)</span><br><span class="line">        : _p_vals( other._p_vals  )</span><br><span class="line">        , _size( other._size )</span><br><span class="line">    &#123;</span><br><span class="line">        other._p_vals = <span class="literal">NULL</span>;</span><br><span class="line">        other._size = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// copy constructor</span></span><br><span class="line">    ArrayWrapper (<span class="keyword">const</span> ArrayWrapper&amp; other)</span><br><span class="line">        : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ other._size  ] )</span><br><span class="line">        , _size( other._size )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> ( <span class="keyword">int</span> i = <span class="number">0</span>; i &lt; _size; ++i )</span><br><span class="line">        &#123;</span><br><span class="line">            _p_vals[ i ] = other._p_vals[ i ];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ~ArrayWrapper ()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">delete</span> [] _p_vals;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> *_p_vals;</span><br><span class="line">    <span class="keyword">int</span> _size;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>哇哦，移动构造函数确实比拷贝构造函数要简单很多！这绝对是一个壮举。值得注意的要点是：</p>
+<ol>
+<li>参数是一个非常量的右值引用（non-const rvalue reference）</li>
+<li><code>other._p_vals</code>被置为<code>NULL</code></li>
+</ol>
+<p>第二条结论可以解释第一条——如果我们拿到的是一个<code>const</code>的右值引用，我们就不能把<code>other._p_vals</code>设成<code>NULL</code>。但是为什么我们要把<code>other._p_vals</code>设成<code>NULL</code>？原因在于析构函数——当临时对象离开作用域，就像所有其它的C++对象一样，它的析构函数会运行。当它的析构函数运行时，它将会释放<code>_p_vals</code>，同样还有我们刚刚复制的<code>_p_vals</code>！如果我们不把<code>other._p_vals</code>置为<code>NULL</code>，则移动并不是真正的移动——而仅仅是复制，并且会在我们之后使用已释放的内存时引入崩溃。这是移动构造函数的全部要点：通过改变原有的临时对象来避免复制的发生！</p>
+<p>再说一遍，重载的规则决定了只有在使用了临时对象且临时对象可以被修改时才会调用移动构造函数。它的一个含义就是如果函数返回了一个常量对象，则会使用拷贝构造函数而不是移动构造函数——所以不要写这样的代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">const</span> ArrayWrapper <span class="title">getArrayWrapper</span> <span class="params">()</span></span>; <span class="comment">// makes the move constructor useless, the temporary is const!</span></span><br></pre></td></tr></table></figure>
+
+<p>还有一种我们没有讨论过的要在移动构造函数中处理的情形—当有一个字段是对象时。例如，想象一下我们没有<code>size</code>字段而是有一个像这样的<code>metadata</code>字段：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MetaData</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    MetaData (<span class="keyword">int</span> <span class="built_in">size</span>, <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; name)</span><br><span class="line">        : _name( name )</span><br><span class="line">        , _size( <span class="built_in">size</span> )</span><br><span class="line">    &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// copy constructor</span></span><br><span class="line">    MetaData (<span class="keyword">const</span> MetaData&amp; other)</span><br><span class="line">        : _name( other._name )</span><br><span class="line">        , _size( other._size )</span><br><span class="line">    &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// move constructor</span></span><br><span class="line">    MetaData (MetaData&amp;&amp; other)</span><br><span class="line">        : _name( other._name )</span><br><span class="line">        , _size( other._size )</span><br><span class="line">    &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="built_in">std</span>::<span class="built_in">string</span> <span class="title">getName</span> <span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _name; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">getSize</span> <span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> _size; &#125;</span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> _name;</span><br><span class="line">    <span class="keyword">int</span> _size;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>现在我们的数组有了一个<code>name</code>和一个<code>size</code>，所以我们可能得修改<code>ArrayWrapper</code>的定义成这样：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArrayWrapper</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// default constructor produces a moderately sized array</span></span><br><span class="line">    ArrayWrapper ()</span><br><span class="line">        : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ <span class="number">64</span> ] )</span><br><span class="line">        , _metadata( <span class="number">64</span>, <span class="string">"ArrayWrapper"</span> )</span><br><span class="line">    &#123;&#125;</span><br><span class="line"></span><br><span class="line">    ArrayWrapper (<span class="keyword">int</span> n)</span><br><span class="line">        : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ n ] )</span><br><span class="line">        , _metadata( n, <span class="string">"ArrayWrapper"</span> )</span><br><span class="line">    &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// move constructor</span></span><br><span class="line">    ArrayWrapper (ArrayWrapper&amp;&amp; other)</span><br><span class="line">        : _p_vals( other._p_vals  )</span><br><span class="line">        , _metadata( other._metadata )</span><br><span class="line">    &#123;</span><br><span class="line">        other._p_vals = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// copy constructor</span></span><br><span class="line">    ArrayWrapper (<span class="keyword">const</span> ArrayWrapper&amp; other)</span><br><span class="line">        : _p_vals( <span class="keyword">new</span> <span class="keyword">int</span>[ other._metadata.getSize() ] )</span><br><span class="line">        , _metadata( other._metadata )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> ( <span class="keyword">int</span> i = <span class="number">0</span>; i &lt; _metadata.getSize(); ++i )</span><br><span class="line">        &#123;</span><br><span class="line">            _p_vals[ i ] = other._p_vals[ i ];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ~ArrayWrapper ()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">delete</span> [] _p_vals;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">int</span> *_p_vals;</span><br><span class="line">    MetaData _metadata;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>有效吗？看起来很自然，在ArrayWrapper的移动构造函数中调用MetaData的移动构造函数，难道不是吗？问题是确实不起作用。原因很简单：在移动构造函数中，<code>other</code>的值是一个右值引用。但事实上，右值引用并不是一个右值，它是一个左值，因此调用的是拷贝构造函数而不是移动构造函数。这很奇怪。我了解这让人迷惑。可以用这里的方法来思考。右值是创建了一个即将销毁的对象的表达式。它已到达了生命的最后时刻，或者说它即将完成自己的人生目标。突然，我们把这个临时对象传递给了一个移动构造函数，它在新的作用域内获得了新生。在对右值表达式求值的语境中，临时对象真正地结束了一切。但是在我们的构造函数中，这个对象有了一个名字；它会在我们这个函数的整个期间一直生存。换句话说，我们会在函数中使用变量other不止一次，并且这个临时对象有了一个定义的位置且在整个函数内真正地持久存在。从定位值的角度考虑，他确实是一个左值，我们可以在特定的地址定位到这个对象并且这个地址在整个函数调用期间都是稳定存在的。实际上，我们可以在函数内稍晚的时候继续使用它。如果调用了一个移动构造函数， 无论什么时候我们持有了一个对象的右值引用，我们可以使用这个移动后的对象（moved object），这是一个巧合！</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// move constructor</span></span><br><span class="line">ArrayWrapper (ArrayWrapper&amp;&amp; other)</span><br><span class="line">    : _p_vals( other._p_vals  )</span><br><span class="line">    , _metadata( other._metadata )</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// if _metadata( other._metadata ) calls the move constructor, using </span></span><br><span class="line">    <span class="comment">// other._metadata here would be extremely dangerous!</span></span><br><span class="line">    other._p_vals = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后总结一下，左值和右值引用都是左值表达式。区别在于左值引用必须是const才能引用一个右值，但是右值引用总是可以对引用一个右值。这就像是一个指针和它指向的内容之间的区别。被指向的内容来自右值，但当我们使用右值引用本身时，会得到一个左值。</p>
+<h3 id="std-move"><a href="#std-move" class="headerlink" title="std::move"></a>std::move</h3><p>所以该使用什么技巧来应对这种问题呢？我们需要用到<code>&lt;utility&gt;</code>中的<code>std::move</code>。使用<code>std::move</code>意味着你可以说：“OK，我发誓我知道我有的是一个左值，但是我却希望它变成一个右值”。<code>std::move</code>本身不会移动任何东西；他只是把一个左值编程右值，因此你可以调用移动构造函数。我们的代码会是这样：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;utility&gt; // for std::move</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// move constructor</span></span><br><span class="line">ArrayWrapper (ArrayWrapper&amp;&amp; other)</span><br><span class="line">    : _p_vals( other._p_vals  )</span><br><span class="line">    , _metadata( <span class="built_in">std</span>::<span class="built_in">move</span>( other._metadata ) )</span><br><span class="line">&#123;</span><br><span class="line">    other._p_vals = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后当然我们还要回到<code>MetaData</code>的移动构造函数，对它持有的<code>string</code>也使用<code>std::move</code>：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MetaData (MetaData&amp;&amp; other)</span><br><span class="line">    : _name( <span class="built_in">std</span>::<span class="built_in">move</span>( other._name ) ) <span class="comment">// oh, blissful efficiency</span></span><br><span class="line">    : _size( other._size )</span><br><span class="line">&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="移动赋值运算符"><a href="#移动赋值运算符" class="headerlink" title="移动赋值运算符"></a>移动赋值运算符</h3><p>就像我们有的移动构造函数一样，我们也应该有一个移动赋值运算符。你可以使用与创建移动构造函数同样的技术来很容易地写出来。</p>
+<h3 id="移动构造函数和隐式生成的构造函数"><a href="#移动构造函数和隐式生成的构造函数" class="headerlink" title="移动构造函数和隐式生成的构造函数"></a>移动构造函数和隐式生成的构造函数</h3><p>如你所知，在C++中，当你声明了任何的构造函数，编译器就不会为你生成默认的构造函数。在这里仍是这样，如果为一个类增加了移动构造函数，那么就需要你声明和定义你的默认构造函数。另一方面，声明了移动构造函数不会避免编译器提供一个隐式生成的拷贝构造函数，以及声明了移动赋值运算符不会禁止标准赋值运算符的创建。</p>
+<h3 id="std-move如何运作"><a href="#std-move如何运作" class="headerlink" title="std::move如何运作"></a>std::move如何运作</h3><p>你可能会疑惑，如何写出一个像<code>std::move</code>这样的函数？如何才能拥有这种把一个左值转化成右值引用的魔力？可能你已经猜到了，答案就是类型转换（typecasting）。实际的<code>std::move</code>的声明可能涉及到非常多的东西，但是其核心内容就是一个转换为右值引用的<code>static_cast</code>。这表示事实上你可以完全不需要使用move——但是你应该使用，因为这样可以更清楚表明你的意图。也正因如此，需要一次类型转换是一件很好的事情。这表明你不能偶然地将一个左值转化成为一个右值，那样的话可能会很危险，因为可能会有偶然的move发生。你必须显式地使用<code>std::move</code>或一个cast来左值转化为一个右值引用，并且右值引用不会再自己绑定到左值。</p>
+<h2 id="使用函数返回一个显式的右值引用"><a href="#使用函数返回一个显式的右值引用" class="headerlink" title="使用函数返回一个显式的右值引用"></a>使用函数返回一个显式的右值引用</h2><p>是否会有时候你应该让函数返回一个右值引用？无论如何返回一个右值引用是什么意思？如果对象是右值函数难道不是应该返回对象的值？</p>
+<p>我们先来回答第二个问题：返回一个显式的右值引用与返回一个对象的值是不同的。来看看下边的例子：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> x;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getInt</span> <span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> &amp;&amp; <span class="title">getRvalueInt</span> <span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// notice that it's fine to move a primitive type--remember, std::move is just a cast</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">std</span>::<span class="built_in">move</span>( x );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在第一个函数中，很清晰地看到，尽管<code>getInt()</code>是一个右值，还是会对变量<code>x</code>进行复制。我们可以通过写这样一个帮助函数来查看：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">printAddress</span> <span class="params">(<span class="keyword">const</span> <span class="keyword">int</span>&amp; v)</span> <span class="comment">// const ref to allow binding to rvalues</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">cout</span> &lt;&lt; <span class="keyword">reinterpret_cast</span>&lt;<span class="keyword">const</span> <span class="keyword">void</span>*&gt;( &amp; v ) &lt;&lt; <span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">printAddress( getInt() ); </span><br><span class="line">printAddress( x );</span><br></pre></td></tr></table></figure>
+
+<p>运行这段程序，你会看到显示两个不同的值。</p>
+<p>另一个情况，</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">printAddress( getRvalueInt() ); </span><br><span class="line">printAddress( x );</span><br></pre></td></tr></table></figure>
+
+<p>会显示相同的值，因为我们显式地返回了右值引用。</p>
+<p>因此返回右值引用与不返回右值引用是不同的，但是这一不同会在你返回一个之前存在的对象而不是函数中创建的临时对象时（此时编译器可能会为你消除掉一次复制）更加清楚显现。</p>
+<p>现在讨论你是否需要这样的做的问题。答案是：很可能不需要。绝大多数情况下，这样做更可能会产生一个悬挂的引用（引用存在，但其引用的临时对象已经被销毁的情况）。这个问题与返回了左值引用但其引用的对象已不存在的危险很相似。右值引用不能很神奇地为你保留一个对象存在。返回一个右值引用很可能在很少的情况下有意义，当你有一个成员函数并且需要在该函数中返回对该类的一个字段调用<code>std::move</code>的结果时——有多大的可能性你会做这些？</p>
+<h2 id="移动语义和标准库"><a href="#移动语义和标准库" class="headerlink" title="移动语义和标准库"></a>移动语义和标准库</h2><p>回到我们最初的例子——我们使用的是一个<code>vector</code>，并且我们无法控制<code>vector</code>类是否有一个移动构造函数或移动赋值运算符。幸运的是，标准委员会是很聪明的，在标准库中已经加入了移动语义。这表示你现在可以充分利用移动语义的优势，高效地返回<code>vector</code>，<code>map</code>， <code>string</code>以及其他任何的标准库对象。</p>
+<h3 id="STL容器中的可移动对象"><a href="#STL容器中的可移动对象" class="headerlink" title="STL容器中的可移动对象"></a>STL容器中的可移动对象</h3><p>事实上，标准库更加前进了一步。如果你在自己的对象中通过创建移动赋值运算符和移动构造函数来开启了移动语义，当你向一个容器中存储这些对象时，STL会自动使用<code>std::move</code>，自动利用可移动类的优势来消除低效的复制。</p>
+<h2 id="移动语义和右值引用的编译器支持"><a href="#移动语义和右值引用的编译器支持" class="headerlink" title="移动语义和右值引用的编译器支持"></a>移动语义和右值引用的编译器支持</h2><p>右值引用被GCC，Intel编译器和MSVC支持。</p>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="http://www.cprogramming.com/c++11/rvalue-references-and-move-semantics-in-c++11.html" target="_blank" rel="noopener">http://www.cprogramming.com/c++11/rvalue-references-and-move-semantics-in-c++11.html</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C-43-43/" rel="tag"># C&#43;&#43;</a>
+              <a href="/tags/TRANSLATION/" rel="tag"># TRANSLATION</a>
+              <a href="/tags/move/" rel="tag"># move</a>
+              <a href="/tags/rvalue/" rel="tag"># rvalue</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2017-10-06-cpp-std-function/" rel="prev" title="C++中的std::function">
+      <i class="fa fa-chevron-left"></i> C++中的std::function
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2017-10-13-cpp-notes-02/" rel="next" title="C++笔记（二）">
+      C++笔记（二） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#右值和左值——是冤家对头，还是好朋友？"><span class="nav-number">1.</span> <span class="nav-text">右值和左值——是冤家对头，还是好朋友？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用右值引用来检测临时对象"><span class="nav-number">2.</span> <span class="nav-text">使用右值引用来检测临时对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#移动构造函数和移动赋值运算符"><span class="nav-number">3.</span> <span class="nav-text">移动构造函数和移动赋值运算符</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#std-move"><span class="nav-number">3.1.</span> <span class="nav-text">std::move</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移动赋值运算符"><span class="nav-number">3.2.</span> <span class="nav-text">移动赋值运算符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#移动构造函数和隐式生成的构造函数"><span class="nav-number">3.3.</span> <span class="nav-text">移动构造函数和隐式生成的构造函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#std-move如何运作"><span class="nav-number">3.4.</span> <span class="nav-text">std::move如何运作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用函数返回一个显式的右值引用"><span class="nav-number">4.</span> <span class="nav-text">使用函数返回一个显式的右值引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#移动语义和标准库"><span class="nav-number">5.</span> <span class="nav-text">移动语义和标准库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#STL容器中的可移动对象"><span class="nav-number">5.1.</span> <span class="nav-text">STL容器中的可移动对象</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#移动语义和右值引用的编译器支持"><span class="nav-number">6.</span> <span class="nav-text">移动语义和右值引用的编译器支持</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">7.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '47d89b695121107954bed37ce5831e97',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

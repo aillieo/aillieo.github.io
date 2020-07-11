@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"aillieo.cn","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"appID":"EM0NG1L32X","apiKey":"862c62ca101f920300ddfebb30fcba33","indexName":"aillieo-collection","hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Unity Shader基础知识的学习记录，整理了一些Unity内置的变量、函数及常用的语义，HLSL的内置函数，便于快速查阅。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unity Shader基础（二）">
+<meta property="og:url" content="http://aillieo.cn/post/2018-02-27-unity-3d-shader-basics-02/index.html">
+<meta property="og:site_name" content="Aillieo Collection">
+<meta property="og:description" content="Unity Shader基础知识的学习记录，整理了一些Unity内置的变量、函数及常用的语义，HLSL的内置函数，便于快速查阅。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-27T10:11:09.000Z">
+<meta property="article:modified_time" content="2020-07-09T16:06:33.057Z">
+<meta property="article:author" content="Aillieo">
+<meta property="article:tag" content="Unity3D">
+<meta property="article:tag" content="shader">
+<meta property="article:tag" content="pass">
+<meta property="article:tag" content="着色器">
+<meta property="article:tag" content="unity">
+<meta property="article:tag" content="cg">
+<meta property="article:tag" content="cginc">
+<meta property="article:tag" content="语义">
+<meta property="article:tag" content="semantics">
+<meta property="article:tag" content="matrix">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://aillieo.cn/post/2018-02-27-unity-3d-shader-basics-02/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Unity Shader基础（二） | Aillieo Collection</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Aillieo Collection</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">SUBTITLE</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container"></div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="algolia-results">
+  <div id="algolia-stats"></div>
+  <div id="algolia-hits"></div>
+  <div id="algolia-pagination" class="algolia-pagination"></div>
+</div>
+
+      
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://aillieo.cn/post/2018-02-27-unity-3d-shader-basics-02/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Aillieo">
+      <meta itemprop="description" content="PROGRAMMING | GAMES | DESIGN">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Aillieo Collection">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unity Shader基础（二）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-27 18:11:09" itemprop="dateCreated datePublished" datetime="2018-02-27T18:11:09+08:00">2018-02-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-07-10 00:06:33" itemprop="dateModified" datetime="2020-07-10T00:06:33+08:00">2020-07-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/" itemprop="url" rel="index"><span itemprop="name">Unity3D</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Unity3D/ShaderLab/" itemprop="url" rel="index"><span itemprop="name">ShaderLab</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Unity Shader基础知识的学习记录，整理了一些Unity内置的变量、函数及常用的语义，HLSL的内置函数，便于快速查阅。</p>
+<a id="more"></a>
+
+<h2 id="数据类型对应关系"><a href="#数据类型对应关系" class="headerlink" title="数据类型对应关系"></a>数据类型对应关系</h2><p>ShaderLab中的属性类型和CG中变量的类型之间的匹配关系如下表：</p>
+<table>
+<thead>
+<tr>
+<th>ShaderLab属性类型</th>
+<th>CG变量类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Color, Vector</td>
+<td>float4, half4, fixed4</td>
+</tr>
+<tr>
+<td>Range, Float</td>
+<td>float, half, fixed</td>
+</tr>
+<tr>
+<td>2D</td>
+<td>sampler2D</td>
+</tr>
+<tr>
+<td>Cube</td>
+<td>samplerCube</td>
+</tr>
+<tr>
+<td>3D</td>
+<td>sampler3D</td>
+</tr>
+</tbody></table>
+<h2 id="Unity内置变量"><a href="#Unity内置变量" class="headerlink" title="Unity内置变量"></a>Unity内置变量</h2><h3 id="变换矩阵"><a href="#变换矩阵" class="headerlink" title="变换矩阵"></a>变换矩阵</h3><p>Unity内置的变换矩阵（float4x4）：</p>
+<table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UNITY_MATRIX_MVP</td>
+<td>当前的MVP矩阵，用于将顶点/方向矢量从模型空间变换到裁剪空间</td>
+</tr>
+<tr>
+<td>UNITY_MATRIX_MV</td>
+<td>当前的MV矩阵，用于将顶点/方向矢量从模型空间变换到观察空间</td>
+</tr>
+<tr>
+<td>UNITY_MATRIX_V</td>
+<td>当前的V矩阵，用于将顶点/方向矢量从世界空间变换到观察空间</td>
+</tr>
+<tr>
+<td>UNITY_MATRIX_P</td>
+<td>当前的P矩阵，用于将顶点/方向矢量从观察空间变换到裁剪空间</td>
+</tr>
+<tr>
+<td>UNITY_MATRIX_VP</td>
+<td>当前的VP矩阵，用于将顶点/方向矢量从世界空间变换到裁剪空间</td>
+</tr>
+<tr>
+<td>UNITY_MATRIX_T_MV</td>
+<td>UNITY_MATRIX_MV的转置矩阵，若UNITY_MATRIX_VP为单位正交矩阵，则其转置矩阵就是其逆矩阵</td>
+</tr>
+<tr>
+<td>UNITY_MATRIX_IT_MV</td>
+<td>UNITY_MATRIX_MV的逆转置矩阵，用于将法线从模型空间变换到观察空间，也可以用于得到UNITY_MATRIX_MV的逆矩阵</td>
+</tr>
+<tr>
+<td>_Object2World</td>
+<td>当前的模型矩阵，用于将顶点/方向矢量从模型空间变换到世界空间</td>
+</tr>
+<tr>
+<td>_World2Object</td>
+<td>_Object2World的逆矩阵，用于将顶点/方向矢量从世界空间变换到模型空间</td>
+</tr>
+</tbody></table>
+<h3 id="摄像机和屏幕参数"><a href="#摄像机和屏幕参数" class="headerlink" title="摄像机和屏幕参数"></a>摄像机和屏幕参数</h3><table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>_WorldSpaceCameraPos</td>
+<td>float3</td>
+<td>该摄像机在世界空间中的位置</td>
+</tr>
+<tr>
+<td>_ProjectionParams</td>
+<td>float4</td>
+<td>x=1.0（如正在使用一个翻转的投影矩阵进行渲染则x=-0.1），y=<code>Near</code>，z=<code>Far</code>，w=1.0+1.0/<code>Far</code>（<code>Near</code>和<code>Far</code>表示近、远裁剪平面到摄像机的距离）</td>
+</tr>
+<tr>
+<td>_ScreenParams</td>
+<td>float4</td>
+<td>x=<code>width</code>，y=<code>height</code>，z=1.0+1.0/<code>width</code>，w=1.0+1.0/<code>height</code>（<code>width</code>和<code>height</code>分别是该摄像机的渲染目标RenderTarget）的像素宽度和高度</td>
+</tr>
+<tr>
+<td>_ZBufferParams</td>
+<td>float4</td>
+<td>x=1-<code>Far</code>/<code>Near</code>，y=<code>Far</code>/<code>Near</code>，z=x/<code>Far</code>，w=y/<code>Far</code>，该变量用于线性化Z缓冲中的深度值</td>
+</tr>
+<tr>
+<td>unity_Orthoparams</td>
+<td>float4</td>
+<td>x=<code>width</code>，y=<code>height</code>，z未定义，w=1.0（如果不是正交摄像机则w=0.0）（<code>width</code>和<code>height</code>分别是该正交摄像机的像素宽度和高度</td>
+</tr>
+<tr>
+<td>unity_CameraProjection</td>
+<td>float4x4</td>
+<td>该摄像机的投影矩阵</td>
+</tr>
+<tr>
+<td>unity_CameraInvProjection</td>
+<td>float4x4</td>
+<td>该摄像机的投影矩阵的逆矩阵</td>
+</tr>
+<tr>
+<td>unity_CameraWorldClipPlanes[6]</td>
+<td>float4</td>
+<td>该摄像机的6个裁剪平面在世界空间下的方程式，按照左、右、下、上、近、远裁剪平面的顺序</td>
+</tr>
+</tbody></table>
+<h3 id="常用的包含文件"><a href="#常用的包含文件" class="headerlink" title="常用的包含文件"></a>常用的包含文件</h3><table>
+<thead>
+<tr>
+<th>文件名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UnityCG.cginc</td>
+<td>包含了最常使用的版主函数、宏和结构体等</td>
+</tr>
+<tr>
+<td>UnityShaderVariables.cginc</td>
+<td>在编译Unity Shader时，会被自动包含进来。它包含了许多内置的全局变量，如UNITY_MATRIX_MVP等</td>
+</tr>
+<tr>
+<td>Lighting.cginc</td>
+<td>包含了各种内置的光照模型，如果编写的是Surface Shader则会自动包含进来</td>
+</tr>
+<tr>
+<td>HLSLSupport.cginc</td>
+<td>在编译Unity Shader时，会被自动包含进来，声明了很多用于跨平台编译的宏和定义</td>
+</tr>
+</tbody></table>
+<p>除此之外还有一些<code>UnityStandardBRDF.cginc</code>、<code>UnityStandardCore.cginc</code>等用于实现基于物理的渲染。</p>
+<h3 id="常用的结构体"><a href="#常用的结构体" class="headerlink" title="常用的结构体"></a>常用的结构体</h3><p>以下是<code>UnityCG.cginc</code>中包含的一些常用的结构体：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+<th>包含的变量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>appdata_base</td>
+<td>可用于顶点着色器的输入</td>
+<td>顶点位置、顶点法线、第一组纹理坐标</td>
+</tr>
+<tr>
+<td>appdata_tan</td>
+<td>可用于顶点着色器的输入</td>
+<td>顶点位置、顶点切线、顶点法线、第一组纹理坐标</td>
+</tr>
+<tr>
+<td>appdata_full</td>
+<td>可用于顶点着色器的输入</td>
+<td>顶点位置、顶点切线、顶点法线、四组（或更多的）纹理坐标</td>
+</tr>
+<tr>
+<td>app data_img</td>
+<td>可用于顶点着色器的输入</td>
+<td>顶点位置、第一组纹理坐标</td>
+</tr>
+<tr>
+<td>v2f_img</td>
+<td>可用于顶点着色器的输出</td>
+<td>裁剪空间中的位置、纹理坐标</td>
+</tr>
+</tbody></table>
+<h3 id="常用的帮助函数"><a href="#常用的帮助函数" class="headerlink" title="常用的帮助函数"></a>常用的帮助函数</h3><p>以下是<code>UnityCG.cginc</code>中包含的一些常用的帮助函数：</p>
+<table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>float3 WorldSpaceViewDir(float4 v)</td>
+<td>输入一个模型空间中的顶点位置，返回世界空间中从该点到摄像机的观察方向</td>
+</tr>
+<tr>
+<td>float3 ObjSpaceViewDir(float4 v)</td>
+<td>输入一个模型空间中的顶点位置，返回模型空间中从该点到摄像机的观察方向</td>
+</tr>
+<tr>
+<td>float3 WorldSpaceLightDir(float4 v)</td>
+<td>仅可用于向前渲染中。输入一个模型空间中的顶点位置，返回世界空间中从该点到光源的光照方向。没有被归一化</td>
+</tr>
+<tr>
+<td>float3 ObjSpaceLightDir(float4 v)</td>
+<td>仅可用于向前渲染中。输入一个模型空间中的顶点位置，返回模型空间中从该点到光源的光照方向。没有被归一化</td>
+</tr>
+<tr>
+<td>float3 UnityObjectToWorldNormal(float3 norm)</td>
+<td>把法线方向从模型空间变换到世界空间中</td>
+</tr>
+<tr>
+<td>float3 UnityObjectToWorldDir(in float3 dir)</td>
+<td>把方向矢量从模型空间变换到世界空间中</td>
+</tr>
+<tr>
+<td>float3 UnityWorldToObjectDir(float3 dir)</td>
+<td>把方向矢量从世界空间变换到模型空间中</td>
+</tr>
+</tbody></table>
+<h2 id="常用语义"><a href="#常用语义" class="headerlink" title="常用语义"></a>常用语义</h2><p>语义其实是CG/HLSL定义的赋给Shader输入和输出的字符串，用于表达这个参数的含义，告知Shader从哪里读取数据及把数据输出到哪里。</p>
+<h3 id="应用阶段至顶点着色器"><a href="#应用阶段至顶点着色器" class="headerlink" title="应用阶段至顶点着色器"></a>应用阶段至顶点着色器</h3><table>
+<thead>
+<tr>
+<th>语义</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>POSITION</td>
+<td>模型空间中的顶点位置，通常是float4类型</td>
+</tr>
+<tr>
+<td>NORMAL</td>
+<td>顶点法线，通常是float3类型</td>
+</tr>
+<tr>
+<td>TANGENT</td>
+<td>顶点切线，通常是float4类型</td>
+</tr>
+<tr>
+<td>TEXCOORDn</td>
+<td>该顶点的纹理坐标，TEXCOORD0表示第一组纹理坐标，依次类推。通常是float2或float4类型</td>
+</tr>
+<tr>
+<td>COLOR</td>
+<td>顶点颜色，通常是fixed4或float4类型</td>
+</tr>
+</tbody></table>
+<h3 id="顶点着色器至片元着色器"><a href="#顶点着色器至片元着色器" class="headerlink" title="顶点着色器至片元着色器"></a>顶点着色器至片元着色器</h3><table>
+<thead>
+<tr>
+<th>语义</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SV_POSITION</td>
+<td>裁剪空间中的顶点坐标，结构体中必须包含一个用该语义修饰的变量</td>
+</tr>
+<tr>
+<td>COLOR0</td>
+<td>通常用于输出第一组顶点颜色，不是必需的</td>
+</tr>
+<tr>
+<td>COLOR1</td>
+<td>通常用于输出第二组顶点颜色，不是必需的</td>
+</tr>
+<tr>
+<td>TEXCOORD0~TEXCOORD7</td>
+<td>通常用于输出纹理坐标，不是必须的</td>
+</tr>
+</tbody></table>
+<h3 id="片元着色器输出"><a href="#片元着色器输出" class="headerlink" title="片元着色器输出"></a>片元着色器输出</h3><table>
+<thead>
+<tr>
+<th>语义</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SV_Target</td>
+<td>输出值将会存储到渲染目标RenderTarget中</td>
+</tr>
+</tbody></table>
+<h2 id="HLSL常用内置函数"><a href="#HLSL常用内置函数" class="headerlink" title="HLSL常用内置函数"></a>HLSL常用内置函数</h2><p>以下整理了一些常用的HLSL内置函数（Intrinsic Functions）：</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>语法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>abs</td>
+<td>abs(x)</td>
+<td>绝对值</td>
+</tr>
+<tr>
+<td>acos</td>
+<td>acos(x)</td>
+<td>反余弦</td>
+</tr>
+<tr>
+<td>all</td>
+<td>all(x)</td>
+<td>测试是否全部非0值</td>
+</tr>
+<tr>
+<td>any</td>
+<td>any(x)</td>
+<td>测试是否含有非0值</td>
+</tr>
+<tr>
+<td>asin</td>
+<td>asin(x)</td>
+<td>反正弦</td>
+</tr>
+<tr>
+<td>atan</td>
+<td>atan(x)</td>
+<td>反正切</td>
+</tr>
+<tr>
+<td>atan2</td>
+<td>atan2(y, x)</td>
+<td>计算y/x的反正切值</td>
+</tr>
+<tr>
+<td>ceil</td>
+<td>ceil(x)</td>
+<td>向上取整</td>
+</tr>
+<tr>
+<td>clamp</td>
+<td>clamp(x, min, max)</td>
+<td>将x限制在[min, max]范围内</td>
+</tr>
+<tr>
+<td>clip</td>
+<td>clip(x)</td>
+<td>如果有任意元素小于0则丢弃当前片元</td>
+</tr>
+<tr>
+<td>cos</td>
+<td>cos(x)</td>
+<td>余弦值</td>
+</tr>
+<tr>
+<td>cosh</td>
+<td>cosh(x)</td>
+<td>双曲余弦值</td>
+</tr>
+<tr>
+<td>cross</td>
+<td>cross(x, y)</td>
+<td>质量叉乘积</td>
+</tr>
+<tr>
+<td>ddx</td>
+<td>ddx(x)</td>
+<td>Returns the partial derivative of x with respect to the screen-space x-coordinate.</td>
+</tr>
+<tr>
+<td>ddy</td>
+<td>ddy(x)</td>
+<td>Returns the partial derivative of x with respect to the screen-space y-coordinate.</td>
+</tr>
+<tr>
+<td>degrees</td>
+<td>degrees(x)</td>
+<td>弧度值转为角度值</td>
+</tr>
+<tr>
+<td>determinant</td>
+<td>determinant(m)</td>
+<td>返回矩阵（方阵）m的值</td>
+</tr>
+<tr>
+<td>distance</td>
+<td>distance(x, y)</td>
+<td>返回两点距离</td>
+</tr>
+<tr>
+<td>dot</td>
+<td>dot(x, y)</td>
+<td>矢量点乘积</td>
+</tr>
+<tr>
+<td>exp</td>
+<td>exp(x)</td>
+<td>e为底x为指数的值</td>
+</tr>
+<tr>
+<td>exp2</td>
+<td>exp2(x)</td>
+<td>2为底x为指数的值</td>
+</tr>
+<tr>
+<td>faceforward</td>
+<td>faceforward(n, i, ng)</td>
+<td>Returns -n * sign(dot(i, ng))</td>
+</tr>
+<tr>
+<td>floor</td>
+<td>floor(x)</td>
+<td>向下取整</td>
+</tr>
+<tr>
+<td>fmod</td>
+<td>fmod(x, y)</td>
+<td>返回x/y的浮点余数</td>
+</tr>
+<tr>
+<td>frac</td>
+<td>frac(x)</td>
+<td>返回x的小数部分</td>
+</tr>
+<tr>
+<td>fwidth</td>
+<td>fwidth(x)</td>
+<td>Returns abs(ddx(x)) + abs(ddy(x))</td>
+</tr>
+<tr>
+<td>isfinite</td>
+<td>isfinite(x)</td>
+<td>x是否为有限值</td>
+</tr>
+<tr>
+<td>isinf</td>
+<td>isinf(x)</td>
+<td>x是否为无限</td>
+</tr>
+<tr>
+<td>isnan</td>
+<td>isnan(x)</td>
+<td>如果x是NAN或QNAN则返回true否则false</td>
+</tr>
+<tr>
+<td>length</td>
+<td>length(v)</td>
+<td>返回矢量长度</td>
+</tr>
+<tr>
+<td>lerp</td>
+<td>lerp(x, y, s)</td>
+<td>插值，返回 x + s(y - x).</td>
+</tr>
+<tr>
+<td>lit</td>
+<td>lit(n • l, n • h, m)</td>
+<td>返回光照矢量(ambient, diffuse, specular, 1)</td>
+</tr>
+<tr>
+<td>log</td>
+<td>log(x)</td>
+<td>返回e为底x的对数</td>
+</tr>
+<tr>
+<td>log10</td>
+<td>log10(x)</td>
+<td>返回10为底x的对数</td>
+</tr>
+<tr>
+<td>log2</td>
+<td>log2(x)</td>
+<td>返回2为底x的对数</td>
+</tr>
+<tr>
+<td>max</td>
+<td>max(x, y)</td>
+<td>较大值</td>
+</tr>
+<tr>
+<td>min</td>
+<td>min(x, y)</td>
+<td>较小值</td>
+</tr>
+<tr>
+<td>modf</td>
+<td>modf(x, out ip)</td>
+<td>将x分为整数和小数部分</td>
+</tr>
+<tr>
+<td>mul</td>
+<td>mul(x, y)</td>
+<td>矩阵乘法</td>
+</tr>
+<tr>
+<td>noise</td>
+<td>noise(x)</td>
+<td>使用Perlin-noise algorithm产生一个随机值</td>
+</tr>
+<tr>
+<td>normalize</td>
+<td>normalize(x)</td>
+<td>正交化</td>
+</tr>
+<tr>
+<td>pow</td>
+<td>pow(x, y)</td>
+<td>x的y次幂</td>
+</tr>
+<tr>
+<td>radians</td>
+<td>radians(x)</td>
+<td>角度转弧度</td>
+</tr>
+<tr>
+<td>reflect</td>
+<td>reflect(i, n)</td>
+<td>返回反射矢量</td>
+</tr>
+<tr>
+<td>refract</td>
+<td>refract(i, n, R)</td>
+<td>返回折射矢量</td>
+</tr>
+<tr>
+<td>round</td>
+<td>round(x)</td>
+<td>取最近的整数</td>
+</tr>
+<tr>
+<td>rsqrt</td>
+<td>rsqrt(x)</td>
+<td>返回 1 / sqrt(x)</td>
+</tr>
+<tr>
+<td>saturate</td>
+<td>saturate(x)</td>
+<td>截取x到[0, 1]范围内</td>
+</tr>
+<tr>
+<td>sign</td>
+<td>sign(x)</td>
+<td>返回x的符号</td>
+</tr>
+<tr>
+<td>sin</td>
+<td>sin(x)</td>
+<td>正弦值</td>
+</tr>
+<tr>
+<td>sincos</td>
+<td>sincos(x, out s, out c)</td>
+<td>得到x的正弦值和余弦值</td>
+</tr>
+<tr>
+<td>sinh</td>
+<td>sinh(x)</td>
+<td>双曲正弦值</td>
+</tr>
+<tr>
+<td>smoothstep</td>
+<td>smoothstep(min, max, x)</td>
+<td>Returns a smooth Hermite interpolation between 0 and 1.</td>
+</tr>
+<tr>
+<td>sqrt</td>
+<td>sqrt(x)</td>
+<td>平方根</td>
+</tr>
+<tr>
+<td>step</td>
+<td>step(a, x)</td>
+<td>Returns (x &gt;= a) ? 1 : 0</td>
+</tr>
+<tr>
+<td>tan</td>
+<td>tan(x)</td>
+<td>正切值</td>
+</tr>
+<tr>
+<td>tanh</td>
+<td>tanh(x)</td>
+<td>双曲正切值</td>
+</tr>
+<tr>
+<td>tex1D</td>
+<td>tex1D(s, t)</td>
+<td>1D纹理查询</td>
+</tr>
+<tr>
+<td>tex2D</td>
+<td>tex2D(s, t)</td>
+<td>2D纹理查询</td>
+</tr>
+<tr>
+<td>tex3D</td>
+<td>tex3D(s, t)</td>
+<td>3D纹理查询</td>
+</tr>
+<tr>
+<td>texCUBE</td>
+<td>texCUBE(s, t)</td>
+<td>Cube纹理查询</td>
+</tr>
+<tr>
+<td>transpose</td>
+<td>transpose(m)</td>
+<td>返回m的转置</td>
+</tr>
+<tr>
+<td>trunc</td>
+<td>trunc(x)</td>
+<td>将浮点数截取为整数</td>
+</tr>
+</tbody></table>
+<h2 id="REFERENCE"><a href="#REFERENCE" class="headerlink" title="REFERENCE"></a>REFERENCE</h2><p><a href="https://book.douban.com/subject/26821639/" target="_blank" rel="noopener">《Unity Shader入门精要》</a></p>
+<p><a href="https://msdn.microsoft.com/en-us/library/ff471376.aspx" target="_blank" rel="noopener">https://msdn.microsoft.com/en-us/library/ff471376.aspx</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unity3D/" rel="tag"># Unity3D</a>
+              <a href="/tags/shader/" rel="tag"># shader</a>
+              <a href="/tags/ShaderLab/" rel="tag"># ShaderLab</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/post/2018-02-26-unity-3d-shader-basics-01/" rel="prev" title="Unity Shader基础（一）">
+      <i class="fa fa-chevron-left"></i> Unity Shader基础（一）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/post/2018-03-03-unity-3d-jenkins-apk/" rel="next" title="Unity3D使用Jenkins自动构建apk">
+      Unity3D使用Jenkins自动构建apk <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据类型对应关系"><span class="nav-number">1.</span> <span class="nav-text">数据类型对应关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Unity内置变量"><span class="nav-number">2.</span> <span class="nav-text">Unity内置变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#变换矩阵"><span class="nav-number">2.1.</span> <span class="nav-text">变换矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#摄像机和屏幕参数"><span class="nav-number">2.2.</span> <span class="nav-text">摄像机和屏幕参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用的包含文件"><span class="nav-number">2.3.</span> <span class="nav-text">常用的包含文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用的结构体"><span class="nav-number">2.4.</span> <span class="nav-text">常用的结构体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常用的帮助函数"><span class="nav-number">2.5.</span> <span class="nav-text">常用的帮助函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用语义"><span class="nav-number">3.</span> <span class="nav-text">常用语义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#应用阶段至顶点着色器"><span class="nav-number">3.1.</span> <span class="nav-text">应用阶段至顶点着色器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#顶点着色器至片元着色器"><span class="nav-number">3.2.</span> <span class="nav-text">顶点着色器至片元着色器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#片元着色器输出"><span class="nav-number">3.3.</span> <span class="nav-text">片元着色器输出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HLSL常用内置函数"><span class="nav-number">4.</span> <span class="nav-text">HLSL常用内置函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#REFERENCE"><span class="nav-number">5.</span> <span class="nav-text">REFERENCE</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Aillieo</p>
+  <div class="site-description" itemprop="description">PROGRAMMING | GAMES | DESIGN</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">94</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">111</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Aillieo</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="//cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+<script src="//cdn.jsdelivr.net/npm/instantsearch.js@4/dist/instantsearch.production.min.js"></script>
+<script src="/js/algolia-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'd4356b728d7738b0b7c9',
+      clientSecret: '5258ccaf1be51bbe4467ac2c996d54b32602d41e',
+      repo        : 'https://github.com/aillieo/aillieo.github.io',
+      owner       : 'aillieo',
+      admin       : [''],
+      id          : '7c085bacff1a286719af4564bf60fe8a',
+        language: '',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
